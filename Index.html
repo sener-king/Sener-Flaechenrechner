@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sener Winkelmessung</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #121212;
+            color: #ffffff;
+            line-height: 1.6;
+        }
+        .container {
+            max-width: 520px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: #1e1e1e;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+        }
+        h1 {
+            text-align: center;
+            color: #ffffff;
+            font-size: 1.5em;
+            margin-top: 0;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #007bff;
+        }
+        .section {
+            background-color: #252525;
+            padding: 16px;
+            margin-top: 20px;
+            border-radius: 8px;
+            box-shadow: inset 0 0 6px rgba(0,0,0,0.3);
+        }
+        label {
+            display: block;
+            margin-top: 12px;
+            font-weight: bold;
+            color: #cccccc;
+            font-size: 0.95em;
+        }
+        input[type="number"], select {
+            width: 100%;
+            padding: 12px;
+            margin-top: 6px;
+            background-color: #333333;
+            color: #ffffff;
+            border: 1px solid #555555;
+            border-radius: 6px;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+        button {
+            width: 100%;
+            padding: 14px;
+            margin-top: 16px;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        button:hover {
+            background-color: #218838;
+        }
+        .button-secondary {
+            background-color: #6c757d;
+            margin-top: 10px;
+        }
+        .button-secondary:hover {
+            background-color: #5a6268;
+        }
+        .result {
+            margin-top: 25px;
+            padding: 16px;
+            background-color: #252525;
+            border-radius: 8px;
+            border-left: 4px solid #28a745;
+            display: none;
+        }
+        .result h3 {
+            margin: 0 0 12px 0;
+            color: #28a745;
+            font-size: 1.2em;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .result-item {
+            margin: 10px 0;
+            padding: 10px;
+            background-color: #1e1e1e;
+            border-radius: 6px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .result-label {
+            font-size: 0.95em;
+            color: #aaaaaa;
+        }
+        .result-value-large {
+            font-size: 2em;
+            font-weight: bold;
+            color: #ffffff;
+        }
+        .result-value-small {
+            font-size: 0.9em;
+            color: #ff5555;
+        }
+        .info {
+            font-size: 0.85em;
+            color: #888888;
+            text-align: center;
+            margin-top: 10px;
+        }
+        .icon {
+            font-size: 1.2em;
+        }
+
+        /* ========== POPUP ========== */
+        .popup {
+            display: none;
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0,0,0,0.95);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        .popup-content {
+            background: #1e1e1e;
+            width: 95%;
+            max-width: 520px;
+            max-height: 90vh;
+            border-radius: 12px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 0 20px rgba(0,0,0,0.8);
+        }
+        .popup-header {
+            padding: 16px;
+            background: #28a745;
+            color: white;
+            font-weight: bold;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 1.2em;
+        }
+        .popup-body {
+            flex: 1;
+            overflow-y: auto;
+            padding: 0;
+        }
+        .history-list {
+            padding: 0;
+            margin: 0;
+        }
+        .history-item {
+            padding: 14px 16px;
+            border-bottom: 1px solid #333;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 1em;
+        }
+        .history-item:last-child {
+            border-bottom: none;
+        }
+        .history-info {
+            flex: 1;
+            cursor: pointer;
+        }
+        .history-info:hover {
+            background: rgba(255,255,255,0.05);
+            border-radius: 6px;
+            padding: 4px;
+            margin: -4px;
+        }
+        .history-time {
+            font-size: 0.85em;
+            color: #aaa;
+            margin-top: 4px;
+        }
+        .history-input {
+            font-size: 0.9em;
+            color: #888;
+            margin-top: 2px;
+        }
+        .history-delete {
+            background: none;
+            border: none;
+            color: #ff5555;
+            font-size: 1.5em;
+            cursor: pointer;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+        }
+        .history-delete:hover {
+            background-color: #333;
+        }
+        .empty-history {
+            padding: 30px;
+            text-align: center;
+            color: #888;
+        }
+        .close-btn {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.8em;
+            cursor: pointer;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .close-btn:hover {
+            background: rgba(255,255,255,0.2);
+            border-radius: 50%;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Sener Winkelmessung</h1>
+
+    <div class="section">
+        <label for="istMasse">🪙 Gemessene gesamt masse in mm</label>
+        <input type="number" id="istMasse" placeholder="z.B. 4500" value="" inputmode="numeric">
+
+        <label for="bereich">🏗️ Bereich:</label>
+        <select id="bereich">
+            <option value="metallbau" selected>Metallbau (grob)</option>
+            <option value="wohnungsbau">Wohnungsbau (mittel)</option>
+            <option value="agrar">Agrar & Feinbau (genau)</option>
+        </select>
+
+        <button onclick="berechneMassen()">
+            <span class="icon">📐</span> Berechnen
+        </button>
+        <button onclick="zeige3erReihe()" class="button-secondary">
+            <span class="icon">🧮</span> 3er-Reihe anzeigen
+        </button>
+        <button onclick="oeffneHistorie()" class="button-secondary">
+            🕒 Historie anzeigen
+        </button>
+        <p class="info">Metallbau: Max. A = 6900 mm, nie exakt passender Wert</p>
+    </div>
+
+    <div id="ergebnis" class="result">
+        <h3><span class="icon">✅</span> Absteck-Maße</h3>
+        <div class="result-item">
+            <div style="text-align: center;">
+                <div class="result-value-large" id="masseA">-</div>
+                <div style="font-size: 0.8em; color: #aaa;">Kathete A<br>(<span id="multiplier">?</span> × 3)</div>
+                <div class="result-value-small" id="masseA_m">-</div>
+            </div>
+        </div>
+        <div class="result-item">
+            <span class="result-label">Kathete B<br>(4er-Seite)</span>
+            <span class="result-value-small" id="masseB">-</span>
+        </div>
+        <div class="result-item">
+            <span class="result-label">Hypotenuse C<br>(5er-Seite)</span>
+            <span class="result-value-small" id="masseC">-</span>
+        </div>
+    </div>
+</div>
+
+<!-- Popup für Historie -->
+<div id="historiePopup" class="popup">
+    <div class="popup-content">
+        <div class="popup-header">
+            <span>🕒 Historie der Berechnungen</span>
+            <button class="close-btn" onclick="schliesseHistorie()">×</button>
+        </div>
+        <div class="popup-body">
+            <div class="history-list" id="historyListe">
+                <!-- Wird dynamisch gefüllt -->
+            </div>
+        </div>
+        <div style="padding: 16px; background: #1e1e1e; border-top: 1px solid #333;">
+            <button onclick="zurueckZurBerechnung()" style="width:100%; padding:12px; background-color:#28a745; color:white; border:none; border-radius:6px; font-weight:bold; font-size:16px;">
+                🔙 Zurück zur Berechnung
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Popup für 3er-Reihe -->
+<div id="popup3er" class="popup">
+    <div class="popup-content">
+        <div class="popup-header">
+            <span>🧮 3er-Multiplikatoren (n × 3)</span>
+            <button class="close-btn" onclick="schliessePopup()">×</button>
+        </div>
+        <div class="popup-body">
+            <div class="history-list" id="popupListe">
+                <!-- Wird gefüllt -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+let berechnungsHistorie = JSON.parse(localStorage.getItem('sener_historie')) || [];
+
+function berechneMassen() {
+    const rawInput = document.getElementById('istMasse').value.replace(/,/g, '.').replace(/\s/g, '');
+    const istMasse = parseFloat(rawInput);
+    const bereich = document.getElementById('bereich').value;
+    const ergebnisDiv = document.getElementById('ergebnis');
+
+    if (isNaN(istMasse) || istMasse < 300) {
+        alert("Bitte geben Sie eine gültige Ist-Masse ≥ 300 mm ein.");
+        ergebnisDiv.style.display = 'none';
+        return;
+    }
+
+    let masseA, masseB, masseC, multiplier;
+
+    if (bereich === 'metallbau') {
+        const aMax = Math.floor((istMasse - 1) / 300) * 300;
+        masseA = aMax > 6900 ? 6900 : aMax;
+        if (masseA < 300) {
+            alert("Zu klein für Metallbau.");
+            ergebnisDiv.style.display = 'none';
+            return;
+        }
+        multiplier = masseA / 3;
+        masseB = multiplier * 4;
+        masseC = multiplier * 5;
+    } else if (bereich === 'wohnungsbau') {
+        const k = Math.floor(istMasse / 3 / 50) * 50;
+        multiplier = k;
+        masseA = k * 3;
+        masseB = k * 4;
+        masseC = k * 5;
+    } else if (bereich === 'agrar') {
+        const k = Math.floor(istMasse / 3 / 10) * 10;
+        multiplier = k;
+        masseA = k * 3;
+        masseB = k * 4;
+        masseC = k * 5;
+    }
+
+    document.getElementById('masseA').textContent = masseA.toLocaleString('de-DE');
+    document.getElementById('masseA_m').textContent = (masseA / 1000).toFixed(3) + " m";
+    document.getElementById('masseB').textContent = (masseB / 1000).toFixed(3) + " m";
+    document.getElementById('masseC').textContent = (masseC / 1000).toFixed(3) + " m";
+    document.getElementById('multiplier').textContent = multiplier.toLocaleString('de-DE');
+    ergebnisDiv.style.display = 'block';
+
+    const eintrag = {
+        id: Date.now(),
+        zeit: new Date().toLocaleString('de-DE'),
+        input: istMasse,
+        bereich: bereich,
+        a: masseA,
+        b: masseB,
+        c: masseC,
+        k: multiplier
+    };
+
+    berechnungsHistorie.unshift(eintrag);
+    if (berechnungsHistorie.length > 20) berechnungsHistorie.pop();
+    localStorage.setItem('sener_historie', JSON.stringify(berechnungsHistorie));
+}
+
+function oeffneHistorie() {
+    zeigeHistorieImPopup();
+    document.getElementById('historiePopup').style.display = 'flex';
+}
+
+function zeigeHistorieImPopup() {
+    const liste = document.getElementById('historyListe');
+    if (berechnungsHistorie.length === 0) {
+        liste.innerHTML = '<div class="empty-history">Noch keine Berechnungen gespeichert.</div>';
+        return;
+    }
+
+    liste.innerHTML = '';
+    berechnungsHistorie.forEach(eintrag => {
+        const div = document.createElement('div');
+        div.className = 'history-item';
+        div.innerHTML = `
+            <div class="history-info" onclick="ladeWertAusHistorie(${eintrag.id})">
+                <div><strong>${eintrag.a.toLocaleString('de-DE')} mm</strong> (${eintrag.bereich})</div>
+                <div class="history-time">${eintrag.zeit}</div>
+                <div class="history-input">Eingabe: ${eintrag.input} mm</div>
+            </div>
+            <button class="history-delete" onclick="loescheEintrag(${eintrag.id}, event)">🗑️</button>
+        `;
+        liste.appendChild(div);
+    });
+}
+
+function loescheEintrag(id, event) {
+    if (event) event.stopPropagation();
+    berechnungsHistorie = berechnungsHistorie.filter(e => e.id !== id);
+    localStorage.setItem('sener_historie', JSON.stringify(berechnungsHistorie));
+    zeigeHistorieImPopup();
+}
+
+function ladeWertAusHistorie(id) {
+    const eintrag = berechnungsHistorie.find(e => e.id === id);
+    if (eintrag) {
+        document.getElementById('istMasse').value = eintrag.input;
+        document.getElementById('bereich').value = eintrag.bereich;
+        schliesseHistorie();
+        setTimeout(berechneMassen, 300);
+    }
+}
+
+function zurueckZurBerechnung() {
+    schliesseHistorie();
+    setTimeout(() => {
+        const input = document.getElementById('istMasse');
+        if (input) input.focus();
+    }, 300);
+}
+
+function schliesseHistorie() {
+    document.getElementById('historiePopup').style.display = 'none';
+}
+
+// ===== 3er-Reihe =====
+function zeige3erReihe() {
+    const liste = document.getElementById('popupListe');
+    liste.innerHTML = '';
+    for (let n = 1; n <= 2300; n++) {
+        const wert = n * 3;
+        const div = document.createElement('div');
+        div.className = 'history-item';
+        div.innerHTML = `<div>${n.toLocaleString('de-DE')} × 3 = ${wert.toLocaleString('de-DE')} mm</div>`;
+        liste.appendChild(div);
+    }
+    document.getElementById('popup3er').style.display = 'flex';
+}
+
+function schliessePopup() {
+    document.getElementById('popup3er').style.display = 'none';
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    berechnungsHistorie = JSON.parse(localStorage.getItem('sener_historie')) || [];
+});
+</script>
+
+</body>
+</html>
