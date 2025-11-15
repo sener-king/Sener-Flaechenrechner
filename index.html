@@ -408,6 +408,45 @@
         .wohnung-send:hover {
             background-color: #1da85f;
         }
+        /* Neues Menü für Aktionen */
+        .aktionen-menu {
+            margin-top: 10px;
+            padding: 10px;
+            background-color: #252525;
+            border-radius: 6px;
+            display: none;
+        }
+        .aktionen-menu button {
+            width: 100%;
+            margin: 5px 0;
+            padding: 10px;
+            background-color: #6c757d;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        .aktionen-menu button:hover {
+            background-color: #5a6268;
+        }
+        .aktionen-menu .print-button {
+            background-color: #007bff;
+        }
+        .aktionen-menu .pdf-button {
+            background-color: #FF6600;
+        }
+        .aktionen-menu .whatsapp-button {
+            background-color: #25D366;
+        }
+        .aktionen-menu .share-button {
+            background-color: #6c757d;
+        }
     </style>
 </head>
 <body>
@@ -622,18 +661,20 @@
                 <span class="icon">📜</span> Historie
             </button>
 
-            <button class="print-button" onclick="druckeErgebnisse()">
-                <span class="icon">🖨️</span> Drucken
-            </button>
-            <button class="pdf-button" onclick="speichereAlsPDF()">
-                <span class="icon">📄</span> Als PDF speichern
-            </button>
-            <button class="whatsapp-button" onclick="versendePerWhatsApp()">
-                <span class="icon">💬</span> Per WhatsApp versenden
-            </button>
-            <button class="share-button" onclick="versendeErgebnisse()">
-                <span class="icon">📧</span> Per E-Mail versenden
-            </button>
+            <div id="aktionenMenu" class="aktionen-menu">
+                <button class="print-button" onclick="druckeErgebnisse()">
+                    <span class="icon">🖨️</span> Drucken
+                </button>
+                <button class="pdf-button" onclick="speichereAlsPDF()">
+                    <span class="icon">📄</span> Als PDF speichern
+                </button>
+                <button class="whatsapp-button" onclick="versendePerWhatsApp()">
+                    <span class="icon">💬</span> Per WhatsApp versenden
+                </button>
+                <button class="share-button" onclick="versendeErgebnisse()">
+                    <span class="icon">📧</span> Per E-Mail versenden
+                </button>
+            </div>
         </div>
     </div>
 </div>
@@ -716,6 +757,11 @@ function zeigeTab(tabName) {
     document.getElementById(tabName).classList.add('active');
     // Angeklickten Button aktiv setzen
     event.currentTarget.classList.add('active');
+
+    // Menü schließen, wenn auf anderen Tab gewechselt wird
+    if (tabName !== 'flaeche') {
+        document.getElementById('aktionenMenu').style.display = 'none';
+    }
 }
 
 // --- BESTEHENDE WINKELBERECHNUNG ---
@@ -838,36 +884,36 @@ function berechneKreis() {
 // Hilfsfunktion: Liefert den Durchmesser nach Norm
 function getDurchmesserByNorm(nw) {
     const normen = {
-        "6": 10.2,
-        "8": 13.5,
-        "10": 17.2,
-        "15": 21.3,
-        "20": 26.9,
-        "25": 33.7,
-        "32": 42.4,
-        "40": 48.3,
-        "50": 60.3,
-        "65": 76.1,
-        "80": 88.9,
-        "90": 101.6,
-        "100": 114.3,
-        "125": 139.7,
-        "150": 168.3,
-        "175": 193.7,
-        "200": 219.1,
-        "250": 273.0,
-        "300": 323.9,
-        "350": 355.6,
-        "400": 406.4,
-        "450": 457.2,
-        "500": 508.0,
-        "600": 609.6,
-        "700": 711.2,
-        "800": 812.8,
-        "900": 914.4,
-        "1000": 1016.0
+        "6": { iso: 10.2, ansi: 10.5 },
+        "8": { iso: 13.5, ansi: 13.72 },
+        "10": { iso: 17.2, ansi: 17.15 },
+        "15": { iso: 21.3, ansi: 21.34 },
+        "20": { iso: 26.9, ansi: 26.67 },
+        "25": { iso: 33.7, ansi: 33.40 },
+        "32": { iso: 42.4, ansi: 42.16 },
+        "40": { iso: 48.3, ansi: 48.26 },
+        "50": { iso: 60.3, ansi: 60.33 },
+        "65": { iso: 76.1, ansi: 73.03 },
+        "80": { iso: 88.9, ansi: 88.90 },
+        "90": { iso: 101.6, ansi: 101.60 },
+        "100": { iso: 114.3, ansi: 114.30 },
+        "125": { iso: 139.7, ansi: 141.30 },
+        "150": { iso: 168.3, ansi: 168.28 },
+        "175": { iso: 193.7, ansi: 193.70 },
+        "200": { iso: 219.1, ansi: 219.08 },
+        "250": { iso: 273.0, ansi: 273.05 },
+        "300": { iso: 323.9, ansi: 323.85 },
+        "350": { iso: 355.6, ansi: 355.60 },
+        "400": { iso: 406.4, ansi: 406.40 },
+        "450": { iso: 457.2, ansi: 457.20 },
+        "500": { iso: 508.0, ansi: 508.00 },
+        "600": { iso: 609.6, ansi: 609.60 },
+        "700": { iso: 711.2, ansi: 711.20 },
+        "800": { iso: 812.8, ansi: 812.80 },
+        "900": { iso: 914.4, ansi: 914.40 },
+        "1000": { iso: 1016.0, ansi: 1016.00 }
     };
-    return normen[nw] || 0;
+    return normen[nw] ? normen[nw].iso : 0;
 }
 
 // --- NEUE FLAECHENBERECHNUNG ---
