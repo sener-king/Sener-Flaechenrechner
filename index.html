@@ -76,7 +76,7 @@
             color: #cccccc;
             font-size: 0.95em;
         }
-        input[type="number"], select {
+        input[type="number"], select, input[type="text"] {
             width: 100%;
             padding: 12px;
             margin-top: 6px;
@@ -347,6 +347,73 @@
         .whatsapp-button:hover {
             background-color: #1da85f;
         }
+        .wohnung-history-button {
+            margin-top: 10px;
+            background-color: #6c757d;
+        }
+        .wohnung-history-button:hover {
+            background-color: #5a6268;
+        }
+        .wohnung-item {
+            padding: 10px;
+            margin: 5px 0;
+            background-color: #252525;
+            border-radius: 6px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .wohnung-name {
+            font-weight: bold;
+        }
+        .wohnung-flaeche {
+            font-weight: bold;
+            color: #28a745;
+        }
+        .wohnung-actions {
+            display: flex;
+            gap: 5px;
+        }
+        .wohnung-delete {
+            background: none;
+            border: none;
+            color: #ff5555;
+            font-size: 1.2em;
+            cursor: pointer;
+        }
+        .wohnung-delete:hover {
+            background-color: #333;
+        }
+        .wohnung-send {
+            background: none;
+            border: none;
+            color: #25D366;
+            font-size: 1.2em;
+            cursor: pointer;
+        }
+        .wohnung-send:hover {
+            background-color: #1da85f;
+        }
+        .wohnung-detail {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #1e1e1e;
+            border-radius: 6px;
+            display: none;
+        }
+        .wohnung-detail h4 {
+            margin: 0 0 10px 0;
+            color: #28a745;
+        }
+        .wohnung-detail p {
+            margin: 5px 0;
+        }
+        .wohnung-detail .raum-item {
+            background-color: #2a2a2a;
+        }
+        .wohnung-detail .raum-actions {
+            display: none;
+        }
     </style>
 </head>
 <body>
@@ -490,6 +557,10 @@
             <button onclick="berechneFlaeche()">
                 <span class="icon">⬜</span> Raum hinzufügen
             </button>
+
+            <button onclick="oeffneWohnungHistorie()" class="wohnung-history-button">
+                <span class="icon">🏠</span> Wohnungsgeschichte
+            </button>
         </div>
 
         <div id="ergebnisFlaeche" class="result">
@@ -524,7 +595,7 @@
     </div>
 </div>
 
-<!-- Popup für Historie -->
+<!-- Popup für Winkel-Historie -->
 <div id="historiePopup" class="popup">
     <div class="popup-content">
         <div class="popup-header">
@@ -559,9 +630,30 @@
     </div>
 </div>
 
+<!-- Popup für Wohnungsgeschichte -->
+<div id="wohnungHistoriePopup" class="popup">
+    <div class="popup-content">
+        <div class="popup-header">
+            <span>🏠 Wohnungsgeschichte</span>
+            <button class="close-btn" onclick="schliesseWohnungHistorie()">×</button>
+        </div>
+        <div class="popup-body">
+            <div class="history-list" id="wohnungHistoryListe">
+                <!-- Wird dynamisch gefüllt -->
+            </div>
+        </div>
+        <div style="padding: 16px; background: #1e1e1e; border-top: 1px solid #333;">
+            <button onclick="zurueckZurFlaeche()" style="width:100%; padding:12px; background-color:#28a745; color:white; border:none; border-radius:6px; font-weight:bold; font-size:16px;">
+                🔙 Zurück zur Fläche
+            </button>
+        </div>
+    </div>
+</div>
+
 <script>
 let berechnungsHistorie = JSON.parse(localStorage.getItem('sener_historie')) || [];
 let raumHistorie = JSON.parse(localStorage.getItem('sener_raum_historie')) || [];
+let wohnungHistorie = JSON.parse(localStorage.getItem('sener_wohnung_historie')) || [];
 
 // Tab-Wechsel
 function zeigeTab(tabName) {
@@ -796,9 +888,99 @@ function versendePerWhatsApp() {
     });
     message += `\nGesamtfläche: ${raumHistorie.reduce((sum, r) => sum + r.flaeche, 0).toLocaleString('de-DE')} m²`;
 
-    // WhatsApp-URL mit encodeURI
     const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
     window.open(whatsappUrl, '_blank');
+}
+
+// --- NEUE WOHNUNGSGESCHICHTE ---
+function oeffneWohnungHistorie() {
+    zeigeWohnungHistorieImPopup();
+    document.getElementById('wohnungHistoriePopup').style.display = 'flex';
+}
+
+function zeigeWohnungHistorieImPopup() {
+    const liste = document.getElementById('wohnungHistoryListe');
+    if (wohnungHistorie.length === 0) {
+        liste.innerHTML = '<div class="empty-history">Noch keine Wohnungen gespeichert.</div>';
+        return;
+    }
+
+    liste.innerHTML = '';
+    wohnungHistorie.forEach(wohnung => {
+        const gesamtflaeche = wohnung.raeume.reduce((sum, r) => sum + r.flaeche, 0);
+        const div = document.createElement('div');
+        div.className = 'wohnung-item';
+        div.innerHTML = `
+            <div class="wohnung-name">${wohnung.name}</div>
+            <div class="wohnung-flaeche">${gesamtflaeche.toLocaleString('de-DE')} m²</div>
+            <div class="wohnung-actions">
+                <button class="wohnung-delete" onclick="loescheWohnung(${wohnung.id}, event)">🗑️</button>
+                <button class="wohnung-send" onclick="versendeWohnung(${wohnung.id}, event)">💬</button>
+            </div>
+        `;
+        liste.appendChild(div);
+    });
+}
+
+function speichereAktuelleWohnung() {
+    const wohnungName = prompt("Geben Sie einen Namen für diese Wohnung ein (z.B. Wohnung 1):");
+    if (!wohnungName) return;
+
+    if (raumHistorie.length === 0) {
+        alert("Sie müssen mindestens einen Raum hinzugefügt haben, bevor Sie die Wohnung speichern können.");
+        return;
+    }
+
+    const wohnung = {
+        id: Date.now(),
+        name: wohnungName,
+        raeume: [...raumHistorie], // Kopie der aktuellen Räume
+        datum: new Date().toLocaleString('de-DE')
+    };
+
+    wohnungHistorie.unshift(wohnung);
+    if (wohnungHistorie.length > 20) wohnungHistorie.pop();
+    localStorage.setItem('sener_wohnung_historie', JSON.stringify(wohnungHistorie));
+
+    // Raumhistorie NICHT löschen, nur speichern
+    // localStorage.setItem('sener_raum_historie', JSON.stringify(raumHistorie)); // Nicht nötig, bleibt erhalten
+}
+
+function loescheWohnung(id, event) {
+    event.stopPropagation();
+    if (!confirm("Sind Sie sicher, dass Sie diese Wohnung löschen möchten?")) return;
+
+    wohnungHistorie = wohnungHistorie.filter(w => w.id !== id);
+    localStorage.setItem('sener_wohnung_historie', JSON.stringify(wohnungHistorie));
+    zeigeWohnungHistorieImPopup();
+}
+
+function versendeWohnung(id, event) {
+    event.stopPropagation();
+    const wohnung = wohnungHistorie.find(w => w.id === id);
+    if (!wohnung) return;
+
+    let message = `Wohnung: ${wohnung.name}\n`;
+    message += `Datum: ${wohnung.datum}\n\n`;
+    wohnung.raeume.forEach(raum => {
+        message += `${raum.name}: ${raum.laenge} ${raum.laengeEinheit} x ${raum.breite} ${raum.breiteEinheit} = ${raum.flaeche.toLocaleString('de-DE')} m²\n`;
+    });
+    const gesamtflaeche = wohnung.raeume.reduce((sum, r) => sum + r.flaeche, 0);
+    message += `\nGesamtfläche: ${gesamtflaeche.toLocaleString('de-DE')} m²`;
+
+    const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
+    window.open(whatsappUrl, '_blank');
+}
+
+function schliesseWohnungHistorie() {
+    document.getElementById('wohnungHistoriePopup').style.display = 'none';
+}
+
+function zurueckZurFlaeche() {
+    schliesseWohnungHistorie();
+    setTimeout(() => {
+        zeigeTab('flaeche');
+    }, 300);
 }
 
 // --- BESTEHENDE HISTORIE-FUNKTIONEN ---
@@ -881,6 +1063,7 @@ function schliessePopup() {
 document.addEventListener('DOMContentLoaded', () => {
     berechnungsHistorie = JSON.parse(localStorage.getItem('sener_historie')) || [];
     raumHistorie = JSON.parse(localStorage.getItem('sener_raum_historie')) || [];
+    wohnungHistorie = JSON.parse(localStorage.getItem('sener_wohnung_historie')) || [];
     zeigeRaumListe();
     berechneGesamtFlaeche();
 });
