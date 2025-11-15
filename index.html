@@ -361,6 +361,46 @@
         .historie-button:hover {
             background-color: #5a6268;
         }
+        .wohnung-item {
+            padding: 10px;
+            margin: 5px 0;
+            background-color: #252525;
+            border-radius: 6px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .wohnung-name {
+            font-weight: bold;
+        }
+        .wohnung-flaeche {
+            font-weight: bold;
+            color: #28a745;
+        }
+        .wohnung-actions {
+            display: flex;
+            gap: 5px;
+        }
+        .wohnung-delete {
+            background: none;
+            border: none;
+            color: #ff5555;
+            font-size: 1.2em;
+            cursor: pointer;
+        }
+        .wohnung-delete:hover {
+            background-color: #333;
+        }
+        .wohnung-send {
+            background: none;
+            border: none;
+            color: #25D366;
+            font-size: 1.2em;
+            cursor: pointer;
+        }
+        .wohnung-send:hover {
+            background-color: #1da85f;
+        }
     </style>
 </head>
 <body>
@@ -506,11 +546,15 @@
             </button>
 
             <button onclick="speichereRaum()" class="speichern-button">
-                <span class="icon">💾</span> Speichern
+                <span class="icon">💾</span> Raum speichern
+            </button>
+
+            <button onclick="speichereWohnung()" class="speichern-button">
+                <span class="icon">🏠</span> Gesamte Wohnung speichern
             </button>
 
             <button onclick="oeffneHistorie()" class="historie-button">
-                <span class="icon">🏠</span> Historie
+                <span class="icon">📜</span> Historie
             </button>
         </div>
 
@@ -585,7 +629,7 @@
 <div id="flaecheHistoriePopup" class="popup">
     <div class="popup-content">
         <div class="popup-header">
-            <span>🏠 Historie der gespeicherten Räume</span>
+            <span>🏠 Historie der gespeicherten Räume und Wohnungen</span>
             <button class="close-btn" onclick="schliesseFlaecheHistorie()">×</button>
         </div>
         <div class="popup-body">
@@ -604,6 +648,7 @@
 <script>
 let berechnungsHistorie = JSON.parse(localStorage.getItem('sener_historie')) || [];
 let raumHistorie = JSON.parse(localStorage.getItem('sener_raum_historie')) || [];
+let wohnungHistorie = JSON.parse(localStorage.getItem('sener_wohnung_historie')) || [];
 
 // Tab-Wechsel
 function zeigeTab(tabName) {
@@ -798,6 +843,32 @@ function speichereRaum() {
     berechneGesamtFlaeche();
 }
 
+function speichereWohnung() {
+    const wohnungName = prompt("Geben Sie einen Namen für diese Wohnung ein (z.B. Wohnung 1):");
+    if (!wohnungName) return;
+
+    if (raumHistorie.length === 0) {
+        alert("Sie müssen mindestens einen Raum hinzugefügt haben, bevor Sie die Wohnung speichern können.");
+        return;
+    }
+
+    const gesamtflaeche = raumHistorie.reduce((sum, r) => sum + r.flaeche, 0);
+
+    const wohnung = {
+        id: Date.now(),
+        name: wohnungName,
+        raeume: [...raumHistorie], // Kopie der aktuellen Räume
+        gesamtflaeche: gesamtflaeche,
+        datum: new Date().toLocaleString('de-DE')
+    };
+
+    wohnungHistorie.unshift(wohnung);
+    if (wohnungHistorie.length > 20) wohnungHistorie.pop();
+    localStorage.setItem('sener_wohnung_historie', JSON.stringify(wohnungHistorie));
+
+    // Raumhistorie bleibt erhalten – nur die Wohnung wird gespeichert
+}
+
 function zeigeRaumListe() {
     const liste = document.getElementById('raumListe');
     if (raumHistorie.length === 0) {
@@ -893,39 +964,74 @@ function oeffneHistorie() {
 
 function zeigeFlaecheHistorieImPopup() {
     const liste = document.getElementById('flaecheHistoryListe');
-    if (raumHistorie.length === 0) {
-        liste.innerHTML = '<div class="empty-history">Noch keine Räume gespeichert.</div>';
+    if (raumHistorie.length === 0 && wohnungHistorie.length === 0) {
+        liste.innerHTML = '<div class="empty-history">Noch keine Räume oder Wohnungen gespeichert.</div>';
         return;
     }
 
     liste.innerHTML = '';
-    raumHistorie.forEach(raum => {
-        const div = document.createElement('div');
-        div.className = 'history-item';
-        div.innerHTML = `
-            <div class="history-info" onclick="ladeRaumAusHistorie(${raum.id})">
-                <div><strong>${raum.name}</strong> (${raum.flaeche.toLocaleString('de-DE')} m²)</div>
-                <div class="history-time">${raum.datum}</div>
-            </div>
-            <button class="history-delete" onclick="loescheRaum(${raum.id}, event)">🗑️</button>
-        `;
-        liste.appendChild(div);
-    });
+
+    // Wohnungen zuerst
+    if (wohnungHistorie.length > 0) {
+        liste.innerHTML += '<div style="margin-bottom: 10px; font-weight: bold; color: #28a745;">Wohnungen:</div>';
+        wohnungHistorie.forEach(wohnung => {
+            const div = document.createElement('div');
+            div.className = 'wohnung-item';
+            div.innerHTML = `
+                <div class="wohnung-name">${wohnung.name}</div>
+                <div class="wohnung-flaeche">${wohnung.gesamtflaeche.toLocaleString('de-DE')} m²</div>
+                <div class="wohnung-actions">
+                    <button class="wohnung-delete" onclick="loescheWohnung(${wohnung.id}, event)">🗑️</button>
+                    <button class="wohnung-send" onclick="versendeWohnung(${wohnung.id}, event)">💬</button>
+                </div>
+            `;
+            liste.appendChild(div);
+        });
+    }
+
+    // Räume danach
+    if (raumHistorie.length > 0) {
+        liste.innerHTML += '<div style="margin-top: 20px; margin-bottom: 10px; font-weight: bold; color: #28a745;">Einzelne Räume:</div>';
+        raumHistorie.forEach(raum => {
+            const div = document.createElement('div');
+            div.className = 'raum-item';
+            div.innerHTML = `
+                <div class="raum-name">${raum.name}</div>
+                <div class="raum-flaeche">${raum.flaeche.toLocaleString('de-DE')} m²</div>
+                <div class="raum-actions">
+                    <button class="raum-delete" onclick="loescheRaum(${raum.id})">🗑️</button>
+                    <button class="raum-send" onclick="versendeRaum(${raum.id})">💬</button>
+                </div>
+            `;
+            liste.appendChild(div);
+        });
+    }
 }
 
-function ladeRaumAusHistorie(id) {
-    const raum = raumHistorie.find(r => r.id === id);
-    if (raum) {
-        document.getElementById('raumName').value = raum.name;
-        document.getElementById('laenge').value = raum.laenge;
-        document.getElementById('breite').value = raum.breite;
-        document.getElementById('laengeEinheit').value = raum.laengeEinheit;
-        document.getElementById('breiteEinheit').value = raum.breiteEinheit;
-        schliesseFlaecheHistorie();
-        setTimeout(() => {
-            berechneFlaeche();
-        }, 300);
-    }
+function loescheWohnung(id, event) {
+    event.stopPropagation();
+    if (!confirm("Sind Sie sicher, dass Sie diese Wohnung löschen möchten?")) return;
+
+    wohnungHistorie = wohnungHistorie.filter(w => w.id !== id);
+    localStorage.setItem('sener_wohnung_historie', JSON.stringify(wohnungHistorie));
+    zeigeFlaecheHistorieImPopup();
+}
+
+function versendeWohnung(id, event) {
+    event.stopPropagation();
+    const wohnung = wohnungHistorie.find(w => w.id === id);
+    if (!wohnung) return;
+
+    let message = `Wohnung: ${wohnung.name}\n`;
+    message += `Datum: ${wohnung.datum}\n\n`;
+    wohnung.raeume.forEach(raum => {
+        message += `${raum.name}: ${raum.laenge} ${raum.laengeEinheit} x ${raum.breite} ${raum.breiteEinheit} = ${raum.flaeche.toLocaleString('de-DE')} m²\n`;
+    });
+    const gesamtflaeche = wohnung.raeume.reduce((sum, r) => sum + r.flaeche, 0);
+    message += `\nGesamtfläche: ${gesamtflaeche.toLocaleString('de-DE')} m²`;
+
+    const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
+    window.open(whatsappUrl, '_blank');
 }
 
 function schliesseFlaecheHistorie() {
@@ -1019,6 +1125,7 @@ function schliessePopup() {
 document.addEventListener('DOMContentLoaded', () => {
     berechnungsHistorie = JSON.parse(localStorage.getItem('sener_historie')) || [];
     raumHistorie = JSON.parse(localStorage.getItem('sener_raum_historie')) || [];
+    wohnungHistorie = JSON.parse(localStorage.getItem('sener_wohnung_historie')) || [];
     zeigeRaumListe();
     berechneGesamtFlaeche();
 });
