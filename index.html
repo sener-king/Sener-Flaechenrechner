@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sener Winkelmessung</title>
+    <title>Sener Winkelrechner</title>
     <!-- Link zum Web App Manifest -->
     <link rel="manifest" href="manifest.json">
     <!-- Optional: Icon für iOS -->
@@ -32,6 +32,35 @@
             margin-top: 0;
             padding-bottom: 10px;
             border-bottom: 2px solid #007bff;
+        }
+        .tabs {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+        .tab-button {
+            flex: 1;
+            padding: 12px;
+            margin: 0 5px;
+            background-color: #6c757d;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
+        }
+        .tab-button.active {
+            background-color: #28a745;
+        }
+        .tab-button:hover {
+            background-color: #5a6268;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
         }
         .section {
             background-color: #252525;
@@ -246,47 +275,135 @@
 <body>
 
 <div class="container">
-    <h1>Sener Winkelmessung</h1>
+    <h1>Sener Winkelrechner</h1>
 
-    <div class="section">
-        <label for="istMasse">🪙 Gemessene gesamt masse in mm</label>
-        <input type="number" id="istMasse" placeholder="z.B. 4500" value="" inputmode="numeric">
-
-        <label for="bereich">🏗️ Bereich:</label>
-        <select id="bereich">
-            <option value="metallbau" selected>Metallbau (grob)</option>
-            <option value="wohnungsbau">Wohnungsbau (mittel)</option>
-            <option value="agrar">Agrar & Feinbau (genau)</option>
-        </select>
-
-        <button onclick="berechneMassen()">
-            <span class="icon">📐</span> Berechnen
-        </button>
-        <button onclick="zeige3erReihe()" class="button-secondary">
-            <span class="icon">🧮</span> 3er-Reihe anzeigen
-        </button>
-        <button onclick="oeffneHistorie()" class="button-secondary">
-            🕒 Historie anzeigen
-        </button>
-        <p class="info">Metallbau: Max. A = 6900 mm, nie exakt passender Wert</p>
+    <!-- Tabs -->
+    <div class="tabs">
+        <button class="tab-button active" onclick="zeigeTab('winkel')">Winkel</button>
+        <button class="tab-button" onclick="zeigeTab('dreieck')">Dreieck</button>
+        <button class="tab-button" onclick="zeigeTab('kreis')">Kreis</button>
+        <button class="tab-button" onclick="zeigeTab('flaeche')">Fläche</button>
     </div>
 
-    <div id="ergebnis" class="result">
-        <h3><span class="icon">✅</span> Absteck-Maße</h3>
-        <div class="result-item">
-            <div style="text-align: center;">
-                <div class="result-value-large" id="masseA">-</div>
-                <div style="font-size: 0.8em; color: #aaa;">Kathete A<br>(<span id="multiplier">?</span> × 3)</div>
-                <div class="result-value-small" id="masseA_m">-</div>
+    <!-- Tab Inhalt: Winkelberechnung -->
+    <div id="winkel" class="tab-content active">
+        <div class="section">
+            <label for="istMasse">🪙 Gemessene gesamt masse in mm</label>
+            <input type="number" id="istMasse" placeholder="z.B. 4500" value="" inputmode="numeric">
+
+            <label for="bereich">🏗️ Bereich:</label>
+            <select id="bereich">
+                <option value="metallbau" selected>Metallbau (3-4-5) Berechnung</option>
+                <option value="wohnungsbau">Wohnungsbau (mittel)</option>
+                <option value="agrar">Landbau (genau)</option>
+            </select>
+
+            <button onclick="berechneMassen()">
+                <span class="icon">📐</span> Berechnen
+            </button>
+            <button onclick="zeige3erReihe()" class="button-secondary">
+                <span class="icon">🧮</span> 3er-Reihe anzeigen
+            </button>
+            <button onclick="oeffneHistorie()" class="button-secondary">
+                🕒 Historie anzeigen
+            </button>
+            <p class="info">Metallbau: Max. A = 6900 mm, nie exakt passender Wert</p>
+        </div>
+
+        <div id="ergebnis" class="result">
+            <h3><span class="icon">✅</span> Absteck-Maße</h3>
+            <div class="result-item">
+                <div style="text-align: center;">
+                    <div class="result-value-large" id="masseA">-</div>
+                    <div style="font-size: 0.8em; color: #aaa;">Kathete A<br>(<span id="multiplier">?</span> × 3)</div>
+                    <div class="result-value-small" id="masseA_m">-</div>
+                </div>
+            </div>
+            <div class="result-item">
+                <span class="result-label">Kathete B<br>(4er-Seite)</span>
+                <span class="result-value-small" id="masseB">-</span>
+            </div>
+            <div class="result-item">
+                <span class="result-label">Hypotenuse C<br>(5er-Seite)</span>
+                <span class="result-value-small" id="masseC">-</span>
             </div>
         </div>
-        <div class="result-item">
-            <span class="result-label">Kathete B<br>(4er-Seite)</span>
-            <span class="result-value-small" id="masseB">-</span>
+    </div>
+
+    <!-- Tab Inhalt: Dreiecksberechnung -->
+    <div id="dreieck" class="tab-content">
+        <div class="section">
+            <label for="seiteA">Seite A (mm):</label>
+            <input type="number" id="seiteA" placeholder="z.B. 3000" value="" inputmode="numeric">
+
+            <label for="seiteB">Seite B (mm):</label>
+            <input type="number" id="seiteB" placeholder="z.B. 4000" value="" inputmode="numeric">
+
+            <label for="winkelGamma">Winkel γ (Grad):</label>
+            <input type="number" id="winkelGamma" placeholder="z.B. 90" value="" inputmode="numeric">
+
+            <button onclick="berechneDreieck()">
+                <span class="icon">📐</span> Berechnen
+            </button>
         </div>
-        <div class="result-item">
-            <span class="result-label">Hypotenuse C<br>(5er-Seite)</span>
-            <span class="result-value-small" id="masseC">-</span>
+
+        <div id="ergebnisDreieck" class="result">
+            <h3><span class="icon">📐</span> Dreiecks-Ergebnisse</h3>
+            <div class="result-item">
+                <span class="result-label">Seite C (mm)</span>
+                <span class="result-value-small" id="seiteC">-</span>
+            </div>
+            <div class="result-item">
+                <span class="result-label">Fläche (m²)</span>
+                <span class="result-value-small" id="flaecheDreieck">-</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tab Inhalt: Kreisberechnung -->
+    <div id="kreis" class="tab-content">
+        <div class="section">
+            <label for="durchmesser">Durchmesser (mm):</label>
+            <input type="number" id="durchmesser" placeholder="z.B. 1000" value="" inputmode="numeric">
+
+            <button onclick="berechneKreis()">
+                <span class="icon">⭕</span> Berechnen
+            </button>
+        </div>
+
+        <div id="ergebnisKreis" class="result">
+            <h3><span class="icon">⭕</span> Kreis-Ergebnisse</h3>
+            <div class="result-item">
+                <span class="result-label">Umfang (m)</span>
+                <span class="result-value-small" id="umfangKreis">-</span>
+            </div>
+            <div class="result-item">
+                <span class="result-label">Fläche (m²)</span>
+                <span class="result-value-small" id="flaecheKreis">-</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tab Inhalt: Flächenberechnung -->
+    <div id="flaeche" class="tab-content">
+        <div class="section">
+            <label for="laenge">Länge (mm):</label>
+            <input type="number" id="laenge" placeholder="z.B. 5000" value="" inputmode="numeric">
+
+            <label for="breite">Breite (mm):</label>
+            <input type="number" id="breite" placeholder="z.B. 3000" value="" inputmode="numeric">
+
+            <button onclick="berechneFlaeche()">
+                <span class="icon">⬜</span> Berechnen
+            </button>
+        </div>
+
+        <div id="ergebnisFlaeche" class="result">
+            <h3><span class="icon">⬜</span> Flächen-Ergebnisse</h3>
+            <div class="result-item">
+                <span class="result-label">Fläche (m²)</span>
+                <span class="result-value-large" id="flaecheRechteck">-</span>
+            </div>
         </div>
     </div>
 </div>
@@ -295,7 +412,7 @@
 <div id="historiePopup" class="popup">
     <div class="popup-content">
         <div class="popup-header">
-            <span>🕒 Historie der Berechnungen</span>
+            <span>🕒 Historie der Winkelberechnungen</span>
             <button class="close-btn" onclick="schliesseHistorie()">×</button>
         </div>
         <div class="popup-body">
@@ -329,6 +446,27 @@
 <script>
 let berechnungsHistorie = JSON.parse(localStorage.getItem('sener_historie')) || [];
 
+// Tab-Wechsel
+function zeigeTab(tabName) {
+    // Alle Tabs ausblenden
+    const tabs = document.getElementsByClassName('tab-content');
+    for (let i = 0; i < tabs.length; i++) {
+        tabs[i].classList.remove('active');
+    }
+
+    // Alle Tab-Buttons inaktiv setzen
+    const buttons = document.getElementsByClassName('tab-button');
+    for (let i = 0; i < buttons.length; i++) {
+        buttons[i].classList.remove('active');
+    }
+
+    // Angeklickten Tab einblenden
+    document.getElementById(tabName).classList.add('active');
+    // Angeklickten Button aktiv setzen
+    event.currentTarget.classList.add('active');
+}
+
+// --- BESTEHENDE WINKELBERECHNUNG ---
 function berechneMassen() {
     const rawInput = document.getElementById('istMasse').value.replace(/,/g, '.').replace(/\s/g, '');
     const istMasse = parseFloat(rawInput);
@@ -391,6 +529,66 @@ function berechneMassen() {
     localStorage.setItem('sener_historie', JSON.stringify(berechnungsHistorie));
 }
 
+// --- NEUE DREIECKBERECHNUNG ---
+function berechneDreieck() {
+    const a = parseFloat(document.getElementById('seiteA').value);
+    const b = parseFloat(document.getElementById('seiteB').value);
+    const gammaGrad = parseFloat(document.getElementById('winkelGamma').value);
+
+    if (isNaN(a) || isNaN(b) || isNaN(gammaGrad) || a <= 0 || b <= 0 || gammaGrad <= 0) {
+        alert("Bitte geben Sie gültige Werte für die Seiten und den Winkel ein.");
+        return;
+    }
+
+    const gammaRad = gammaGrad * Math.PI / 180;
+    // Cosinussatz: c² = a² + b² - 2ab*cos(gamma)
+    const c = Math.sqrt(a*a + b*b - 2*a*b*Math.cos(gammaRad));
+    // Fläche: A = 0.5 * a * b * sin(gamma)
+    const flaeche = 0.5 * a * b * Math.sin(gammaRad);
+
+    document.getElementById('seiteC').textContent = c.toFixed(2) + " mm";
+    document.getElementById('flaecheDreieck').textContent = (flaeche / 1000000).toFixed(3) + " m²";
+
+    document.getElementById('ergebnisDreieck').style.display = 'block';
+}
+
+// --- NEUE KREISBERECHNUNG ---
+function berechneKreis() {
+    const d = parseFloat(document.getElementById('durchmesser').value);
+
+    if (isNaN(d) || d <= 0) {
+        alert("Bitte geben Sie einen gültigen Durchmesser ein.");
+        return;
+    }
+
+    const r = d / 2;
+    const umfang = Math.PI * d;
+    const flaeche = Math.PI * r * r;
+
+    document.getElementById('umfangKreis').textContent = (umfang / 1000).toFixed(3) + " m";
+    document.getElementById('flaecheKreis').textContent = (flaeche / 1000000).toFixed(3) + " m²";
+
+    document.getElementById('ergebnisKreis').style.display = 'block';
+}
+
+// --- NEUE FLAECHENBERECHNUNG ---
+function berechneFlaeche() {
+    const l = parseFloat(document.getElementById('laenge').value);
+    const b = parseFloat(document.getElementById('breite').value);
+
+    if (isNaN(l) || isNaN(b) || l <= 0 || b <= 0) {
+        alert("Bitte geben Sie gültige Länge und Breite ein.");
+        return;
+    }
+
+    const flaeche = l * b;
+
+    document.getElementById('flaecheRechteck').textContent = (flaeche / 1000000).toFixed(3);
+
+    document.getElementById('ergebnisFlaeche').style.display = 'block';
+}
+
+// --- BESTEHENDE HISTORIE-FUNKTIONEN ---
 function oeffneHistorie() {
     zeigeHistorieImPopup();
     document.getElementById('historiePopup').style.display = 'flex';
@@ -431,7 +629,8 @@ function ladeWertAusHistorie(id) {
     if (eintrag) {
         document.getElementById('istMasse').value = eintrag.input;
         document.getElementById('bereich').value = eintrag.bereich;
-        schliesseHistorie();
+        // Stelle sicher, dass der Winkel-Tab aktiv ist
+        zeigeTab('winkel');
         setTimeout(berechneMassen, 300);
     }
 }
