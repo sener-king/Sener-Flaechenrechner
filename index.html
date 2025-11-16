@@ -368,6 +368,13 @@
         .historie-button:hover {
             background-color: #5a6268;
         }
+        .versenden-button {
+            margin-top: 10px;
+            background-color: #6c757d;
+        }
+        .versenden-button:hover {
+            background-color: #5a6268;
+        }
         .wohnung-item {
             padding: 10px;
             margin: 5px 0;
@@ -676,6 +683,10 @@
 
             <button onclick="oeffneFlaecheHistorie()" class="historie-button">
                 <span class="icon">📜</span> Historie
+            </button>
+
+            <button onclick="oeffneAktionenMenu()" class="versenden-button">
+                <span class="icon">📤</span> Versenden
             </button>
 
             <div id="aktionenMenu" class="aktionen-menu">
@@ -1334,6 +1345,16 @@ function zurueckZurFlaeche() {
     setTimeout(() => {
         zeigeTab('flaeche');
     }, 300);
+}
+
+// --- AKTIONEN-MENU ---
+function oeffneAktionenMenu() {
+    const menu = document.getElementById('aktionenMenu');
+    if (menu.style.display === 'block') {
+        menu.style.display = 'none';
+    } else {
+        menu.style.display = 'block';
+    }
 }
 
 // ===== 3er-Reihe =====
