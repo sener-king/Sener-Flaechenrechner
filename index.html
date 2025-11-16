@@ -500,7 +500,7 @@
             <button onclick="zeige3erReihe()" class="button-secondary">
                 <span class="icon">🧮</span> 3er-Reihe anzeigen
             </button>
-            <button onclick="oeffneHistorie()" class="button-secondary">
+            <button onclick="oeffneWinkelHistorie()" class="button-secondary">
                 🕒 Historie anzeigen
             </button>
             <p class="info">Metallbau: Max. A = 6900 mm, nie exakt passender Wert</p>
@@ -657,6 +657,26 @@
                 <span class="icon">⬜</span> Raum berechnen
             </button>
 
+            <div id="ergebnisFlaeche" class="result">
+                <h3><span class="icon">⬜</span> Flächen-Ergebnisse</h3>
+                <div class="result-item">
+                    <span class="result-label">Gesamtfläche (m²)</span>
+                    <span class="result-value-large" id="gesamtFlaeche">0.000</span>
+                </div>
+            </div>
+
+            <div class="raum-liste">
+                <h4>📊 Gespeicherte Räume</h4>
+                <div id="raumListe">
+                    <!-- Wird dynamisch gefüllt -->
+                </div>
+            </div>
+
+            <div class="total-flaeche">
+                <span class="total-label">Gesamtfläche aller Räume:</span>
+                <span class="total-value" id="totalFlaeche">0.000 m²</span>
+            </div>
+
             <button onclick="speichereBerechnung()" class="speichern-button">
                 <span class="icon">💾</span> Berechnung Speichern
             </button>
@@ -684,31 +704,6 @@
                 </button>
             </div>
         </div>
-
-        <div id="ergebnisFlaeche" class="result">
-            <h3><span class="icon">⬜</span> Flächen-Ergebnisse</h3>
-            <div class="result-item">
-                <span class="result-label">Gesamtfläche (m²)</span>
-                <span class="result-value-large" id="gesamtFlaeche">0.000</span>
-            </div>
-        </div>
-
-        <div class="raum-liste">
-            <h4>📊 Gespeicherte Räume</h4>
-            <div id="raumListe">
-                <!-- Wird dynamisch gefüllt -->
-            </div>
-        </div>
-
-        <div class="total-flaeche">
-            <span class="total-label">Gesamtfläche aller Räume:</span>
-            <span class="total-value" id="totalFlaeche">0.000 m²</span>
-        </div>
-
-        <!-- NEU: Button für Wohnungsspeicherung -->
-        <button onclick="speichereGesamteWohnung()" class="speichern-button">
-            <span class="icon">🏠</span> Gesamte Wohnung speichern
-        </button>
     </div>
 </div>
 
@@ -767,26 +762,6 @@
     </div>
 </div>
 
-<!-- NEU: Popup für Wohnungshistorie -->
-<div id="wohnungHistoriePopup" class="popup">
-    <div class="popup-content">
-        <div class="popup-header">
-            <span>🏠 Historie der gespeicherten Wohnungen</span>
-            <button class="close-btn" onclick="schliesseWohnungHistorie()">×</button>
-        </div>
-        <div class="popup-body">
-            <div class="history-list" id="wohnungHistoryListe">
-                <!-- Wird dynamisch gefüllt -->
-            </div>
-        </div>
-        <div style="padding: 16px; background: #1e1e1e; border-top: 1px solid #333;">
-            <button onclick="zurueckZurFlaeche()" style="width:100%; padding:12px; background-color:#28a745; color:white; border:none; border-radius:6px; font-weight:bold; font-size:16px;">
-                🔙 Zurück zur Fläche
-            </button>
-        </div>
-    </div>
-</div>
-
 <script>
 let berechnungsHistorie = JSON.parse(localStorage.getItem('sener_historie')) || [];
 let raumHistorie = JSON.parse(localStorage.getItem('sener_raum_historie')) || [];
@@ -812,7 +787,7 @@ function zeigeTab(tabName) {
     event.currentTarget.classList.add('active');
 
     // Menü schließen, wenn auf anderen Tab gewechselt wird
-    if (tabName !== 'flaeche' && document.getElementById('aktionenMenu')) {
+    if (tabName !== 'flaeche') {
         document.getElementById('aktionenMenu').style.display = 'none';
     }
 }
@@ -1122,12 +1097,6 @@ function speichereBerechnung() {
     if (wohnungHistorie.length > 20) wohnungHistorie.pop();
     localStorage.setItem('sener_wohnung_historie', JSON.stringify(wohnungHistorie));
 
-    // Optional: Raumhistorie nach Speichern löschen
-    // raumHistorie = [];
-    // localStorage.setItem('sener_raum_historie', JSON.stringify(raumHistorie));
-    // zeigeRaumListe();
-    // berechneGesamtFlaeche();
-
     alert(`Berechnung "${berechnungName}" wurde erfolgreich gespeichert.`);
 }
 
@@ -1166,6 +1135,7 @@ function berechneGesamtFlaeche() {
     document.getElementById('totalFlaeche').textContent = gesamt.toLocaleString('de-DE') + " m²";
 }
 
+// --- VERSAND-FUNKTIONEN ---
 function druckeErgebnisse() {
     const printWindow = window.open('', '_blank');
     printWindow.document.write('<html><head><title>Flächenberechnung</title></head><body>');
@@ -1250,108 +1220,6 @@ function versendePerWhatsApp() {
     window.open(whatsappUrl, '_blank');
 }
 
-// --- NEUE FUNKTION: GESAMTE WOHNUNG SPEICHERN ---
-function speichereGesamteWohnung() {
-    const wohnungName = document.getElementById('ueberschrift').value.trim();
-    if (!wohnungName) {
-        alert("Bitte geben Sie einen Namen für die Wohnung ein.");
-        return;
-    }
-
-    if (raumHistorie.length === 0) {
-        alert("Sie müssen mindestens einen Raum hinzugefügt haben, bevor Sie die Wohnung speichern können.");
-        return;
-    }
-
-    const gesamtflaeche = raumHistorie.reduce((sum, r) => sum + r.flaeche, 0);
-
-    const wohnung = {
-        id: Date.now(),
-        name: wohnungName,
-        raeume: [...raumHistorie], // Kopie der aktuellen Räume
-        gesamtflaeche: gesamtflaeche,
-        datum: new Date().toLocaleString('de-DE')
-    };
-
-    wohnungHistorie.unshift(wohnung);
-    if (wohnungHistorie.length > 20) wohnungHistorie.pop();
-    localStorage.setItem('sener_wohnung_historie', JSON.stringify(wohnungHistorie));
-
-    // Optional: Raumhistorie nach Speichern löschen
-    // raumHistorie = [];
-    // localStorage.setItem('sener_raum_historie', JSON.stringify(raumHistorie));
-    // zeigeRaumListe();
-    // berechneGesamtFlaeche();
-
-    alert(`Wohnung "${wohnungName}" wurde erfolgreich gespeichert.`);
-}
-
-// --- NEUE FUNKTION: WOHNUNGSHISTORIE ANZEIGEN ---
-function oeffneWohnungHistorie() {
-    zeigeWohnungHistorieImPopup();
-    document.getElementById('wohnungHistoriePopup').style.display = 'flex';
-}
-
-function zeigeWohnungHistorieImPopup() {
-    const liste = document.getElementById('wohnungHistoryListe');
-    if (wohnungHistorie.length === 0) {
-        liste.innerHTML = '<div class="empty-history">Noch keine Wohnungen gespeichert.</div>';
-        return;
-    }
-
-    liste.innerHTML = '';
-    wohnungHistorie.forEach(wohnung => {
-        const div = document.createElement('div');
-        div.className = 'wohnung-item';
-        div.innerHTML = `
-            <div class="wohnung-name">${wohnung.name}</div>
-            <div class="wohnung-flaeche">${wohnung.gesamtflaeche.toLocaleString('de-DE')} m²</div>
-            <div class="wohnung-actions">
-                <button class="wohnung-delete" onclick="loescheWohnung(${wohnung.id}, event)">🗑️</button>
-                <button class="wohnung-send" onclick="versendeWohnung(${wohnung.id}, event)">💬</button>
-            </div>
-        `;
-        liste.appendChild(div);
-    });
-}
-
-function loescheWohnung(id, event) {
-    event.stopPropagation();
-    if (!confirm("Sind Sie sicher, dass Sie diese Wohnung löschen möchten?")) return;
-
-    wohnungHistorie = wohnungHistorie.filter(w => w.id !== id);
-    localStorage.setItem('sener_wohnung_historie', JSON.stringify(wohnungHistorie));
-    zeigeWohnungHistorieImPopup();
-}
-
-function versendeWohnung(id, event) {
-    event.stopPropagation();
-    const wohnung = wohnungHistorie.find(w => w.id === id);
-    if (!wohnung) return;
-
-    let message = `Wohnung: ${wohnung.name}\n`;
-    message += `Datum: ${wohnung.datum}\n\n`;
-    wohnung.raeume.forEach(raum => {
-        message += `${raum.name}: ${raum.laenge} ${raum.laengeEinheit} x ${raum.breite} ${raum.breiteEinheit} = ${raum.flaeche.toLocaleString('de-DE')} m²\n`;
-    });
-    const gesamtflaeche = wohnung.raeume.reduce((sum, r) => sum + r.flaeche, 0);
-    message += `\nGesamtfläche: ${gesamtflaeche.toLocaleString('de-DE')} m²`;
-
-    const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
-    window.open(whatsappUrl, '_blank');
-}
-
-function schliesseWohnungHistorie() {
-    document.getElementById('wohnungHistoriePopup').style.display = 'none';
-}
-
-function zurueckZurFlaeche() {
-    schliesseWohnungHistorie();
-    setTimeout(() => {
-        zeigeTab('flaeche');
-    }, 300);
-}
-
 // --- AKTIONEN-MENÜ ---
 function oeffneAktionenMenu() {
     const menu = document.getElementById('aktionenMenu');
@@ -1363,13 +1231,13 @@ function oeffneAktionenMenu() {
 }
 
 // --- HISTORIE-FUNKTIONEN ---
-function oeffneHistorie() {
-    zeigeHistorieImPopup();
+function oeffneWinkelHistorie() {
+    zeigeWinkelHistorieImPopup();
     document.getElementById('winkelHistoriePopup').style.display = 'flex';
 }
 
-function zeigeHistorieImPopup() {
-    const liste = document.getElementById('historyListe');
+function zeigeWinkelHistorieImPopup() {
+    const liste = document.getElementById('winkelHistoryListe');
     if (berechnungsHistorie.length === 0) {
         liste.innerHTML = '<div class="empty-history">Noch keine Winkelberechnungen gespeichert.</div>';
         return;
@@ -1380,7 +1248,7 @@ function zeigeHistorieImPopup() {
         const div = document.createElement('div');
         div.className = 'history-item';
         div.innerHTML = `
-            <div class="history-info" onclick="ladeWertAusHistorie(${eintrag.id})">
+            <div class="history-info" onclick="ladeWertAusWinkelHistorie(${eintrag.id})">
                 <div><strong>${eintrag.a.toLocaleString('de-DE')} mm</strong> (${eintrag.bereich})</div>
                 <div class="history-time">${eintrag.zeit}</div>
                 <div class="history-input">Eingabe: ${eintrag.input} mm</div>
@@ -1395,10 +1263,10 @@ function loescheEintrag(id, event) {
     if (event) event.stopPropagation();
     berechnungsHistorie = berechnungsHistorie.filter(e => e.id !== id);
     localStorage.setItem('sener_historie', JSON.stringify(berechnungsHistorie));
-    zeigeHistorieImPopup();
+    zeigeWinkelHistorieImPopup();
 }
 
-function ladeWertAusHistorie(id) {
+function ladeWertAusWinkelHistorie(id) {
     const eintrag = berechnungsHistorie.find(e => e.id === id);
     if (eintrag) {
         document.getElementById('istMasse').value = eintrag.input;
@@ -1409,16 +1277,81 @@ function ladeWertAusHistorie(id) {
     }
 }
 
-function zurueckZurBerechnung() {
-    schliesseHistorie();
+function zurueckZurWinkelBerechnung() {
+    schliesseWinkelHistorie();
     setTimeout(() => {
         const input = document.getElementById('istMasse');
         if (input) input.focus();
     }, 300);
 }
 
-function schliesseHistorie() {
+function schliesseWinkelHistorie() {
     document.getElementById('winkelHistoriePopup').style.display = 'none';
+}
+
+function oeffneFlaecheHistorie() {
+    zeigeFlaecheHistorieImPopup();
+    document.getElementById('flaecheHistoriePopup').style.display = 'flex';
+}
+
+function zeigeFlaecheHistorieImPopup() {
+    const liste = document.getElementById('flaecheHistoryListe');
+    if (wohnungHistorie.length === 0) {
+        liste.innerHTML = '<div class="empty-history">Noch keine Berechnungen gespeichert.</div>';
+        return;
+    }
+
+    liste.innerHTML = '';
+    wohnungHistorie.forEach(berechnung => {
+        const div = document.createElement('div');
+        div.className = 'wohnung-item';
+        div.innerHTML = `
+            <div class="wohnung-name">${berechnung.name}</div>
+            <div class="wohnung-flaeche">${berechnung.gesamtflaeche.toLocaleString('de-DE')} m²</div>
+            <div class="wohnung-actions">
+                <button class="wohnung-delete" onclick="loescheWohnung(${berechnung.id}, event)">🗑️</button>
+                <button class="wohnung-send" onclick="versendeWohnung(${berechnung.id}, event)">💬</button>
+            </div>
+        `;
+        liste.appendChild(div);
+    });
+}
+
+function loescheWohnung(id, event) {
+    event.stopPropagation();
+    if (!confirm("Sind Sie sicher, dass Sie diese Berechnung löschen möchten?")) return;
+
+    wohnungHistorie = wohnungHistorie.filter(w => w.id !== id);
+    localStorage.setItem('sener_wohnung_historie', JSON.stringify(wohnungHistorie));
+    zeigeFlaecheHistorieImPopup();
+}
+
+function versendeWohnung(id, event) {
+    event.stopPropagation();
+    const berechnung = wohnungHistorie.find(w => w.id === id);
+    if (!berechnung) return;
+
+    let message = `Berechnung: ${berechnung.name}\n`;
+    message += `Datum: ${berechnung.datum}\n\n`;
+    berechnung.raeume.forEach(raum => {
+        message += `${raum.name}: ${raum.laenge} ${raum.laengeEinheit} x ${raum.breite} ${raum.breiteEinheit} = ${raum.flaeche.toLocaleString('de-DE')} m²\n`;
+    });
+    const gesamtflaeche = berechnung.raeume.reduce((sum, r) => sum + r.flaeche, 0);
+    message += `\nGesamtfläche: ${gesamtflaeche.toLocaleString('de-DE')} m²`;
+
+    const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
+    window.open(whatsappUrl, '_blank');
+}
+
+function schliesseFlaecheHistorie() {
+    document.getElementById('flaecheHistoriePopup').style.display = 'none';
+}
+
+function zurueckZurFlaeche() {
+    schliesseFlaecheHistorie();
+    setTimeout(() => {
+        zeigeTab('flaeche');
+    }, 300);
 }
 
 // ===== 3er-Reihe =====
