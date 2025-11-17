@@ -415,20 +415,15 @@
         .wohnung-send:hover {
             background-color: #1da85f;
         }
-        /* Neues Popup für Aktionen */
-        .aktionen-popup {
-            display: none;
-            position: fixed;
-            bottom: 20px; /* Am unteren Rand positionieren */
-            right: 20px;  /* Am rechten Rand positionieren */
-            width: 200px;
-            background-color: #252525;
-            border-radius: 8px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.5);
-            z-index: 1001;
+        /* Neues Menü für Aktionen */
+        .aktionen-menu {
+            margin-top: 10px;
             padding: 10px;
+            background-color: #252525;
+            border-radius: 6px;
+            display: none; /* Standardmäßig ausgeblendet */
         }
-        .aktionen-popup button {
+        .aktionen-menu button {
             width: 100%;
             margin: 5px 0;
             padding: 10px;
@@ -444,19 +439,19 @@
             justify-content: center;
             gap: 8px;
         }
-        .aktionen-popup button:hover {
+        .aktionen-menu button:hover {
             background-color: #5a6268;
         }
-        .aktionen-popup .print-button {
+        .aktionen-menu .print-button {
             background-color: #007bff;
         }
-        .aktionen-popup .pdf-button {
+        .aktionen-menu .pdf-button {
             background-color: #FF6600;
         }
-        .aktionen-popup .whatsapp-button {
+        .aktionen-menu .whatsapp-button {
             background-color: #25D366;
         }
-        .aktionen-popup .share-button {
+        .aktionen-menu .share-button {
             background-color: #6c757d;
         }
         /* Kreis-Berechnung: Norm-Anzeige */
@@ -481,15 +476,15 @@
     <!-- Tabs -->
     <div class="tabs">
         <button class="tab-button active" onclick="zeigeTab('winkel')">Winkel</button>
-        <button class="tab-button" onclick="zeigeTab('dreieck')">Dreieck</button>
-        <button class="tab-button" onclick="zeigeTab('kreis')">Kreis</button>
-        <button class="tab-button" onclick="zeigeTab('flaeche')">Fläche</button>
+        <button class="tab-button active" onclick="zeigeTab('dreieck')">Dreieck</button>
+        <button class="tab-button active" onclick="zeigeTab('kreis')">Kreis</button>
+        <button class="tab-button active" onclick="zeigeTab('flaeche')">Fläche</button>
     </div>
 
     <!-- Tab Inhalt: Winkelberechnung -->
     <div id="winkel" class="tab-content active">
         <div class="section">
-            <label for="istMasse">🪙 Gemessene gesamt maße in mm</label> <!-- Geändert -->
+            <label for="istMasse">🪙 Gemessene maß in mm</label>
             <input type="number" id="istMasse" placeholder="z.B. 4500" value="" inputmode="numeric">
 
             <label for="bereich">🏗️ Bereich:</label>
@@ -662,6 +657,26 @@
                 <span class="icon">⬜</span> Raum berechnen
             </button>
 
+            <div id="ergebnisFlaeche" class="result">
+                <h3><span class="icon">⬜</span> Flächen-Ergebnisse</h3>
+                <div class="result-item">
+                    <span class="result-label">Gesamtfläche (m²)</span>
+                    <span class="result-value-large" id="gesamtFlaeche">0.000</span>
+                </div>
+            </div>
+
+            <div class="raum-liste">
+                <h4>📊 Gespeicherte Räume</h4>
+                <div id="raumListe">
+                    <!-- Wird dynamisch gefüllt -->
+                </div>
+            </div>
+
+            <div class="total-flaeche">
+                <span class="total-label">Gesamtfläche aller Räume:</span>
+                <span class="total-value" id="totalFlaeche">0.000 m²</span>
+            </div>
+
             <button onclick="speichereBerechnung()" class="speichern-button">
                 <span class="icon">💾</span> Berechnung Speichern
             </button>
@@ -670,12 +685,13 @@
                 <span class="icon">📜</span> Historie
             </button>
 
-            <button onclick="oeffneAktionenPopup()" class="versenden-button">
+            <!-- Neuer Button für "Versenden" -->
+            <button onclick="oeffneAktionenMenu()" class="versenden-button">
                 <span class="icon">📤</span> Versenden
             </button>
 
-            <!-- Neues Popup für Aktionen -->
-            <div id="aktionenPopup" class="aktionen-popup">
+            <!-- Neues Menü für Aktionen (Drucken, PDF, WhatsApp, Mail) -->
+            <div id="aktionenMenu" class="aktionen-menu">
                 <button class="print-button" onclick="druckeErgebnisse()">
                     <span class="icon">🖨️</span> Drucken
                 </button>
@@ -690,30 +706,6 @@
                 </button>
             </div>
         </div>
-
-        <div id="ergebnisFlaeche" class="result">
-            <h3><span class="icon">⬜</span> Flächen-Ergebnisse</h3>
-            <div class="result-item">
-                <span class="result-label">Gesamtfläche (m²)</span>
-                <span class="result-value-large" id="gesamtFlaeche">0.000</span>
-            </div>
-        </div>
-
-        <div class="raum-liste">
-            <h4>📊 Gespeicherte Räume</h4>
-            <div id="raumListe">
-                <!-- Wird dynamisch gefüllt -->
-            </div>
-        </div>
-
-        <div class="total-flaeche">
-            <span class="total-label">Gesamtfläche aller Räume:</span>
-            <span class="total-value" id="totalFlaeche">0.000 m²</span>
-        </div>
-
-        <button onclick="speichereGesamteWohnung()" class="speichern-button">
-            <span class="icon">🏠</span> Gesamte Wohnung speichern
-        </button>
     </div>
 </div>
 
@@ -756,7 +748,7 @@
 <div id="flaecheHistoriePopup" class="popup">
     <div class="popup-content">
         <div class="popup-header">
-            <span>🟣 Historie der gespeicherten Berechnungen</span>
+            <span>🟣 Historie der Flächenberechnungen</span>
             <button class="close-btn" onclick="schliesseFlaecheHistorie()">×</button>
         </div>
         <div class="popup-body">
@@ -775,39 +767,7 @@
 <script>
 let berechnungsHistorie = JSON.parse(localStorage.getItem('sener_historie')) || [];
 let raumHistorie = JSON.parse(localStorage.getItem('sener_raum_historie')) || [];
-let berechnungHistorie = JSON.parse(localStorage.getItem('sener_berechnung_historie')) || []; // <- BEHAALT (für Flächen-Historie)
-
-// --- ZENTRALE ROHR-NORMEN-TABELLE ---
-const ROHR_NORMEN = {
-    "6": { zoll: "1/8\"", iso: 10.2, ansi: 10.5 },
-    "8": { zoll: "1/4\"", iso: 13.5, ansi: 13.72 },
-    "10": { zoll: "3/8\"", iso: 17.2, ansi: 17.15 },
-    "15": { zoll: "1/2\"", iso: 21.3, ansi: 21.34 },
-    "20": { zoll: "3/4\"", iso: 26.9, ansi: 26.67 },
-    "25": { zoll: "1\"", iso: 33.7, ansi: 33.40 },
-    "32": { zoll: "1 1/4\"", iso: 42.4, ansi: 42.16 },
-    "40": { zoll: "1 1/2\"", iso: 48.3, ansi: 48.26 },
-    "50": { zoll: "2\"", iso: 60.3, ansi: 60.33 },
-    "65": { zoll: "2 1/2\"", iso: 76.1, ansi: 73.03 },
-    "80": { zoll: "3\"", iso: 88.9, ansi: 88.90 },
-    "90": { zoll: "3 1/2\"", iso: 101.6, ansi: 101.60 },
-    "100": { zoll: "4\"", iso: 114.3, ansi: 114.30 },
-    "125": { zoll: "5\"", iso: 139.7, ansi: 141.30 },
-    "150": { zoll: "6\"", iso: 168.3, ansi: 168.28 },
-    "175": { zoll: "7\"", iso: 193.7, ansi: 193.70 },
-    "200": { zoll: "8\"", iso: 219.1, ansi: 219.08 },
-    "250": { zoll: "10\"", iso: 273.0, ansi: 273.05 },
-    "300": { zoll: "12\"", iso: 323.9, ansi: 323.85 },
-    "350": { zoll: "14\"", iso: 355.6, ansi: 355.60 },
-    "400": { zoll: "16\"", iso: 406.4, ansi: 406.40 },
-    "450": { zoll: "18\"", iso: 457.2, ansi: 457.20 },
-    "500": { zoll: "20\"", iso: 508.0, ansi: 508.00 },
-    "600": { zoll: "24\"", iso: 609.6, ansi: 609.60 },
-    "700": { zoll: "28\"", iso: 711.2, ansi: 711.20 },
-    "800": { zoll: "32\"", iso: 812.8, ansi: 812.80 },
-    "900": { zoll: "36\"", iso: 914.4, ansi: 914.40 },
-    "1000": { zoll: "40\"", iso: 1016.0, ansi: 1016.00 }
-};
+let berechnungHistorie = JSON.parse(localStorage.getItem('sener_berechnung_historie')) || [];
 
 // Tab-Wechsel
 function zeigeTab(tabName) {
@@ -826,10 +786,12 @@ function zeigeTab(tabName) {
     // Angeklickten Tab einblenden
     document.getElementById(tabName).classList.add('active');
     // Angeklickten Button aktiv setzen
-    event?.currentTarget?.classList.add('active');
+    event.currentTarget.classList.add('active');
 
     // Menü schließen, wenn auf anderen Tab gewechselt wird
-    document.getElementById('aktionenPopup').style.display = 'none';
+    if (tabName !== 'flaeche') {
+        document.getElementById('aktionenMenu').style.display = 'none';
+    }
 }
 
 // --- BESTEHENDE WINKELBERECHNUNG ---
@@ -895,7 +857,7 @@ function berechneMassen() {
     localStorage.setItem('sener_historie', JSON.stringify(berechnungsHistorie));
 }
 
-// --- DREIECKBERECHNUNG ---
+// --- NEUE DREIECKBERECHNUNG ---
 function berechneDreieck() {
     const a = parseFloat(document.getElementById('seiteA').value);
     const b = parseFloat(document.getElementById('seiteB').value);
@@ -918,7 +880,7 @@ function berechneDreieck() {
     document.getElementById('ergebnisDreieck').style.display = 'block';
 }
 
-// --- KREISBERECHNUNG ---
+// --- NEUE KREISBERECHNUNG ---
 function updateNormAndCalculate() {
     let d = parseFloat(document.getElementById('durchmesser').value);
     const einheit = document.getElementById('durchmesserEinheit').value;
@@ -931,14 +893,45 @@ function updateNormAndCalculate() {
     }
 
     // Finde die nächste Norm
+    const normen = [
+        { nw: "6", zoll: "1/8\"", iso: 10.2, ansi: 10.5 },
+        { nw: "8", zoll: "1/4\"", iso: 13.5, ansi: 13.72 },
+        { nw: "10", zoll: "3/8\"", iso: 17.2, ansi: 17.15 },
+        { nw: "15", zoll: "1/2\"", iso: 21.3, ansi: 21.34 },
+        { nw: "20", zoll: "3/4\"", iso: 26.9, ansi: 26.67 },
+        { nw: "25", zoll: "1\"", iso: 33.7, ansi: 33.40 },
+        { nw: "32", zoll: "1 1/4\"", iso: 42.4, ansi: 42.16 },
+        { nw: "40", zoll: "1 1/2\"", iso: 48.3, ansi: 48.26 },
+        { nw: "50", zoll: "2\"", iso: 60.3, ansi: 60.33 },
+        { nw: "65", zoll: "2 1/2\"", iso: 76.1, ansi: 73.03 },
+        { nw: "80", zoll: "3\"", iso: 88.9, ansi: 88.90 },
+        { nw: "90", zoll: "3 1/2\"", iso: 101.6, ansi: 101.60 },
+        { nw: "100", zoll: "4\"", iso: 114.3, ansi: 114.30 },
+        { nw: "125", zoll: "5\"", iso: 139.7, ansi: 141.30 },
+        { nw: "150", zoll: "6\"", iso: 168.3, ansi: 168.28 },
+        { nw: "175", zoll: "7\"", iso: 193.7, ansi: 193.70 },
+        { nw: "200", zoll: "8\"", iso: 219.1, ansi: 219.08 },
+        { nw: "250", zoll: "10\"", iso: 273.0, ansi: 273.05 },
+        { nw: "300", zoll: "12\"", iso: 323.9, ansi: 323.85 },
+        { nw: "350", zoll: "14\"", iso: 355.6, ansi: 355.60 },
+        { nw: "400", zoll: "16\"", iso: 406.4, ansi: 406.40 },
+        { nw: "450", zoll: "18\"", iso: 457.2, ansi: 457.20 },
+        { nw: "500", zoll: "20\"", iso: 508.0, ansi: 508.00 },
+        { nw: "600", zoll: "24\"", iso: 609.6, ansi: 609.60 },
+        { nw: "700", zoll: "28\"", iso: 711.2, ansi: 711.20 },
+        { nw: "800", zoll: "32\"", iso: 812.8, ansi: 812.80 },
+        { nw: "900", zoll: "36\"", iso: 914.4, ansi: 914.40 },
+        { nw: "1000", zoll: "40\"", iso: 1016.0, ansi: 1016.00 }
+    ];
+
     let naechsteNorm = null;
     let minAbstand = Infinity;
 
-    for (const [nw, normData] of Object.entries(ROHR_NORMEN)) {
-        const abstand = Math.abs(d - normData.iso);
+    for (const norm of normen) {
+        const abstand = Math.abs(d - norm.iso);
         if (abstand < minAbstand) {
             minAbstand = abstand;
-            naechsteNorm = { nw, ...normData };
+            naechsteNorm = norm;
         }
     }
 
@@ -970,7 +963,38 @@ function updateDurchmesserFromNorm() {
         return;
     }
 
-    const norm = ROHR_NORMEN[rohrNorm];
+    const normen = {
+        "6": { zoll: "1/8\"", iso: 10.2, ansi: 10.5 },
+        "8": { zoll: "1/4\"", iso: 13.5, ansi: 13.72 },
+        "10": { zoll: "3/8\"", iso: 17.2, ansi: 17.15 },
+        "15": { zoll: "1/2\"", iso: 21.3, ansi: 21.34 },
+        "20": { zoll: "3/4\"", iso: 26.9, ansi: 26.67 },
+        "25": { zoll: "1\"", iso: 33.7, ansi: 33.40 },
+        "32": { zoll: "1 1/4\"", iso: 42.4, ansi: 42.16 },
+        "40": { zoll: "1 1/2\"", iso: 48.3, ansi: 48.26 },
+        "50": { zoll: "2\"", iso: 60.3, ansi: 60.33 },
+        "65": { zoll: "2 1/2\"", iso: 76.1, ansi: 73.03 },
+        "80": { zoll: "3\"", iso: 88.9, ansi: 88.90 },
+        "90": { zoll: "3 1/2\"", iso: 101.6, ansi: 101.60 },
+        "100": { zoll: "4\"", iso: 114.3, ansi: 114.30 },
+        "125": { zoll: "5\"", iso: 139.7, ansi: 141.30 },
+        "150": { zoll: "6\"", iso: 168.3, ansi: 168.28 },
+        "175": { zoll: "7\"", iso: 193.7, ansi: 193.70 },
+        "200": { zoll: "8\"", iso: 219.1, ansi: 219.08 },
+        "250": { zoll: "10\"", iso: 273.0, ansi: 273.05 },
+        "300": { zoll: "12\"", iso: 323.9, ansi: 323.85 },
+        "350": { zoll: "14\"", iso: 355.6, ansi: 355.60 },
+        "400": { zoll: "16\"", iso: 406.4, ansi: 406.40 },
+        "450": { zoll: "18\"", iso: 457.2, ansi: 457.20 },
+        "500": { zoll: "20\"", iso: 508.0, ansi: 508.00 },
+        "600": { zoll: "24\"", iso: 609.6, ansi: 609.60 },
+        "700": { zoll: "28\"", iso: 711.2, ansi: 711.20 },
+        "800": { zoll: "32\"", iso: 812.8, ansi: 812.80 },
+        "900": { zoll: "36\"", iso: 914.4, ansi: 914.40 },
+        "1000": { zoll: "40\"", iso: 1016.0, ansi: 1016.00 }
+    };
+
+    const norm = normen[rohrNorm];
     if (norm) {
         durchmesserInput.value = norm.iso;
         normAnzeige.innerHTML = `
@@ -1009,7 +1033,7 @@ function berechneKreis() {
     document.getElementById('flaecheKreis').textContent = (flaeche / 1000000).toFixed(3) + " m²";
 }
 
-// --- FLAECHENBERECHNUNG ---
+// --- NEUE FLAECHENBERECHNUNG ---
 function berechneFlaeche() {
     const raumName = document.getElementById('raumName').value.trim();
     const l = parseFloat(document.getElementById('laenge').value);
@@ -1075,36 +1099,11 @@ function speichereBerechnung() {
     if (berechnungHistorie.length > 20) berechnungHistorie.pop();
     localStorage.setItem('sener_berechnung_historie', JSON.stringify(berechnungHistorie));
 
-    alert(`Berechnung "${berechnungName}" wurde erfolgreich gespeichert.`);
-}
-
-function speichereGesamteWohnung() {
-    const wohnungName = document.getElementById('ueberschrift').value.trim();
-    if (!wohnungName) {
-        alert("Bitte geben Sie einen Namen für die Wohnung ein.");
-        return;
-    }
-
-    if (raumHistorie.length === 0) {
-        alert("Sie müssen mindestens einen Raum hinzugefügt haben, bevor Sie die Wohnung speichern können.");
-        return;
-    }
-
-    const gesamtflaeche = raumHistorie.reduce((sum, r) => sum + r.flaeche, 0);
-
-    const wohnung = {
-        id: Date.now(),
-        name: wohnungName,
-        raeume: [...raumHistorie], // Kopie der aktuellen Räume
-        gesamtflaeche: gesamtflaeche,
-        datum: new Date().toLocaleString('de-DE')
-    };
-
-    berechnungHistorie.unshift(wohnung); // Speichert in berechnungHistorie (wie gewünscht)
-    if (berechnungHistorie.length > 20) berechnungHistorie.pop();
-    localStorage.setItem('sener_berechnung_historie', JSON.stringify(berechnungHistorie));
-
-    alert(`Wohnung "${wohnungName}" wurde erfolgreich gespeichert.`);
+    // Raumberechnung zurücksetzen
+    raumHistorie = [];
+    localStorage.setItem('sener_raum_historie', JSON.stringify(raumHistorie));
+    zeigeRaumListe();
+    berechneGesamtFlaeche();
 }
 
 function zeigeRaumListe() {
@@ -1142,7 +1141,6 @@ function berechneGesamtFlaeche() {
     document.getElementById('totalFlaeche').textContent = gesamt.toLocaleString('de-DE') + " m²";
 }
 
-// --- VERSAND-FUNKTIONEN ---
 function druckeErgebnisse() {
     const printWindow = window.open('', '_blank');
     printWindow.document.write('<html><head><title>Flächenberechnung</title></head><body>');
@@ -1159,10 +1157,11 @@ function druckeErgebnisse() {
     printWindow.print();
 }
 
-let isPdfLibLoaded = false; // Variable, um den Ladezustand zu merken
-
 function speichereAlsPDF() {
-    const erstellePDF = () => {
+    // Verwendet ein externes Tool (jsPDF) über CDN
+    const script = document.createElement('script');
+    script.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
+    script.onload = function() {
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF();
 
@@ -1202,60 +1201,28 @@ function speichereAlsPDF() {
 
         doc.save('Flaechenberechnung.pdf');
     };
-
-    if (isPdfLibLoaded) {
-        // Bibliothek ist schon geladen, direkt ausführen
-        erstellePDF();
-    } else {
-        // Bibliothek laden
-        const script = document.createElement('script');
-        script.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
-        script.onload = () => {
-            isPdfLibLoaded = true; // Merken, dass sie geladen ist
-            erstellePDF(); // Jetzt ausführen
-        };
-        script.onerror = () => {
-            alert('Fehler beim Laden der PDF-Bibliothek. Bitte prüfen Sie Ihre Internetverbindung.');
-        };
-        document.head.appendChild(script);
-    }
+    document.head.appendChild(script);
 }
 
 function versendeErgebnisse() {
     const mailtoLink = 'mailto:?subject=Flächenberechnung&body=';
-    let body = 'Flächenberechnung:
-';
+    let body = 'Flächenberechnung:\n\n';
     raumHistorie.forEach(raum => {
-        body += `${raum.name}: ${raum.laenge} ${raum.laengeEinheit} x ${raum.breite} ${raum.breiteEinheit} = ${raum.flaeche.toLocaleString('de-DE')} m²
-`;
+        body += `${raum.name}: ${raum.laenge} ${raum.laengeEinheit} x ${raum.breite} ${raum.breiteEinheit} = ${raum.flaeche.toLocaleString('de-DE')} m²\n`;
     });
-    body += `
-Gesamtfläche: ${raumHistorie.reduce((sum, r) => sum + r.flaeche, 0).toLocaleString('de-DE')} m²`;
+    body += `\nGesamtfläche: ${raumHistorie.reduce((sum, r) => sum + r.flaeche, 0).toLocaleString('de-DE')} m²`;
     window.location.href = mailtoLink + encodeURIComponent(body);
 }
 
 function versendePerWhatsApp() {
-    let message = 'Flächenberechnung:
-';
+    let message = 'Flächenberechnung:\n\n';
     raumHistorie.forEach(raum => {
-        message += `${raum.name}: ${raum.laenge} ${raum.laengeEinheit} x ${raum.breite} ${raum.breiteEinheit} = ${raum.flaeche.toLocaleString('de-DE')} m²
-`;
+        message += `${raum.name}: ${raum.laenge} ${raum.laengeEinheit} x ${raum.breite} ${raum.breiteEinheit} = ${raum.flaeche.toLocaleString('de-DE')} m²\n`;
     });
-    message += `
-Gesamtfläche: ${raumHistorie.reduce((sum, r) => sum + r.flaeche, 0).toLocaleString('de-DE')} m²`;
+    message += `\nGesamtfläche: ${raumHistorie.reduce((sum, r) => sum + r.flaeche, 0).toLocaleString('de-DE')} m²`;
 
     const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
     window.open(whatsappUrl, '_blank');
-}
-
-// --- AKTIONEN-MENÜ (Popup) ---
-function oeffneAktionenPopup() {
-    const popup = document.getElementById('aktionenPopup');
-    if (popup.style.display === 'block') {
-        popup.style.display = 'none'; // Popup schließen, wenn es offen ist
-    } else {
-        popup.style.display = 'block'; // Popup öffnen, wenn es geschlossen ist
-    }
 }
 
 // --- HISTORIE-FUNKTIONEN ---
@@ -1281,10 +1248,17 @@ function zeigeWinkelHistorieImPopup() {
                 <div class="history-time">${eintrag.zeit}</div>
                 <div class="history-input">Eingabe: ${eintrag.input} mm</div>
             </div>
-            <button class="history-delete" onclick="loescheEintrag(${eintrag.id}, event)">🗑️</button>
+            <button class="history-delete" onclick="loescheWinkelEintrag(${eintrag.id}, event)">🗑️</button>
         `;
         liste.appendChild(div);
     });
+}
+
+function loescheWinkelEintrag(id, event) {
+    if (event) event.stopPropagation();
+    berechnungsHistorie = berechnungsHistorie.filter(e => e.id !== id);
+    localStorage.setItem('sener_historie', JSON.stringify(berechnungsHistorie));
+    zeigeWinkelHistorieImPopup();
 }
 
 function ladeWertAusWinkelHistorie(id) {
@@ -1296,13 +1270,6 @@ function ladeWertAusWinkelHistorie(id) {
         zeigeTab('winkel');
         setTimeout(berechneMassen, 300);
     }
-}
-
-function loescheEintrag(id, event) {
-    if (event) event.stopPropagation();
-    berechnungsHistorie = berechnungsHistorie.filter(e => e.id !== id);
-    localStorage.setItem('sener_historie', JSON.stringify(berechnungsHistorie));
-    zeigeWinkelHistorieImPopup();
 }
 
 function schliesseWinkelHistorie() {
@@ -1358,48 +1325,16 @@ function versendeBerechnung(id, event) {
     const berechnung = berechnungHistorie.find(w => w.id === id);
     if (!berechnung) return;
 
-    let message = `Berechnung: ${berechnung.name}
-`;
-    message += `Datum: ${berechnung.datum}
-`;
+    let message = `Berechnung: ${berechnung.name}\n`;
+    message += `Datum: ${berechnung.datum}\n\n`;
     berechnung.raeume.forEach(raum => {
-        message += `${raum.name}: ${raum.laenge} ${raum.laengeEinheit} x ${raum.breite} ${raum.breiteEinheit} = ${raum.flaeche.toLocaleString('de-DE')} m²
-`;
+        message += `${raum.name}: ${raum.laenge} ${raum.laengeEinheit} x ${raum.breite} ${raum.breiteEinheit} = ${raum.flaeche.toLocaleString('de-DE')} m²\n`;
     });
     const gesamtflaeche = berechnung.raeume.reduce((sum, r) => sum + r.flaeche, 0);
-    message += `
-Gesamtfläche: ${gesamtflaeche.toLocaleString('de-DE')} m²`;
+    message += `\nGesamtfläche: ${gesamtflaeche.toLocaleString('de-DE')} m²`;
 
     const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
     window.open(whatsappUrl, '_blank');
-}
-
-// --- NEUE FUNKTION: BERECHNUNG AUS HISTORIE LADEN ---
-function ladeBerechnungAusHistorie(id, event) {
-    event.stopPropagation(); // Verhindert, dass der Klick auf das Item die Aktionen öffnet
-    const berechnung = berechnungHistorie.find(w => w.id === id);
-    if (!berechnung) return;
-
-    // Raumhistorie mit den gespeicherten Räumen ersetzen
-    raumHistorie = [...berechnung.raeume];
-    localStorage.setItem('sener_raum_historie', JSON.stringify(raumHistorie));
-
-    // Optional: Überschrift laden
-    document.getElementById('ueberschrift').value = berechnung.name;
-
-    // Anzeige aktualisieren
-    zeigeRaumListe();
-    berechneGesamtFlaeche();
-
-    // Popup schließen
-    schliesseFlaecheHistorie();
-
-    // Optional: Zum Flächen-Tab wechseln
-    setTimeout(() => {
-        zeigeTab('flaeche');
-    }, 300);
-
-    alert(`Berechnung "${berechnung.name}" wurde geladen.`);
 }
 
 function schliesseFlaecheHistorie() {
@@ -1411,6 +1346,16 @@ function zurueckZurFlaeche() {
     setTimeout(() => {
         zeigeTab('flaeche');
     }, 300);
+}
+
+// --- NEUES AKTIONEN-MENÜ ---
+function oeffneAktionenMenu() {
+    const menu = document.getElementById('aktionenMenu');
+    if (menu.style.display === 'block') {
+        menu.style.display = 'none'; // Menü schließen, wenn es offen ist
+    } else {
+        menu.style.display = 'block'; // Menü öffnen, wenn es geschlossen ist
+    }
 }
 
 // ===== 3er-Reihe =====
@@ -1434,7 +1379,7 @@ function schliessePopup() {
 document.addEventListener('DOMContentLoaded', () => {
     berechnungsHistorie = JSON.parse(localStorage.getItem('sener_historie')) || [];
     raumHistorie = JSON.parse(localStorage.getItem('sener_raum_historie')) || [];
-    berechnungHistorie = JSON.parse(localStorage.getItem('sener_berechnung_historie')) || []; // <- BEHAALT
+    berechnungHistorie = JSON.parse(localStorage.getItem('sener_berechnung_historie')) || [];
     zeigeRaumListe();
     berechneGesamtFlaeche();
 });
