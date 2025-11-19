@@ -1,8 +1,9 @@
 {
-  "name": "Sener Winkelmessung",
-  "short_name": "Sener Winkel",
-  "description": "Einfache Winkelmessung nach 3-4-5 Methode",
-  "start_url": "/",
+  "name": "Sener Flächenrechner",
+  "short_name": "Sener Fläche",
+  "description": "Einfache Flächenberechnung für Räume und Bereiche",
+  "start_url": "/Sener-Flaechenrechner/",
+  "scope": "/Sener-Flaechenrechner/",
   "display": "standalone",
   "background_color": "#121212",
   "theme_color": "#28a745",
@@ -11,12 +12,14 @@
     {
       "src": "Sener_Dreieck_logo_192x192.png",
       "sizes": "192x192",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any"
     },
     {
       "src": "Sener_Dreieck_logo_512x512.png",
       "sizes": "512x512",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any"
     }
   ]
 }
