@@ -4,10 +4,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sener Flächenberechnung</title>
-    <!-- Link zum Web App Manifest -->
+
+    <!-- PWA -->
     <link rel="manifest" href="manifest.json">
-    <!-- Optional: Icon für iOS -->
-    <link rel="apple-touch-icon" href="icon-192x192.png">
+    <link rel="apple-touch-icon" href="Sener_Dreieck_logo_192x192.png">
+    <meta name="theme-color" content="#28a745">
+
+    <!-- jsPDF für PDF-Export -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -29,9 +34,15 @@
             text-align: center;
             color: #ffffff;
             font-size: 1.5em;
-            margin-top: 0;
+            margin-top: 10px;
             padding-bottom: 10px;
             border-bottom: 2px solid #007bff;
+        }
+        .app-logo {
+            display: block;
+            margin: 0 auto 10px auto;
+            max-width: 120px;
+            height: auto;
         }
         .tabs {
             display: flex;
@@ -49,6 +60,7 @@
             cursor: pointer;
             font-size: 14px;
             font-weight: bold;
+            transition: background-color 0.2s;
         }
         .tab-button.active {
             background-color: #28a745;
@@ -98,130 +110,128 @@
             cursor: pointer;
             font-size: 16px;
             font-weight: bold;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
+            transition: background-color 0.2s;
         }
         button:hover {
             background-color: #218838;
         }
-        .button-secondary {
-            background-color: #6c757d;
-            margin-top: 10px;
-        }
-        .button-secondary:hover {
-            background-color: #5a6268;
+        .icon {
+            margin-right: 8px;
         }
         .result {
-            margin-top: 25px;
+            margin-top: 20px;
             padding: 16px;
             background-color: #252525;
             border-radius: 8px;
-            border-left: 4px solid #28a745;
-            display: none;
         }
-        .result h3 {
-            margin: 0 0 12px 0;
-            color: #28a745;
-            font-size: 1.2em;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        .result-item {
-            margin: 10px 0;
-            padding: 10px;
-            background-color: #1e1e1e;
-            border-radius: 6px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .result-label {
-            font-size: 0.95em;
-            color: #aaaaaa;
-        }
-        .result-value-large {
-            font-size: 2em;
-            font-weight: bold;
-            color: #ffffff;
-        }
-        .result-value-small {
-            font-size: 0.9em;
-            color: #ff5555;
-        }
-        .info {
-            font-size: 0.85em;
-            color: #888888;
-            text-align: center;
+        .result-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 15px;
             margin-top: 10px;
         }
-        .icon {
+        .result-item {
+            text-align: center;
+            padding: 10px;
+            background-color: #333333;
+            border-radius: 6px;
+        }
+        .result-label {
+            display: block;
+            font-size: 0.9em;
+            color: #aaa;
+            margin-bottom: 5px;
+        }
+        .result-value {
             font-size: 1.2em;
+            font-weight: bold;
+            color: #28a745;
+        }
+        .result-value-small {
+            font-size: 1em;
+            font-weight: bold;
+            color: #28a745;
         }
 
-        /* ========== POPUP ========== */
+        /* Popups */
         .popup {
             display: none;
             position: fixed;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            background: rgba(0,0,0,0.95);
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.8);
             z-index: 1000;
             justify-content: center;
             align-items: center;
+            padding: 20px;
+            box-sizing: border-box;
         }
         .popup-content {
-            background: #1e1e1e;
-            width: 95%;
-            max-width: 520px;
-            max-height: 90vh;
+            background-color: #1e1e1e;
             border-radius: 12px;
+            width: 90%;
+            max-width: 500px;
+            max-height: 90vh;
             overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.5);
             display: flex;
             flex-direction: column;
-            box-shadow: 0 0 20px rgba(0,0,0,0.8);
         }
         .popup-header {
-            padding: 16px;
-            background: #28a745;
-            color: white;
-            font-weight: bold;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            padding: 16px;
+            border-bottom: 1px solid #333;
+            flex-shrink: 0;
+        }
+        .popup-header span {
             font-size: 1.2em;
+            font-weight: bold;
+            color: #ffffff;
+        }
+        .close-btn {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.8em;
+            cursor: pointer;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s;
+        }
+        .close-btn:hover {
+            background: rgba(255,255,255,0.2);
+            border-radius: 50%;
         }
         .popup-body {
-            flex: 1;
+            padding: 16px;
             overflow-y: auto;
-            padding: 0;
+            flex-grow: 1;
         }
-        .history-list {
-            padding: 0;
-            margin: 0;
+        .popup-footer {
+            padding: 12px 16px 16px;
+            border-top: 1px solid #333;
+            flex-shrink: 0;
         }
         .history-item {
-            padding: 14px 16px;
-            border-bottom: 1px solid #333;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            font-size: 1em;
-        }
-        .history-item:last-child {
-            border-bottom: none;
+            padding: 12px;
+            margin: 5px 0;
+            background-color: #252525;
+            border-radius: 6px;
+            transition: background-color 0.2s;
         }
         .history-info {
-            flex: 1;
-            cursor: pointer;
-        }
-        .history-info:hover {
-            background: rgba(255,255,255,0.05);
-            border-radius: 6px;
-            padding: 4px;
-            margin: -4px;
+            flex-grow: 1;
+            padding-right: 10px;
         }
         .history-time {
             font-size: 0.85em;
@@ -239,45 +249,28 @@
             color: #ff5555;
             font-size: 1.5em;
             cursor: pointer;
-            width: 40px;
-            height: 40px;
+        }
+        .history-actions button {
+            width: auto;
+            padding: 8px;
+            margin-top: 0;
+            margin-left: 5px;
+            font-size: 0.9em;
+            font-weight: normal;
+        }
+        .history-actions {
             display: flex;
             align-items: center;
-            justify-content: center;
-            border-radius: 50%;
-        }
-        .history-delete:hover {
-            background-color: #333;
+            gap: 5px;
+            flex-shrink: 0;
         }
         .empty-history {
             padding: 30px;
             text-align: center;
             color: #888;
         }
-        .close-btn {
-            background: none;
-            border: none;
-            color: white;
-            font-size: 1.8em;
-            cursor: pointer;
-            width: 40px;
-            height: 40px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        .close-btn:hover {
-            background: rgba(255,255,255,0.2);
-            border-radius: 50%;
-        }
 
-        /* Neue Stile für Flächenberechnung */
-        .raum-liste {
-            margin-top: 20px;
-            padding: 10px;
-            background-color: #1e1e1e;
-            border-radius: 6px;
-        }
+        /* Flächen-spezifisch */
         .raum-item {
             padding: 10px;
             margin: 5px 0;
@@ -304,1099 +297,1140 @@
             color: #ff5555;
             font-size: 1.2em;
             cursor: pointer;
+            transition: color 0.2s;
         }
         .raum-delete:hover {
-            background-color: #333;
+            color: #e80000;
         }
         .total-flaeche {
             margin-top: 20px;
             padding: 10px;
-            background-color: #252525;
+            background-color: #333333;
             border-radius: 6px;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            font-weight: bold;
+            font-size: 1.2em;
         }
         .total-label {
-            font-size: 1.2em;
-            font-weight: bold;
+            color: #ffffff;
         }
         .total-value {
-            font-size: 1.2em;
-            font-weight: bold;
             color: #28a745;
         }
-        .print-button {
-            margin-top: 10px;
-            background-color: #007bff;
+
+        /* Buttons Styles */
+        .speichern-button { background-color: #28a745; }
+        .historie-button { background-color: #6c757d; }
+        .whatsapp-button-popup { background-color: #25D366; }
+        .mail-button-popup { background-color: #007bff; }
+
+        /* Versand-Buttons einheitlich */
+        #versandMenu {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-top: 12px;
         }
-        .print-button:hover {
-            background-color: #0056b3;
-        }
-        .pdf-button {
-            margin-top: 10px;
-            background-color: #FF6600;
-        }
-        .pdf-button:hover {
-            background-color: #e65c00;
-        }
-        .share-button {
-            margin-top: 10px;
-            background-color: #6c757d;
-        }
-        .share-button:hover {
-            background-color: #5a6268;
-        }
-        .whatsapp-button {
-            margin-top: 10px;
-            background-color: #25D366;
-        }
-        .whatsapp-button:hover {
-            background-color: #1da85f;
-        }
-        .speichern-button {
-            margin-top: 10px;
-            background-color: #28a745;
-        }
-        .speichern-button:hover {
-            background-color: #218838;
-        }
-        .historie-button {
-            margin-top: 10px;
-            background-color: #6c757d;
-        }
-        .historie-button:hover {
-            background-color: #5a6268;
-        }
-        .versenden-button {
-            margin-top: 10px;
-            background-color: #6c757d;
-        }
-        .versenden-button:hover {
-            background-color: #5a6268;
-        }
-        .wohnung-item {
-            padding: 10px;
-            margin: 5px 0;
-            background-color: #252525;
+        #versandMenu .versand-item {
+            background-color: #2f2f2f;
+            padding: 14px;
+            font-size: 14px;
             border-radius: 6px;
+            border: none;
+            color: white;
+            font-weight: bold;
+            text-align: center;
+            width: 100%;
+        }
+        #versandMenu .versand-item:hover {
+            background-color: #404040;
+        }
+
+        /* Optionen Zahnrad im Fläche-Header */
+        .flaeche-header-row {
             display: flex;
             justify-content: space-between;
             align-items: center;
+            margin-bottom: 10px;
         }
-        .wohnung-name {
-            font-weight: bold;
+        .flaeche-header-row h3 {
+            margin: 0;
+            font-size: 1.1em;
         }
-        .wohnung-flaeche {
-            font-weight: bold;
-            color: #28a745;
+        .optionen-icon-btn {
+            width: auto;
+            padding: 6px 10px;
+            margin-top: 0;
+            background-color: #007bff;
+            border-radius: 20px;
+            font-size: 0.9em;
         }
-        .wohnung-actions {
-            display: flex;
-            gap: 5px;
+
+        /* Optionen-Popup spezifisch */
+        #optionenPopup .popup-content {
+            max-width: 420px;
         }
-        .wohnung-delete {
-            background: none;
-            border: none;
-            color: #ff5555;
-            font-size: 1.2em;
-            cursor: pointer;
-        }
-        .wohnung-delete:hover {
-            background-color: #333;
-        }
-        .wohnung-send {
-            background: none;
-            border: none;
-            color: #25D366;
-            font-size: 1.2em;
-            cursor: pointer;
-        }
-        .wohnung-send:hover {
-            background-color: #1da85f;
-        }
-        /* Neues Menü für Aktionen */
-        .aktionen-menu {
-            margin-top: 10px;
-            padding: 10px;
-            background-color: #252525;
-            border-radius: 6px;
-            display: none; /* Standardmäßig ausgeblendet */
-        }
-        .aktionen-menu button {
+        #optionenPopup input,
+        #optionenPopup select {
             width: 100%;
-            margin: 5px 0;
+            margin-bottom: 12px;
             padding: 10px;
-            background-color: #6c757d;
+            background: #2b2b2b;
+            color: white;
+            border: 1px solid #444;
+            border-radius: 6px;
+        }
+        .popup-section {
+            margin-top: 20px;
+            font-size: 15px;
+            border-left: 4px solid #28a745;
+            padding-left: 8px;
+        }
+        .popup-save-btn {
+            width: 100%;
+            padding: 12px;
+            background: #28a745;
             color: white;
             border: none;
             border-radius: 6px;
-            cursor: pointer;
-            font-size: 14px;
-            font-weight: bold;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-        }
-        .aktionen-menu button:hover {
-            background-color: #5a6268;
-        }
-        .aktionen-menu .print-button {
-            background-color: #007bff;
-        }
-        .aktionen-menu .pdf-button {
-            background-color: #FF6600;
-        }
-        .aktionen-menu .whatsapp-button {
-            background-color: #25D366;
-        }
-        .aktionen-menu .share-button {
-            background-color: #6c757d;
-        }
-        /* Kreis-Berechnung: Norm-Anzeige */
-        .norm-anzeige {
+            font-size: 17px;
             margin-top: 10px;
-            padding: 10px;
-            background-color: #2a2a2a;
-            border-radius: 6px;
-            font-size: 0.9em;
-            color: #888;
-        }
-        .norm-anzeige strong {
-            color: #ffffff;
         }
     </style>
 </head>
 <body>
+    <div class="container">
+        <img src="logo.png" alt="Sener Logo" class="app-logo">
+        <h1>Sener Flächenberechnung</h1>
 
-<div class="container">
-    <h1>Sener Flächenberechnung</h1>
-
-    <!-- Tabs -->
-    <div class="tabs">
-        <button class="tab-button active" onclick="zeigeTab('winkel')">Winkel</button>
-        <button class="tab-button active" onclick="zeigeTab('dreieck')">Dreieck</button>
-        <button class="tab-button active" onclick="zeigeTab('kreis')">Kreis</button>
-        <button class="tab-button active" onclick="zeigeTab('flaeche')">Fläche</button>
-    </div>
-
-    <!-- Tab Inhalt: Winkelberechnung -->
-    <div id="winkel" class="tab-content active">
-        <div class="section">
-            <label for="istMasse">🪙 Gemessene maß in mm</label>
-            <input type="number" id="istMasse" placeholder="z.B. 4500" value="" inputmode="numeric">
-
-            <label for="bereich">🏗️ Bereich:</label>
-            <select id="bereich">
-                <option value="metallbau" selected>Metallbau (3-4-5) Berechnung</option>
-                <option value="wohnungsbau">Wohnungsbau (mittel)</option>
-                <option value="agrar">Landbau (genau)</option>
-            </select>
-
-            <button onclick="berechneMassen()">
-                <span class="icon">📐</span> Berechnen
-            </button>
-            <button onclick="zeige3erReihe()" class="button-secondary">
-                <span class="icon">🧮</span> 3er-Reihe anzeigen
-            </button>
-            <button onclick="oeffneWinkelHistorie()" class="button-secondary">
-                🕒 Historie anzeigen
-            </button>
-            <p class="info">Metallbau: Max. A = 6900 mm, nie exakt passender Wert</p>
+        <div class="tabs">
+            <button class="tab-button active" onclick="zeigeTab('winkel', event)">Winkel</button>
+            <button class="tab-button" onclick="zeigeTab('dreieck', event)">Dreieck</button>
+            <button class="tab-button" onclick="zeigeTab('kreis', event)">Kreis</button>
+            <button class="tab-button" onclick="zeigeTab('flaeche', event)">Fläche</button>
         </div>
 
-        <div id="ergebnis" class="result">
-            <h3><span class="icon">✅</span> Absteck-Maße</h3>
-            <div class="result-item">
-                <div style="text-align: center;">
-                    <div class="result-value-large" id="masseA">-</div>
-                    <div style="font-size: 0.8em; color: #aaa;">Kathete A<br>(<span id="multiplier">?</span> × 3)</div>
-                    <div class="result-value-small" id="masseA_m">-</div>
+        <!-- WINKEL -->
+        <div id="winkel" class="tab-content active">
+            <div class="section">
+                <label for="istMasse">Gemessene Maße in mm</label>
+                <input type="number" id="istMasse" placeholder="z.B. 4500" value="" inputmode="numeric">
+               
+                <label for="bereich">Bereich:</label>
+                <select id="bereich">
+                    <option value="metallbau" selected>Metallbau (3-4-5) Berechnung</option>
+                    <option value="wohnungsbau">Wohnungsbau (mittel)</option>
+                    <option value="agrar">Landbau (genau)</option>
+                </select>
+                <button onclick="berechneMassen()"><span class="icon">📐</span> Berechnen</button>
+                <button class="historie-button" onclick="oeffneWinkelHistorie()"><span class="icon">📜</span> Historie Winkel</button>
+                <button class="historie-button" onclick="zeige3erReihe()"><span class="icon">🧮</span> 3er-Reihe anzeigen</button>
+            </div>
+            <div id="ergebnis" class="result" style="display:none;">
+                <div class="result-grid">
+                    <div class="result-item">
+                        <div style="font-size: 0.8em; color: #aaa;">Kathete A<br>(<span id="multiplier">-</span> × 3)</div>
+                        <div class="result-value" id="masseA">-</div>
+                        <div class="result-value-small" id="masseA_m">-</div>
+                    </div>
+                    <div class="result-item">
+                        <span class="result-label">Kathete B<br>(4er-Seite)</span>
+                        <div class="result-value" id="masseB">-</div>
+                    </div>
+                    <div class="result-item">
+                        <span class="result-label">Hypotenuse C<br>(5er-Seite)</span>
+                        <div class="result-value" id="masseC">-</div>
+                    </div>
                 </div>
             </div>
-            <div class="result-item">
-                <span class="result-label">Kathete B<br>(4er-Seite)</span>
-                <span class="result-value-small" id="masseB">-</span>
-            </div>
-            <div class="result-item">
-                <span class="result-label">Hypotenuse C<br>(5er-Seite)</span>
-                <span class="result-value-small" id="masseC">-</span>
-            </div>
-        </div>
-    </div>
-
-    <!-- Tab Inhalt: Dreiecksberechnung -->
-    <div id="dreieck" class="tab-content">
-        <div class="section">
-            <label for="seiteA">Seite A (mm):</label>
-            <input type="number" id="seiteA" placeholder="z.B. 3000" value="" inputmode="numeric">
-
-            <label for="seiteB">Seite B (mm):</label>
-            <input type="number" id="seiteB" placeholder="z.B. 4000" value="" inputmode="numeric">
-
-            <label for="winkelGamma">Winkel γ (Grad):</label>
-            <input type="number" id="winkelGamma" placeholder="z.B. 90" value="" inputmode="numeric">
-
-            <button onclick="berechneDreieck()">
-                <span class="icon">📐</span> Berechnen
-            </button>
         </div>
 
-        <div id="ergebnisDreieck" class="result">
-            <h3><span class="icon">📐</span> Dreiecks-Ergebnisse</h3>
-            <div class="result-item">
-                <span class="result-label">Seite C (mm)</span>
-                <span class="result-value-small" id="seiteC">-</span>
+        <!-- DREIECK -->
+        <div id="dreieck" class="tab-content">
+            <div class="section">
+                <label for="seiteA">Seite A (mm):</label>
+                <input type="number" id="seiteA" placeholder="z.B. 3000" value="" inputmode="numeric">
+                <label for="seiteB">Seite B (mm):</label>
+                <input type="number" id="seiteB" placeholder="z.B. 4000" value="" inputmode="numeric">
+                <label for="winkelGamma">Winkel γ (Grad):</label>
+                <input type="number" id="winkelGamma" placeholder="z.B. 90" value="" inputmode="numeric">
+                <button onclick="berechneDreieck()"><span class="icon">📐</span> Berechnen</button>
             </div>
-            <div class="result-item">
-                <span class="result-label">Fläche (m²)</span>
-                <span class="result-value-small" id="flaecheDreieck">-</span>
-            </div>
-        </div>
-    </div>
-
-    <!-- Tab Inhalt: Kreisberechnung -->
-    <div id="kreis" class="tab-content">
-        <div class="section">
-            <label for="durchmesser">Durchmesser (mm):</label>
-            <div style="display: flex; gap: 10px;">
-                <input type="number" id="durchmesser" placeholder="z.B. 1000" value="" inputmode="numeric" oninput="updateNormAndCalculate()" />
-                <select id="durchmesserEinheit" onchange="updateNormAndCalculate()">
-                    <option value="mm">mm</option>
-                    <option value="zoll">Zoll</option>
-                </select>
-            </div>
-
-            <label for="rohrNorm">Rohr-Norm (NW / Zoll):</label>
-            <select id="rohrNorm" onchange="updateDurchmesserFromNorm()">
-                <option value="">-- Bitte wählen --</option>
-                <option value="6">6 (1/8")</option>
-                <option value="8">8 (1/4")</option>
-                <option value="10">10 (3/8")</option>
-                <option value="15">15 (1/2")</option>
-                <option value="20">20 (3/4")</option>
-                <option value="25">25 (1")</option>
-                <option value="32">32 (1 1/4")</option>
-                <option value="40">40 (1 1/2")</option>
-                <option value="50">50 (2")</option>
-                <option value="65">65 (2 1/2")</option>
-                <option value="80">80 (3")</option>
-                <option value="90">90 (3 1/2")</option>
-                <option value="100">100 (4")</option>
-                <option value="125">125 (5")</option>
-                <option value="150">150 (6")</option>
-                <option value="175">175 (7")</option>
-                <option value="200">200 (8")</option>
-                <option value="250">250 (10")</option>
-                <option value="300">300 (12")</option>
-                <option value="350">350 (14")</option>
-                <option value="400">400 (16")</option>
-                <option value="450">450 (18")</option>
-                <option value="500">500 (20")</option>
-                <option value="600">600 (24")</option>
-                <option value="700">700 (28")</option>
-                <option value="800">800 (32")</option>
-                <option value="900">900 (36")</option>
-                <option value="1000">1000 (40")</option>
-            </select>
-
-            <div id="normAnzeige" class="norm-anzeige">
-                <!-- Wird dynamisch gefüllt -->
-                Keine Norm gefunden.
-            </div>
-
-            <button onclick="berechneKreis()" class="button-secondary">
-                <span class="icon">⭕</span> Berechnen (optional)
-            </button>
-        </div>
-
-        <div id="ergebnisKreis" class="result">
-            <h3><span class="icon">⭕</span> Kreis-Ergebnisse</h3>
-            <div class="result-item">
-                <span class="result-label">Umfang (m)</span>
-                <span class="result-value-small" id="umfangKreis">-</span>
-            </div>
-            <div class="result-item">
-                <span class="result-label">Fläche (m²)</span>
-                <span class="result-value-small" id="flaecheKreis">-</span>
-            </div>
-        </div>
-    </div>
-
-    <!-- Tab Inhalt: Flächenberechnung -->
-    <div id="flaeche" class="tab-content">
-        <div class="section">
-            <label for="ueberschrift">Berechnung Überschrift z.B. Wohnung, Lager, fläche</label>
-            <input type="text" id="ueberschrift" placeholder="z.B. Wohnung 1" value="" />
-
-            <label for="raumName">Raumname (z.B. Wohnzimmer):</label>
-            <input type="text" id="raumName" placeholder="z.B. Wohnzimmer" value="" />
-
-            <label for="laenge">Länge:</label>
-            <div style="display: flex; gap: 10px;">
-                <input type="number" id="laenge" placeholder="z.B. 5" value="" inputmode="numeric" />
-                <select id="laengeEinheit">
-                    <option value="mm">mm</option>
-                    <option value="cm">cm</option>
-                    <option value="m" selected>m</option>
-                </select>
-            </div>
-
-            <label for="breite">Breite:</label>
-            <div style="display: flex; gap: 10px;">
-                <input type="number" id="breite" placeholder="z.B. 3" value="" inputmode="numeric" />
-                <select id="breiteEinheit">
-                    <option value="mm">mm</option>
-                    <option value="cm">cm</option>
-                    <option value="m" selected>m</option>
-                </select>
-            </div>
-
-            <button onclick="berechneFlaeche()">
-                <span class="icon">⬜</span> Raum berechnen
-            </button>
-
-            <div id="ergebnisFlaeche" class="result">
-                <h3><span class="icon">⬜</span> Flächen-Ergebnisse</h3>
-                <div class="result-item">
-                    <span class="result-label">Gesamtfläche (m²)</span>
-                    <span class="result-value-large" id="gesamtFlaeche">0.000</span>
+            <div id="ergebnisDreieck" class="result" style="display:none;">
+                <div class="result-grid">
+                    <div class="result-item">
+                        <span class="result-label">Seite C (mm)</span>
+                        <span class="result-value" id="seiteC">-</span>
+                    </div>
+                    <div class="result-item">
+                        <span class="result-label">Fläche (m²)</span>
+                        <span class="result-value" id="flaecheDreieck">-</span>
+                    </div>
                 </div>
             </div>
+        </div>
 
-            <div class="raum-liste">
-                <h4>📊 Gespeicherte Räume</h4>
-                <div id="raumListe">
-                    <!-- Wird dynamisch gefüllt -->
+        <!-- KREIS -->
+        <div id="kreis" class="tab-content">
+            <div class="section">
+                <label for="durchmesser">Durchmesser:</label>
+                <div style="display: flex; gap: 10px;">
+                    <input type="number" id="durchmesser" placeholder="z.B. 21.3 oder 1000" value="" inputmode="decimal" oninput="updateNormAndCalculate()">
+                    <select id="durchmesserEinheit" onchange="updateNormAndCalculate()" style="width: 120px; flex-shrink: 0; margin-top: 6px;">
+                        <option value="mm">mm</option>
+                        <option value="m">m</option>
+                        <option value="zoll">Zoll</option>
+                    </select>
+                </div>
+                
+                <label for="rohrNorm">Rohrnorm (NW/DN):</label>
+                <select id="rohrNorm" onchange="updateDurchmesserFromNorm()">
+                    <option value="">Wähle Norm...</option>
+                    <option value="6">DN 6 (1/8")</option>
+                    <option value="8">DN 8 (1/4")</option>
+                    <option value="10">DN 10 (3/8")</option>
+                    <option value="15">DN 15 (1/2")</option>
+                    <option value="20">DN 20 (3/4")</option>
+                    <option value="25">DN 25 (1")</option>
+                    <option value="32">DN 32 (1 1/4")</option>
+                    <option value="40">DN 40 (1 1/2")</option>
+                    <option value="50">DN 50 (2")</option>
+                    <option value="65">DN 65 (2 1/2")</option>
+                    <option value="80">DN 80 (3")</option>
+                    <option value="90">DN 90 (3 1/2")</option>
+                    <option value="100">DN 100 (4")</option>
+                    <option value="125">DN 125 (5")</option>
+                    <option value="150">DN 150 (6")</option>
+                    <option value="175">DN 175 (7")</option>
+                    <option value="200">DN 200 (8")</option>
+                    <option value="250">DN 250 (10")</option>
+                    <option value="300">DN 300 (12")</option>
+                    <option value="350">DN 350 (14")</option>
+                    <option value="400">DN 400 (16")</option>
+                    <option value="450">DN 450 (18")</option>
+                    <option value="500">DN 500 (20")</option>
+                    <option value="600">DN 600 (24")</option>
+                    <option value="700">DN 700 (28")</option>
+                    <option value="800">DN 800 (32")</option>
+                    <option value="900">DN 900 (36")</option>
+                    <option value="1000">DN 1000 (40")</option>
+                </select>
+                <div id="normAnzeige" style="margin-top: 10px; color: #aaa; font-size: 0.9em;"></div>
+                <button onclick="berechneKreis()"><span class="icon">⭕</span> Berechnen</button>
+            </div>
+            <div id="ergebnisKreis" class="result" style="display:none;">
+                <div class="result-grid">
+                    <div class="result-item">
+                        <span class="result-label">Umfang</span>
+                        <span class="result-value" id="umfangKreis">-</span>
+                    </div>
+                    <div class="result-item">
+                        <span class="result-label">Fläche (m²)</span>
+                        <span class="result-value" id="flaecheKreis">-</span>
+                    </div>
                 </div>
             </div>
+        </div>
 
-            <div class="total-flaeche">
-                <span class="total-label">Gesamtfläche aller Räume:</span>
-                <span class="total-value" id="totalFlaeche">0.000 m²</span>
+        <!-- FLÄCHE -->
+        <div id="flaeche" class="tab-content">
+            <div class="section">
+
+                <!-- versteckte Meta-Felder (werden vom Optionen-Popup befüllt) -->
+                <div style="display:none;">
+                    <select id="ueberschriftSelect">
+                        <option value="Wohnung" selected>Wohnung</option>
+                        <option value="Lager">Lager</option>
+                        <option value="Halle">Halle</option>
+                        <option value="Büro">Büro</option>
+                        <option value="Agrar">Agrar</option>
+                        <option value="Außenfläche">Außenfläche</option>
+                        <option value="Sonstige">Sonstige…</option>
+                    </select>
+                    <input type="text" id="ueberschriftCustom" value="">
+                    <input type="text" id="adresseStrasse" value="">
+                    <input type="text" id="adressePLZ" value="">
+                    <input type="text" id="adresseOrt" value="">
+                    <input type="text" id="beschreibung" value="">
+                </div>
+
+                <div class="flaeche-header-row">
+                    <h3>Flächenberechnung</h3>
+                    <button class="optionen-icon-btn" onclick="oeffneOptionenPopup()">⚙️ Optionen</button>
+                </div>
+
+                <!-- Raum-Eingabe -->
+                <label for="raumName">Raumname:</label>
+                <input type="text" id="raumName" placeholder="z.B. Wohnzimmer">
+
+                <label for="laenge">Länge:</label>
+                <div style="display: flex; gap: 10px;">
+                    <input type="number" id="laenge" placeholder="z.B. 5.5" value="" inputmode="decimal">
+                    <select id="laengeEinheit" style="width: 120px; flex-shrink: 0; margin-top: 6px;">
+                        <option value="m">m</option>
+                        <option value="cm">cm</option>
+                        <option value="mm">mm</option>
+                    </select>
+                </div>
+                
+                <label for="breite">Breite:</label>
+                <div style="display: flex; gap: 10px;">
+                    <input type="number" id="breite" placeholder="z.B. 4.2" value="" inputmode="decimal">
+                    <select id="breiteEinheit" style="width: 120px; flex-shrink: 0; margin-top: 6px;">
+                        <option value="m">m</option>
+                        <option value="cm">cm</option>
+                        <option value="mm">mm</option>
+                    </select>
+                </div>
+                
+                <button onclick="berechneFlaeche()"><span class="icon">➕</span> Raum hinzufügen</button>
+
+                <div id="ergebnisFlaeche" class="result">
+                    <h3>Gespeicherte Räume</h3>
+                    <div id="raumListe" style="max-height: 250px; overflow-y: auto;"></div>
+
+                    <div style="margin-top: 15px;">
+                        <label for="flaechenEinheitAnzeige">Flächeneinheit (Anzeige):</label>
+                        <select id="flaechenEinheitAnzeige" onchange="aktualisiereFlaechenAnzeige()">
+                            <option value="m2" selected>Quadratmeter (m²)</option>
+                            <option value="ha">Hektar (ha)</option>
+                        </select>
+                    </div>
+
+                    <div id="gesamtFlaecheDiv" class="total-flaeche" style="display:none;">
+                        <span class="total-label">Gesamtfläche:</span>
+                        <span class="total-value" id="totalFlaeche">0 m²</span>
+                    </div>
+                    
+                    <button class="speichern-button" onclick="speichereBerechnung()"><span class="icon">💾</span> Berechnung speichern</button>
+
+                    <button class="historie-button" onclick="oeffneFlaecheHistorie()" style="margin-top:15px;">
+                        <span class="icon">📜</span> Historie der Flächenberechnungen
+                    </button>
+                    
+                    <button class="historie-button" onclick="toggleVersandMenu(event)" style="margin-top:15px;">
+                        <span class="icon">📤</span> Versenden
+                    </button>
+
+                    <div id="versandMenu" style="display:none; border-top:1px solid #333; padding-top:10px;">
+                        <button class="versand-item" onclick="druckeErgebnisse()">
+                            🖨️ Drucken (Browser)
+                        </button>
+                        <button class="versand-item" onclick="erstelleUndOeffnePDF()">
+                            📄 Als PDF speichern / versenden
+                        </button>
+                        <button class="versand-item" onclick="versendePerWhatsApp()">
+                            💬 Per WhatsApp versenden
+                        </button>
+                        <button class="versand-item" onclick="versendeErgebnisse()">
+                            📧 Per E-Mail versenden
+                        </button>
+                    </div>
+                </div>
             </div>
+        </div>
 
-            <button onclick="speichereBerechnung()" class="speichern-button">
-                <span class="icon">💾</span> Berechnung Speichern
-            </button>
+    </div>
 
-            <button onclick="oeffneFlaecheHistorie()" class="historie-button">
-                <span class="icon">📜</span> Historie
-            </button>
-
-            <!-- Neuer Button für "Versenden" -->
-            <button onclick="oeffneAktionenMenu()" class="versenden-button">
-                <span class="icon">📤</span> Versenden
-            </button>
-
-            <!-- Neues Menü für Aktionen (Drucken, PDF, WhatsApp, Mail) -->
-            <div id="aktionenMenu" class="aktionen-menu">
-                <button class="print-button" onclick="druckeErgebnisse()">
-                    <span class="icon">🖨️</span> Drucken
-                </button>
-                <button class="pdf-button" onclick="speichereAlsPDF()">
-                    <span class="icon">📄</span> Als PDF speichern
-                </button>
-                <button class="whatsapp-button" onclick="versendePerWhatsApp()">
-                    <span class="icon">💬</span> Per WhatsApp versenden
-                </button>
-                <button class="share-button" onclick="versendeErgebnisse()">
-                    <span class="icon">📧</span> Per E-Mail versenden
-                </button>
+    <!-- WINKEL-HISTORIE-POPUP -->
+    <div id="winkelHistoriePopup" class="popup">
+        <div class="popup-content">
+            <div class="popup-header">
+                <span>Historie der Winkelberechnungen</span>
+                <button class="close-btn" onclick="schliesseWinkelHistorie(event)">×</button>
+            </div>
+            <div class="popup-body">
+                <div id="winkelHistoryListe"></div>
             </div>
         </div>
     </div>
-</div>
 
-<!-- Popup für Winkel-Historie -->
-<div id="winkelHistoriePopup" class="popup">
-    <div class="popup-content">
-        <div class="popup-header">
-            <span>🟢 Historie der Winkelberechnungen</span>
-            <button class="close-btn" onclick="schliesseWinkelHistorie()">×</button>
-        </div>
-        <div class="popup-body">
-            <div class="history-list" id="winkelHistoryListe">
-                <!-- Wird dynamisch gefüllt -->
+    <!-- FLÄCHEN-HISTORIE-POPUP -->
+    <div id="flaecheHistoriePopup" class="popup">
+        <div class="popup-content">
+            <div class="popup-header">
+                <span>Historie der Flächenberechnungen</span>
+                <button class="close-btn" onclick="schliesseFlaecheHistorie(event)">×</button>
             </div>
-        </div>
-        <div style="padding: 16px; background: #1e1e1e; border-top: 1px solid #333;">
-            <button onclick="zurueckZurWinkelBerechnung()" style="width:100%; padding:12px; background-color:#28a745; color:white; border:none; border-radius:6px; font-weight:bold; font-size:16px;">
-                🔙 Zurück zur Berechnung
-            </button>
-        </div>
-    </div>
-</div>
-
-<!-- Popup für 3er-Reihe -->
-<div id="popup3er" class="popup">
-    <div class="popup-content">
-        <div class="popup-header">
-            <span>🧮 3er-Multiplikatoren (n × 3)</span>
-            <button class="close-btn" onclick="schliessePopup()">×</button>
-        </div>
-        <div class="popup-body">
-            <div class="history-list" id="popupListe">
-                <!-- Wird gefüllt -->
+            <div class="popup-body">
+                <div id="flaecheHistoryListe"></div>
+            </div>
+            <div style="padding: 16px; border-top: 1px solid #333; flex-shrink: 0;">
+                <button onclick="zurueckZurFlaeche()" style="background-color:#6c757d;">🔙 Zurück zur Flächen-Eingabe</button>
             </div>
         </div>
     </div>
-</div>
 
-<!-- Popup für Flächen-Historie -->
-<div id="flaecheHistoriePopup" class="popup">
-    <div class="popup-content">
-        <div class="popup-header">
-            <span>🟣 Historie der Flächenberechnungen</span>
-            <button class="close-btn" onclick="schliesseFlaecheHistorie()">×</button>
-        </div>
-        <div class="popup-body">
-            <div class="history-list" id="flaecheHistoryListe">
-                <!-- Wird dynamisch gefüllt -->
+    <!-- 3er Reihe Popup -->
+    <div id="popup3er" class="popup">
+        <div class="popup-content">
+            <div class="popup-header">
+                <span>3er-Multiplikatoren (n × 3)</span>
+                <button class="close-btn" onclick="schliessePopup(event)">×</button>
+            </div>
+            <div class="popup-body">
+                <div id="popupListe"></div>
             </div>
         </div>
-        <div style="padding: 16px; background: #1e1e1e; border-top: 1px solid #333;">
-            <button onclick="zurueckZurFlaeche()" style="width:100%; padding:12px; background-color:#28a745; color:white; border:none; border-radius:6px; font-weight:bold; font-size:16px;">
-                🔙 Zurück zur Fläche
-            </button>
+    </div>
+
+    <!-- OPTIONEN POPUP -->
+    <div id="optionenPopup" class="popup" style="display:none;">
+        <div class="popup-content">
+            <div class="popup-header">
+                <span>Optionen</span>
+                <button class="close-btn" onclick="schliesseOptionenPopup()">×</button>
+            </div>
+            <div class="popup-body">
+                <label>Berechnung – Überschrift</label>
+                <select id="popupUeberschrift" onchange="togglePopupCustom()">
+                    <option value="Wohnung">Wohnung</option>
+                    <option value="Lager">Lager</option>
+                    <option value="Halle">Halle</option>
+                    <option value="Büro">Büro</option>
+                    <option value="Agrar">Agrar</option>
+                    <option value="Außenfläche">Außenfläche</option>
+                    <option value="Sonstige">Sonstige…</option>
+                </select>
+                <input type="text" id="popupUeberschriftCustom" placeholder="Eigene Bezeichnung…" style="display:none; margin-top:8px;">
+
+                <h4 class="popup-section">Adresse</h4>
+                <label>Straße / Nr:</label>
+                <input type="text" id="popupStrasse" placeholder="Musterstraße 12">
+                <label>PLZ:</label>
+                <input type="text" id="popupPLZ" placeholder="12345" inputmode="numeric">
+                <label>Ort:</label>
+                <input type="text" id="popupOrt" placeholder="Mülheim an der Ruhr">
+
+                <h4 class="popup-section">Beschreibung / Messung</h4>
+                <input type="text" id="popupBeschreibung" placeholder="z.B. Wohnung 1. OG links">
+            </div>
+            <div class="popup-footer">
+                <button class="popup-save-btn" onclick="speichereOptionen()">✔️ Übernehmen</button>
+            </div>
         </div>
     </div>
-</div>
 
-<script>
-let berechnungsHistorie = JSON.parse(localStorage.getItem('sener_historie')) || [];
-let raumHistorie = JSON.parse(localStorage.getItem('sener_raum_historie')) || [];
-let berechnungHistorie = JSON.parse(localStorage.getItem('sener_berechnung_historie')) || [];
+    <script>
+        let berechnungsHistorie = JSON.parse(localStorage.getItem('sener_historie')) || [];
+        let berechnungHistorie = JSON.parse(localStorage.getItem('sener_berechnung_historie')) || [];
+        let raeume = [];
+        let isPdfLibLoaded = false;
 
-// Tab-Wechsel
-function zeigeTab(tabName) {
-    // Alle Tabs ausblenden
-    const tabs = document.getElementsByClassName('tab-content');
-    for (let i = 0; i < tabs.length; i++) {
-        tabs[i].classList.remove('active');
-    }
+        const normen = [
+            { nw: "6", zoll: "1/8\"", iso: 10.2, ansi: 10.5 }, { nw: "8", zoll: "1/4\"", iso: 13.5, ansi: 13.72 },
+            { nw: "10", zoll: "3/8\"", iso: 17.2, ansi: 17.15 }, { nw: "15", zoll: "1/2\"", iso: 21.3, ansi: 21.34 },
+            { nw: "20", zoll: "3/4\"", iso: 26.9, ansi: 26.67 }, { nw: "25", zoll: "1\"", iso: 33.7, ansi: 33.40 },
+            { nw: "32", zoll: "1 1/4\"", iso: 42.4, ansi: 42.16 }, { nw: "40", zoll: "1 1/2\"", iso: 48.3, ansi: 48.26 },
+            { nw: "50", zoll: "2\"", iso: 60.3, ansi: 60.33 }, { nw: "65", zoll: "2 1/2\"", iso: 76.1, ansi: 73.03 },
+            { nw: "80", zoll: "3\"", iso: 88.9, ansi: 88.90 }, { nw: "90", zoll: "3 1/2\"", iso: 101.6, ansi: 101.60 },
+            { nw: "100", zoll: "4\"", iso: 114.3, ansi: 114.30 }, { nw: "125", zoll: "5\"", iso: 139.7, ansi: 141.30 },
+            { nw: "150", zoll: "6\"", iso: 168.3, ansi: 168.28 }, { nw: "175", zoll: "7\"", iso: 193.7, ansi: 193.70 },
+            { nw: "200", zoll: "8\"", iso: 219.1, ansi: 219.08 }, { nw: "250", zoll: "10\"", iso: 273.0, ansi: 273.05 },
+            { nw: "300", zoll: "12\"", iso: 323.9, ansi: 323.85 }, { nw: "350", zoll: "14\"", iso: 355.6, ansi: 355.60 },
+            { nw: "400", zoll: "16\"", iso: 406.4, ansi: 406.40 }, { nw: "450", zoll: "18\"", iso: 457.2, ansi: 457.20 },
+            { nw: "500", zoll: "20\"", iso: 508.0, ansi: 508.00 }, { nw: "600", zoll: "24\"", iso: 609.6, ansi: 609.60 },
+            { nw: "700", zoll: "28\"", iso: 711.2, ansi: 711.20 }, { nw: "800", zoll: "32\"", iso: 812.8, ansi: 812.80 },
+            { nw: "900", zoll: "36\"", iso: 914.4, ansi: 914.40 }, { nw: "1000", zoll: "40\"", iso: 1016.0, ansi: 1016.00 }
+        ];
 
-    // Alle Tab-Buttons inaktiv setzen
-    const buttons = document.getElementsByClassName('tab-button');
-    for (let i = 0; i < buttons.length; i++) {
-        buttons[i].classList.remove('active');
-    }
-
-    // Angeklickten Tab einblenden
-    document.getElementById(tabName).classList.add('active');
-    // Angeklickten Button aktiv setzen
-    event.currentTarget.classList.add('active');
-
-    // Menü schließen, wenn auf anderen Tab gewechselt wird
-    if (tabName !== 'flaeche') {
-        document.getElementById('aktionenMenu').style.display = 'none';
-    }
-}
-
-// --- BESTEHENDE WINKELBERECHNUNG ---
-function berechneMassen() {
-    const rawInput = document.getElementById('istMasse').value.replace(/,/g, '.').replace(/\s/g, '');
-    const istMasse = parseFloat(rawInput);
-    const bereich = document.getElementById('bereich').value;
-    const ergebnisDiv = document.getElementById('ergebnis');
-
-    if (isNaN(istMasse) || istMasse < 300) {
-        alert("Bitte geben Sie eine gültige Ist-Masse ≥ 300 mm ein.");
-        ergebnisDiv.style.display = 'none';
-        return;
-    }
-
-    let masseA, masseB, masseC, multiplier;
-
-    if (bereich === 'metallbau') {
-        const aMax = Math.floor((istMasse - 1) / 300) * 300;
-        masseA = aMax > 6900 ? 6900 : aMax;
-        if (masseA < 300) {
-            alert("Zu klein für Metallbau.");
-            ergebnisDiv.style.display = 'none';
-            return;
+        function isHaModus() {
+            const sel = document.getElementById('flaechenEinheitAnzeige');
+            return sel && sel.value === 'ha';
         }
-        multiplier = masseA / 3;
-        masseB = multiplier * 4;
-        masseC = multiplier * 5;
-    } else if (bereich === 'wohnungsbau') {
-        const k = Math.floor(istMasse / 3 / 50) * 50;
-        multiplier = k;
-        masseA = k * 3;
-        masseB = k * 4;
-        masseC = k * 5;
-    } else if (bereich === 'agrar') {
-        const k = Math.floor(istMasse / 3 / 10) * 10;
-        multiplier = k;
-        masseA = k * 3;
-        masseB = k * 4;
-        masseC = k * 5;
-    }
 
-    document.getElementById('masseA').textContent = masseA.toLocaleString('de-DE');
-    document.getElementById('masseA_m').textContent = (masseA / 1000).toFixed(3) + " m";
-    document.getElementById('masseB').textContent = (masseB / 1000).toFixed(3) + " m";
-    document.getElementById('masseC').textContent = (masseC / 1000).toFixed(3) + " m";
-    document.getElementById('multiplier').textContent = multiplier.toLocaleString('de-DE');
-    ergebnisDiv.style.display = 'block';
+        function formatFlaeche(value) {
+            if (isNaN(value)) value = 0;
 
-    const eintrag = {
-        id: Date.now(),
-        zeit: new Date().toLocaleString('de-DE'),
-        input: istMasse,
-        bereich: bereich,
-        a: masseA,
-        b: masseB,
-        c: masseC,
-        k: multiplier
-    };
+            if (isHaModus()) {
+                const ha = value / 10000;
+                let formatted;
+                if (ha < 10) {
+                    formatted = ha.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                } else {
+                    formatted = ha.toLocaleString('de-DE', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+                }
+                return `${formatted} ha`;
+            }
 
-    berechnungsHistorie.unshift(eintrag);
-    if (berechnungsHistorie.length > 20) berechnungsHistorie.pop();
-    localStorage.setItem('sener_historie', JSON.stringify(berechnungsHistorie));
-}
+            let rounded;
+            let options;
 
-// --- NEUE DREIECKBERECHNUNG ---
-function berechneDreieck() {
-    const a = parseFloat(document.getElementById('seiteA').value);
-    const b = parseFloat(document.getElementById('seiteB').value);
-    const gammaGrad = parseFloat(document.getElementById('winkelGamma').value);
+            if (value < 100) {
+                rounded = Math.round(value);
+                options = { maximumFractionDigits: 0 };
+            } else if (value < 1000) {
+                rounded = Math.round(value * 10) / 10;
+                options = { minimumFractionDigits: 1, maximumFractionDigits: 1 };
+            } else {
+                rounded = value;
+                options = { minimumFractionDigits: 0, maximumFractionDigits: 3 };
+            }
 
-    if (isNaN(a) || isNaN(b) || isNaN(gammaGrad) || a <= 0 || b <= 0 || gammaGrad <= 0) {
-        alert("Bitte geben Sie gültige Werte für die Seiten und den Winkel ein.");
-        return;
-    }
-
-    const gammaRad = gammaGrad * Math.PI / 180;
-    // Cosinussatz: c² = a² + b² - 2ab*cos(gamma)
-    const c = Math.sqrt(a*a + b*b - 2*a*b*Math.cos(gammaRad));
-    // Fläche: A = 0.5 * a * b * sin(gamma)
-    const flaeche = 0.5 * a * b * Math.sin(gammaRad);
-
-    document.getElementById('seiteC').textContent = c.toFixed(2) + " mm";
-    document.getElementById('flaecheDreieck').textContent = (flaeche / 1000000).toFixed(3) + " m²";
-
-    document.getElementById('ergebnisDreieck').style.display = 'block';
-}
-
-// --- NEUE KREISBERECHNUNG ---
-function updateNormAndCalculate() {
-    let d = parseFloat(document.getElementById('durchmesser').value);
-    const einheit = document.getElementById('durchmesserEinheit').value;
-    const rohrNormSelect = document.getElementById('rohrNorm');
-    const normAnzeige = document.getElementById('normAnzeige');
-
-    // Umrechnung in mm
-    if (einheit === 'zoll') {
-        d = d * 25.4; // 1 Zoll = 25.4 mm
-    }
-
-    // Finde die nächste Norm
-    const normen = [
-        { nw: "6", zoll: "1/8\"", iso: 10.2, ansi: 10.5 },
-        { nw: "8", zoll: "1/4\"", iso: 13.5, ansi: 13.72 },
-        { nw: "10", zoll: "3/8\"", iso: 17.2, ansi: 17.15 },
-        { nw: "15", zoll: "1/2\"", iso: 21.3, ansi: 21.34 },
-        { nw: "20", zoll: "3/4\"", iso: 26.9, ansi: 26.67 },
-        { nw: "25", zoll: "1\"", iso: 33.7, ansi: 33.40 },
-        { nw: "32", zoll: "1 1/4\"", iso: 42.4, ansi: 42.16 },
-        { nw: "40", zoll: "1 1/2\"", iso: 48.3, ansi: 48.26 },
-        { nw: "50", zoll: "2\"", iso: 60.3, ansi: 60.33 },
-        { nw: "65", zoll: "2 1/2\"", iso: 76.1, ansi: 73.03 },
-        { nw: "80", zoll: "3\"", iso: 88.9, ansi: 88.90 },
-        { nw: "90", zoll: "3 1/2\"", iso: 101.6, ansi: 101.60 },
-        { nw: "100", zoll: "4\"", iso: 114.3, ansi: 114.30 },
-        { nw: "125", zoll: "5\"", iso: 139.7, ansi: 141.30 },
-        { nw: "150", zoll: "6\"", iso: 168.3, ansi: 168.28 },
-        { nw: "175", zoll: "7\"", iso: 193.7, ansi: 193.70 },
-        { nw: "200", zoll: "8\"", iso: 219.1, ansi: 219.08 },
-        { nw: "250", zoll: "10\"", iso: 273.0, ansi: 273.05 },
-        { nw: "300", zoll: "12\"", iso: 323.9, ansi: 323.85 },
-        { nw: "350", zoll: "14\"", iso: 355.6, ansi: 355.60 },
-        { nw: "400", zoll: "16\"", iso: 406.4, ansi: 406.40 },
-        { nw: "450", zoll: "18\"", iso: 457.2, ansi: 457.20 },
-        { nw: "500", zoll: "20\"", iso: 508.0, ansi: 508.00 },
-        { nw: "600", zoll: "24\"", iso: 609.6, ansi: 609.60 },
-        { nw: "700", zoll: "28\"", iso: 711.2, ansi: 711.20 },
-        { nw: "800", zoll: "32\"", iso: 812.8, ansi: 812.80 },
-        { nw: "900", zoll: "36\"", iso: 914.4, ansi: 914.40 },
-        { nw: "1000", zoll: "40\"", iso: 1016.0, ansi: 1016.00 }
-    ];
-
-    let naechsteNorm = null;
-    let minAbstand = Infinity;
-
-    for (const norm of normen) {
-        const abstand = Math.abs(d - norm.iso);
-        if (abstand < minAbstand) {
-            minAbstand = abstand;
-            naechsteNorm = norm;
+            const formatted = rounded.toLocaleString('de-DE', options);
+            return `${formatted} m²`;
         }
-    }
 
-    if (naechsteNorm) {
-        rohrNormSelect.value = naechsteNorm.nw;
-        normAnzeige.innerHTML = `
-            <strong>Nächste Norm:</strong> ${naechsteNorm.nw} (${naechsteNorm.zoll})<br>
-            <strong>ISO:</strong> ${naechsteNorm.iso} mm<br>
-            <strong>ANSI:</strong> ${naechsteNorm.ansi} mm
-        `;
-    } else {
-        rohrNormSelect.value = "";
-        normAnzeige.innerHTML = "Keine Norm gefunden.";
-    }
+        function aktualisiereFlaechenAnzeige() {
+            zeigeRaumListe();
+            berechneGesamtFlaeche();
+            const popup = document.getElementById('flaecheHistoriePopup');
+            if (popup && popup.style.display === 'flex') zeigeFlaecheHistorie();
+        }
 
-    // Automatische Berechnung
-    berechneKreis();
-}
+        function zeigeTab(tabName, event) {
+            if (event && event.stopPropagation) event.stopPropagation();
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            document.querySelectorAll('.tab-button').forEach(b => b.classList.remove('active'));
 
-function updateDurchmesserFromNorm() {
-    const rohrNorm = document.getElementById('rohrNorm').value;
-    const durchmesserInput = document.getElementById('durchmesser');
-    const normAnzeige = document.getElementById('normAnzeige');
+            document.getElementById(tabName).classList.add('active');
+            const clickedButton = Array.from(document.getElementsByClassName('tab-button'))
+                .find(btn => btn.getAttribute('onclick') && btn.getAttribute('onclick').includes(tabName));
+            if (clickedButton) clickedButton.classList.add('active');
 
-    if (rohrNorm === "") {
-        durchmesserInput.value = "";
-        normAnzeige.innerHTML = "Keine Norm ausgewählt.";
-        berechneKreis(); // Setze Ergebnisse zurück
-        return;
-    }
+            if (tabName === 'flaeche') {
+                zeigeRaumListe();
+                berechneGesamtFlaeche();
+            }
+        }
 
-    const normen = {
-        "6": { zoll: "1/8\"", iso: 10.2, ansi: 10.5 },
-        "8": { zoll: "1/4\"", iso: 13.5, ansi: 13.72 },
-        "10": { zoll: "3/8\"", iso: 17.2, ansi: 17.15 },
-        "15": { zoll: "1/2\"", iso: 21.3, ansi: 21.34 },
-        "20": { zoll: "3/4\"", iso: 26.9, ansi: 26.67 },
-        "25": { zoll: "1\"", iso: 33.7, ansi: 33.40 },
-        "32": { zoll: "1 1/4\"", iso: 42.4, ansi: 42.16 },
-        "40": { zoll: "1 1/2\"", iso: 48.3, ansi: 48.26 },
-        "50": { zoll: "2\"", iso: 60.3, ansi: 60.33 },
-        "65": { zoll: "2 1/2\"", iso: 76.1, ansi: 73.03 },
-        "80": { zoll: "3\"", iso: 88.9, ansi: 88.90 },
-        "90": { zoll: "3 1/2\"", iso: 101.6, ansi: 101.60 },
-        "100": { zoll: "4\"", iso: 114.3, ansi: 114.30 },
-        "125": { zoll: "5\"", iso: 139.7, ansi: 141.30 },
-        "150": { zoll: "6\"", iso: 168.3, ansi: 168.28 },
-        "175": { zoll: "7\"", iso: 193.7, ansi: 193.70 },
-        "200": { zoll: "8\"", iso: 219.1, ansi: 219.08 },
-        "250": { zoll: "10\"", iso: 273.0, ansi: 273.05 },
-        "300": { zoll: "12\"", iso: 323.9, ansi: 323.85 },
-        "350": { zoll: "14\"", iso: 355.6, ansi: 355.60 },
-        "400": { zoll: "16\"", iso: 406.4, ansi: 406.40 },
-        "450": { zoll: "18\"", iso: 457.2, ansi: 457.20 },
-        "500": { zoll: "20\"", iso: 508.0, ansi: 508.00 },
-        "600": { zoll: "24\"", iso: 609.6, ansi: 609.60 },
-        "700": { zoll: "28\"", iso: 711.2, ansi: 711.20 },
-        "800": { zoll: "32\"", iso: 812.8, ansi: 812.80 },
-        "900": { zoll: "36\"", iso: 914.4, ansi: 914.40 },
-        "1000": { zoll: "40\"", iso: 1016.0, ansi: 1016.00 }
-    };
+        function schliesseWinkelHistorie(event) {
+            if (event && event.stopPropagation) event.stopPropagation();
+            document.getElementById('winkelHistoriePopup').style.display = 'none';
+        }
+        function schliesseFlaecheHistorie(event) {
+            if (event && event.stopPropagation) event.stopPropagation();
+            document.getElementById('flaecheHistoriePopup').style.display = 'none';
+        }
+        function schliessePopup(event) {
+            if (event && event.stopPropagation) event.stopPropagation();
+            document.getElementById('popup3er').style.display = 'none';
+        }
+        function zurueckZurFlaeche() {
+            schliesseFlaecheHistorie(null);
+        }
 
-    const norm = normen[rohrNorm];
-    if (norm) {
-        durchmesserInput.value = norm.iso;
-        normAnzeige.innerHTML = `
-            <strong>Norm:</strong> ${rohrNorm} (${norm.zoll})<br>
-            <strong>ISO:</strong> ${norm.iso} mm<br>
-            <strong>ANSI:</strong> ${norm.ansi} mm
-        `;
-    } else {
-        normAnzeige.innerHTML = "Norm nicht gefunden.";
-    }
+        function berechneMassen() {
+            const rawInput = document.getElementById('istMasse').value.replace(/,/g, '.').replace(/\s/g, '');
+            const istMasse = parseFloat(rawInput);
+            const bereich = document.getElementById('bereich').value;
+            const ergebnisDiv = document.getElementById('ergebnis');
+            const mindestMasse = 300;
 
-    // Automatische Berechnung
-    berechneKreis();
-}
+            if (isNaN(istMasse) || istMasse < mindestMasse) {
+                alert("Bitte geben Sie eine gültige Ist-Masse ≥ 300 mm ein.");
+                ergebnisDiv.style.display = 'none';
+                return;
+            }
 
-function berechneKreis() {
-    let d = parseFloat(document.getElementById('durchmesser').value);
-    const einheit = document.getElementById('durchmesserEinheit').value;
+            let masseA, masseB, masseC, multiplier;
 
-    if (isNaN(d) || d <= 0) {
-        document.getElementById('umfangKreis').textContent = "-";
-        document.getElementById('flaecheKreis').textContent = "-";
-        return;
-    }
+            if (bereich === 'metallbau') {
+                const aMax = Math.floor((istMasse - 1) / 300) * 300;
+                masseA = aMax > 6900 ? 6900 : aMax;
+                if (masseA < mindestMasse) masseA = mindestMasse;
+                multiplier = masseA / 3;
+            } else if (bereich === 'wohnungsbau') {
+                const k = Math.floor(istMasse / 3 / 50) * 50;
+                multiplier = k < mindestMasse / 3 ? mindestMasse / 3 : k;
+            } else if (bereich === 'agrar') {
+                const k = Math.floor(istMasse / 3 / 10) * 10;
+                multiplier = k < mindestMasse / 3 ? mindestMasse / 3 : k;
+            }
 
-    // Umrechnung in mm
-    if (einheit === 'zoll') {
-        d = d * 25.4; // 1 Zoll = 25.4 mm
-    }
+            masseA = multiplier * 3;
+            masseB = multiplier * 4;
+            masseC = multiplier * 5;
 
-    const r = d / 2;
-    const umfang = Math.PI * d;
-    const flaeche = Math.PI * r * r;
+            const options0Dec = { maximumFractionDigits: 0 };
+            const options3Dec = { minimumFractionDigits: 3, maximumFractionDigits: 3 };
 
-    document.getElementById('umfangKreis').textContent = (umfang / 1000).toFixed(3) + " m";
-    document.getElementById('flaecheKreis').textContent = (flaeche / 1000000).toFixed(3) + " m²";
-}
+            document.getElementById('masseA').textContent = masseA.toLocaleString('de-DE', options0Dec);
+            document.getElementById('masseA_m').textContent = (masseA / 1000).toLocaleString('de-DE', options3Dec) + " m";
+            document.getElementById('masseB').textContent = (masseB / 1000).toLocaleString('de-DE', options3Dec) + " m";
+            document.getElementById('masseC').textContent = (masseC / 1000).toLocaleString('de-DE', options3Dec) + " m";
+            document.getElementById('multiplier').textContent = multiplier.toLocaleString('de-DE', options0Dec);
+            ergebnisDiv.style.display = 'block';
 
-// --- NEUE FLAECHENBERECHNUNG ---
-function berechneFlaeche() {
-    const raumName = document.getElementById('raumName').value.trim();
-    const l = parseFloat(document.getElementById('laenge').value);
-    const b = parseFloat(document.getElementById('breite').value);
-    const laengeEinheit = document.getElementById('laengeEinheit').value;
-    const breiteEinheit = document.getElementById('breiteEinheit').value;
+            const eintrag = {
+                id: Date.now(),
+                zeit: new Date().toLocaleString('de-DE'),
+                input: istMasse,
+                bereich: bereich,
+                a: masseA,
+                b: masseB,
+                c: masseC,
+                k: multiplier
+            };
+            berechnungsHistorie.unshift(eintrag);
+            if (berechnungsHistorie.length > 50) berechnungsHistorie.pop();
+            localStorage.setItem('sener_historie', JSON.stringify(berechnungsHistorie));
+        }
 
-    if (!raumName || isNaN(l) || isNaN(b) || l <= 0 || b <= 0) {
-        alert("Bitte geben Sie einen Raumnamen und gültige Länge und Breite ein.");
-        return;
-    }
+        function zeigeWinkelHistorie() {
+            const liste = document.getElementById('winkelHistoryListe');
+            liste.innerHTML = '';
+            if (berechnungsHistorie.length === 0) {
+                liste.innerHTML = '<p class="empty-history">Keine Winkelberechnungen vorhanden.</p>';
+                return;
+            }
 
-    // Umrechnung in Meter
-    const faktorLaenge = laengeEinheit === 'mm' ? 0.001 : laengeEinheit === 'cm' ? 0.01 : 1;
-    const faktorBreite = breiteEinheit === 'mm' ? 0.001 : breiteEinheit === 'cm' ? 0.01 : 1;
+            berechnungsHistorie.forEach(item => {
+                let bereichLabel;
+                switch (item.bereich) {
+                    case 'metallbau': bereichLabel = 'Metallbau (3-4-5)'; break;
+                    case 'wohnungsbau': bereichLabel = 'Wohnungsbau (mittel)'; break;
+                    case 'agrar': bereichLabel = 'Landbau (genau)'; break;
+                    default: bereichLabel = 'Unbekannt';
+                }
 
-    const lInMeter = l * faktorLaenge;
-    const bInMeter = b * faktorBreite;
-    const flaeche = lInMeter * bInMeter;
+                const div = document.createElement('div');
+                div.className = 'history-item';
+                div.innerHTML = `
+                    <div class="history-info">
+                        <div class="raum-name">${item.a.toLocaleString('de-DE', { maximumFractionDigits: 0 })} mm × 3-4-5</div>
+                        <div class="history-input">Ist-Masse: ${item.input.toLocaleString('de-DE', { maximumFractionDigits: 0 })} mm (${bereichLabel})</div>
+                        <div class="history-time">K: ${item.k.toLocaleString('de-DE', { maximumFractionDigits: 0 })} | B: ${(item.b / 1000).toFixed(3).replace('.', ',')} m | C: ${(item.c / 1000).toFixed(3).replace('.', ',')} m</div>
+                    </div>
+                    <button class="history-delete" onclick="event.stopPropagation(); loescheWinkelHistorie(${item.id})">🗑️</button>
+                `;
+                liste.appendChild(div);
+            });
+        }
 
-    const raum = {
-        id: Date.now(),
-        name: raumName,
-        laenge: l,
-        breite: b,
-        laengeEinheit: laengeEinheit,
-        breiteEinheit: breiteEinheit,
-        flaeche: flaeche,
-        datum: new Date().toLocaleString('de-DE')
-    };
+        function loescheWinkelHistorie(id) {
+            berechnungsHistorie = berechnungsHistorie.filter(item => item.id !== id);
+            localStorage.setItem('sener_historie', JSON.stringify(berechnungsHistorie));
+            zeigeWinkelHistorie();
+        }
 
-    raumHistorie.unshift(raum);
-    if (raumHistorie.length > 20) raumHistorie.pop();
-    localStorage.setItem('sener_raum_historie', JSON.stringify(raumHistorie));
+        function oeffneWinkelHistorie() {
+            zeigeWinkelHistorie();
+            document.getElementById('winkelHistoriePopup').style.display = 'flex';
+        }
 
-    zeigeRaumListe();
-    berechneGesamtFlaeche();
-}
+        function zeige3erReihe() {
+            const liste = document.getElementById('popupListe');
+            liste.innerHTML = '';
+            for (let n = 1; n <= 2300; n++) {
+                const wert = n * 3;
+                const div = document.createElement('div');
+                div.className = 'history-item';
+                div.innerHTML = `<div>${n.toLocaleString('de-DE')} × 3 = ${wert.toLocaleString('de-DE')} mm</div>`;
+                liste.appendChild(div);
+            }
+            document.getElementById('popup3er').style.display = 'flex';
+        }
 
-function speichereBerechnung() {
-    const berechnungName = document.getElementById('ueberschrift').value.trim();
-    if (!berechnungName) {
-        alert("Bitte geben Sie einen Namen für die Berechnung ein.");
-        return;
-    }
+        function berechneDreieck() {
+            const a = parseFloat(document.getElementById('seiteA').value.replace(/,/g, '.'));
+            const b = parseFloat(document.getElementById('seiteB').value.replace(/,/g, '.'));
+            const gammaGrad = parseFloat(document.getElementById('winkelGamma').value.replace(/,/g, '.'));
 
-    if (raumHistorie.length === 0) {
-        alert("Sie müssen mindestens einen Raum hinzugefügt haben, bevor Sie die Berechnung speichern können.");
-        return;
-    }
+            if (isNaN(a) || isNaN(b) || isNaN(gammaGrad) || a <= 0 || b <= 0 || gammaGrad <= 0 || gammaGrad >= 180) {
+                alert("Bitte gültige Werte für A, B und γ (0° < γ < 180°) eingeben.");
+                document.getElementById('ergebnisDreieck').style.display = 'none';
+                return;
+            }
 
-    const gesamtflaeche = raumHistorie.reduce((sum, r) => sum + r.flaeche, 0);
+            const gammaRad = gammaGrad * Math.PI / 180;
+            const c = Math.sqrt(a * a + b * b - 2 * a * b * Math.cos(gammaRad));
+            const flaecheMM2 = 0.5 * a * b * Math.sin(gammaRad);
+            const flaecheM2 = flaecheMM2 / 1000000;
 
-    const berechnung = {
-        id: Date.now(),
-        name: berechnungName,
-        raeume: [...raumHistorie], // Kopie der aktuellen Räume
-        gesamtflaeche: gesamtflaeche,
-        datum: new Date().toLocaleString('de-DE')
-    };
+            document.getElementById('seiteC').textContent = c.toFixed(2).replace('.', ',') + " mm";
+            document.getElementById('flaecheDreieck').textContent = flaecheM2.toFixed(3).replace('.', ',') + " m²";
+            document.getElementById('ergebnisDreieck').style.display = 'block';
+        }
 
-    berechnungHistorie.unshift(berechnung);
-    if (berechnungHistorie.length > 20) berechnungHistorie.pop();
-    localStorage.setItem('sener_berechnung_historie', JSON.stringify(berechnungHistorie));
+        function getDurchmesserInMM() {
+            let d = parseFloat(document.getElementById('durchmesser').value.replace(/,/g, '.'));
+            const einheit = document.getElementById('durchmesserEinheit').value;
+            let d_mm = isNaN(d) ? 0 : d;
 
-    // Raumberechnung zurücksetzen
-    raumHistorie = [];
-    localStorage.setItem('sener_raum_historie', JSON.stringify(raumHistorie));
-    zeigeRaumListe();
-    berechneGesamtFlaeche();
-}
+            if (einheit === 'zoll') d_mm = d * 25.4;
+            else if (einheit === 'm') d_mm = d * 1000;
+            return d_mm;
+        }
 
-function zeigeRaumListe() {
-    const liste = document.getElementById('raumListe');
-    if (raumHistorie.length === 0) {
-        liste.innerHTML = '<div class="empty-history">Noch keine Räume gespeichert.</div>';
-        return;
-    }
+        function updateNormAndCalculate() {
+            const d_mm = getDurchmesserInMM();
+            const rohrNormSelect = document.getElementById('rohrNorm');
+            const normAnzeige = document.getElementById('normAnzeige');
 
-    liste.innerHTML = '';
-    raumHistorie.forEach(raum => {
-        const div = document.createElement('div');
-        div.className = 'raum-item';
-        div.innerHTML = `
-            <div class="raum-name">${raum.name}</div>
-            <div class="raum-flaeche">${raum.flaeche.toLocaleString('de-DE')} m²</div>
-            <div class="raum-actions">
-                <button class="raum-delete" onclick="loescheRaum(${raum.id})">🗑️</button>
-            </div>
-        `;
-        liste.appendChild(div);
-    });
-}
+            let naechsteNorm = null;
+            let minAbstand = Infinity;
+            
+            if (d_mm > 0) {
+                for (const norm of normen) {
+                    const abstand = Math.abs(d_mm - norm.iso);
+                    if (abstand < minAbstand) {
+                        minAbstand = abstand;
+                        naechsteNorm = norm;
+                    }
+                }
+            }
 
-function loescheRaum(id) {
-    raumHistorie = raumHistorie.filter(r => r.id !== id);
-    localStorage.setItem('sener_raum_historie', JSON.stringify(raumHistorie));
-    zeigeRaumListe();
-    berechneGesamtFlaeche();
-}
+            if (naechsteNorm && d_mm > 0) {
+                rohrNormSelect.value = naechsteNorm.nw;
+                normAnzeige.innerHTML = `
+                    <strong>Nächste Norm:</strong> NW ${naechsteNorm.nw} (${naechsteNorm.zoll})<br>
+                    <strong>ISO (Außen-Ø):</strong> ${naechsteNorm.iso.toFixed(2).replace('.', ',')} mm<br>
+                    <strong>ANSI (Außen-Ø):</strong> ${naechsteNorm.ansi.toFixed(2).replace('.', ',')} mm
+                `;
+            } else {
+                rohrNormSelect.value = "";
+                normAnzeige.innerHTML = "Keine gängige Norm erkannt.";
+            }
 
-function berechneGesamtFlaeche() {
-    const gesamt = raumHistorie.reduce((sum, r) => sum + r.flaeche, 0);
-    document.getElementById('gesamtFlaeche').textContent = gesamt.toLocaleString('de-DE');
-    document.getElementById('totalFlaeche').textContent = gesamt.toLocaleString('de-DE') + " m²";
-}
+            berechneKreis(d_mm);
+        }
 
-function druckeErgebnisse() {
-    const printWindow = window.open('', '_blank');
-    printWindow.document.write('<html><head><title>Flächenberechnung</title></head><body>');
-    printWindow.document.write('<h2>Flächenberechnung</h2>');
-    printWindow.document.write('<table border="1" cellpadding="5" cellspacing="0" style="border-collapse: collapse;">');
-    printWindow.document.write('<tr><th>Raum</th><th>Länge</th><th>Breite</th><th>Fläche (m²)</th></tr>');
-    raumHistorie.forEach(raum => {
-        printWindow.document.write(`<tr><td>${raum.name}</td><td>${raum.laenge} ${raum.laengeEinheit}</td><td>${raum.breite} ${raum.breiteEinheit}</td><td>${raum.flaeche.toLocaleString('de-DE')}</td></tr>`);
-    });
-    printWindow.document.write('</table>');
-    printWindow.document.write(`<p><strong>Gesamtfläche: ${raumHistorie.reduce((sum, r) => sum + r.flaeche, 0).toLocaleString('de-DE')} m²</strong></p>`);
-    printWindow.document.write('</body></html>');
-    printWindow.document.close();
-    printWindow.print();
-}
+        function updateDurchmesserFromNorm() {
+            const rohrNorm = document.getElementById('rohrNorm').value;
+            const durchmesserInput = document.getElementById('durchmesser');
+            const durchmesserEinheit = document.getElementById('durchmesserEinheit');
+            const normAnzeige = document.getElementById('normAnzeige');
 
-function speichereAlsPDF() {
-    // Verwendet ein externes Tool (jsPDF) über CDN
-    const script = document.createElement('script');
-    script.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
-    script.onload = function() {
-        const { jsPDF } = window.jspdf;
-        const doc = new jsPDF();
+            if (rohrNorm === "") {
+                durchmesserInput.value = "";
+                normAnzeige.innerHTML = "Keine Norm ausgewählt.";
+                berechneKreis(0);
+                return;
+            }
 
-        let y = 20;
-        doc.setFontSize(16);
-        doc.text('Flächenberechnung', 10, y);
-        y += 10;
+            const norm = normen.find(n => n.nw === rohrNorm);
+            if (norm) {
+                durchmesserInput.value = norm.iso.toFixed(2).replace('.', ',');
+                durchmesserEinheit.value = 'mm';
+                normAnzeige.innerHTML = `
+                    <strong>Ausgewählte Norm:</strong> NW ${norm.nw} (${norm.zoll})<br>
+                    <strong>ISO (Außen-Ø):</strong> ${norm.iso.toFixed(2).replace('.', ',')} mm<br>
+                    <strong>ANSI (Außen-Ø):</strong> ${norm.ansi.toFixed(2).replace('.', ',')} mm
+                `;
+                berechneKreis(norm.iso);
+            }
+        }
 
-        doc.setFontSize(12);
-        doc.text('Datum: ' + new Date().toLocaleString('de-DE'), 10, y);
-        y += 10;
+        function berechneKreis(durchmesser_mm_override) {
+            let d_mm = durchmesser_mm_override !== undefined ? durchmesser_mm_override : getDurchmesserInMM();
 
-        doc.text('Raumname', 10, y);
-        doc.text('Länge', 80, y);
-        doc.text('Breite', 110, y);
-        doc.text('Fläche (m²)', 150, y);
-        y += 10;
+            if (isNaN(d_mm) || d_mm <= 0) {
+                document.getElementById('ergebnisKreis').style.display = 'none';
+                document.getElementById('umfangKreis').textContent = "-";
+                document.getElementById('flaecheKreis').textContent = "-";
+                return;
+            }
 
-        doc.setDrawColor(0);
-        doc.line(10, y - 5, 200, y - 5);
+            const dm = d_mm / 1000;
+            const umfang = Math.PI * dm;
+            const flaeche = Math.PI * (dm / 2) ** 2;
+            const options3Dec = { minimumFractionDigits: 3, maximumFractionDigits: 3 };
 
-        raumHistorie.forEach(raum => {
-            doc.text(raum.name, 10, y);
-            doc.text(raum.laenge + ' ' + raum.laengeEinheit, 80, y);
-            doc.text(raum.breite + ' ' + raum.breiteEinheit, 110, y);
-            doc.text(raum.flaeche.toLocaleString('de-DE'), 150, y);
-            y += 10;
-            if (y > 280) { // Neue Seite, wenn unten angekommen
-                doc.addPage();
-                y = 20;
+            document.getElementById('umfangKreis').textContent = umfang.toLocaleString('de-DE', options3Dec) + " m";
+            document.getElementById('flaecheKreis').textContent = flaeche.toLocaleString('de-DE', options3Dec) + " m²";
+            document.getElementById('ergebnisKreis').style.display = 'block';
+        }
+
+        function getUeberschrift() {
+            const sel = document.getElementById("ueberschriftSelect").value;
+            if (sel === "Sonstige") {
+                return document.getElementById("ueberschriftCustom").value.trim() || "Unbenannt";
+            }
+            return sel;
+        }
+        function getAufmassDaten() {
+            return {
+                titel: getUeberschrift(),
+                strasse: document.getElementById("adresseStrasse").value.trim(),
+                plz: document.getElementById("adressePLZ").value.trim(),
+                ort: document.getElementById("adresseOrt").value.trim(),
+                beschreibung: document.getElementById("beschreibung").value.trim()
+            };
+        }
+
+        function einheitInMeter(wert, einheit) {
+            if (isNaN(wert)) return 0;
+            switch (einheit) {
+                case 'mm': return wert / 1000;
+                case 'cm': return wert / 100;
+                case 'm':
+                default: return wert;
+            }
+        }
+
+        function berechneFlaeche() {
+            const raumName = document.getElementById('raumName').value.trim();
+            const laengeInput = parseFloat(document.getElementById('laenge').value.replace(/,/g, '.'));
+            const breiteInput = parseFloat(document.getElementById('breite').value.replace(/,/g, '.'));
+            const laengeEinheit = document.getElementById('laengeEinheit').value;
+            const breiteEinheit = document.getElementById('breiteEinheit').value;
+
+            if (!raumName || isNaN(laengeInput) || isNaN(breiteInput) || laengeInput <= 0 || breiteInput <= 0) {
+                alert("Bitte Raumnamen sowie gültige Länge und Breite eingeben.");
+                return;
+            }
+
+            const laengeM = einheitInMeter(laengeInput, laengeEinheit);
+            const breiteM = einheitInMeter(breiteInput, breiteEinheit);
+            const flaeche = laengeM * breiteM;
+
+            const neuerRaum = {
+                id: Date.now(),
+                name: raumName,
+                laenge: laengeInput,
+                breite: breiteInput,
+                laengeE: laengeEinheit,
+                breiteE: breiteEinheit,
+                flaeche: flaeche
+            };
+
+            raeume.unshift(neuerRaum);
+            zeigeRaumListe();
+            berechneGesamtFlaeche();
+
+            document.getElementById('raumName').value = '';
+            document.getElementById('laenge').value = '';
+            document.getElementById('breite').value = '';
+        }
+
+        function loescheRaum(id) {
+            raeume = raeume.filter(raum => raum.id !== id);
+            zeigeRaumListe();
+            berechneGesamtFlaeche();
+        }
+
+        function zeigeRaumListe() {
+            const raumListeDiv = document.getElementById('raumListe');
+            raumListeDiv.innerHTML = '';
+
+            if (raeume.length === 0) {
+                raumListeDiv.innerHTML = '<p class="empty-history">Noch keine Räume erfasst.</p>';
+                document.getElementById('gesamtFlaecheDiv').style.display = 'none';
+                return;
+            }
+
+            raeume.forEach(raum => {
+                const div = document.createElement('div');
+                div.className = 'raum-item';
+                div.innerHTML = `
+                    <div style="flex-grow: 1;">
+                        <div class="raum-name">${raum.name}</div>
+                        <div class="history-input">${raum.laenge.toFixed(2).replace('.', ',')} ${raum.laengeE} × ${raum.breite.toFixed(2).replace('.', ',')} ${raum.breiteE}</div>
+                    </div>
+                    <div class="raum-flaeche">${formatFlaeche(raum.flaeche)}</div>
+                    <div class="raum-actions">
+                        <button class="raum-delete" onclick="loescheRaum(${raum.id})">🗑️</button>
+                    </div>
+                `;
+                raumListeDiv.appendChild(div);
+            });
+        }
+
+        function berechneGesamtFlaeche() {
+            const gesamtFlaeche = raeume.reduce((sum, raum) => sum + raum.flaeche, 0);
+            document.getElementById('totalFlaeche').textContent = formatFlaeche(gesamtFlaeche);
+            document.getElementById('gesamtFlaecheDiv').style.display = raeume.length > 0 ? 'flex' : 'none';
+            return gesamtFlaeche;
+        }
+
+        function speichereBerechnung() {
+            const daten = getAufmassDaten();
+            const gesamtFlaeche = berechneGesamtFlaeche();
+
+            const berechnung = {
+                id: Date.now(),
+                zeit: new Date().toLocaleString('de-DE'),
+                daten: daten,
+                raeume: raeume.slice(),
+                gesamt: gesamtFlaeche
+            };
+
+            berechnungHistorie.unshift(berechnung);
+            if (berechnungHistorie.length > 50) berechnungHistorie.pop();
+            localStorage.setItem('sener_berechnung_historie', JSON.stringify(berechnungHistorie));
+
+            alert(`Berechnung "${daten.titel}" gespeichert!`);
+        }
+
+        function zeigeFlaecheHistorie() {
+            const liste = document.getElementById('flaecheHistoryListe');
+            liste.innerHTML = '';
+
+            if (berechnungHistorie.length === 0) {
+                liste.innerHTML = '<p class="empty-history">Keine gespeicherten Flächenberechnungen vorhanden.</p>';
+                return;
+            }
+
+            berechnungHistorie.forEach(item => {
+                const d = item.daten;
+                const div = document.createElement('div');
+                div.className = 'history-item';
+                div.innerHTML = `
+                    <div class="history-info" onclick="ladeBerechnung(${item.id})">
+                        <div class="raum-name">${d.titel}</div>
+                        <div class="raum-flaeche">${formatFlaeche(item.gesamt)}</div>
+                        <div class="history-time">${item.zeit} (${item.raeume.length} Räume)</div>
+                        <div class="history-input">
+                            ${d.strasse ? d.strasse + ', ' : ''}${(d.plz || d.ort) ? (d.plz + ' ' + d.ort) : ''}
+                        </div>
+                    </div>
+                    <div class="history-actions">
+                        <button class="whatsapp-button-popup" onclick="event.stopPropagation(); versendeBerechnungHistorie(${item.id}, 'whatsapp')">💬</button>
+                        <button class="mail-button-popup"  onclick="event.stopPropagation(); versendeBerechnungHistorie(${item.id}, 'mail')">📧</button>
+                        <button class="history-delete"      onclick="event.stopPropagation(); loescheBerechnungHistorie(${item.id})">🗑️</button>
+                    </div>
+                `;
+                liste.appendChild(div);
+            });
+        }
+
+        function loescheBerechnungHistorie(id) {
+            berechnungHistorie = berechnungHistorie.filter(item => item.id !== id);
+            localStorage.setItem('sener_berechnung_historie', JSON.stringify(berechnungHistorie));
+            zeigeFlaecheHistorie();
+        }
+
+        function ladeBerechnung(id) {
+            const berechnung = berechnungHistorie.find(item => item.id === id);
+            if (!berechnung) return;
+
+            const d = berechnung.daten;
+
+            const sel = document.getElementById("ueberschriftSelect");
+            const custom = document.getElementById("ueberschriftCustom");
+            if (["Wohnung","Lager","Halle","Büro","Agrar","Außenfläche"].includes(d.titel)) {
+                sel.value = d.titel;
+                custom.value = "";
+            } else {
+                sel.value = "Sonstige";
+                custom.value = d.titel;
+            }
+
+            document.getElementById("adresseStrasse").value = d.strasse;
+            document.getElementById("adressePLZ").value = d.plz;
+            document.getElementById("adresseOrt").value = d.ort;
+            document.getElementById("beschreibung").value = d.beschreibung;
+
+            raeume = berechnung.raeume.slice();
+            zeigeRaumListe();
+            berechneGesamtFlaeche();
+            document.getElementById('flaecheHistoriePopup').style.display = 'none';
+            document.getElementById('versandMenu').style.display = 'none';
+            alert(`Berechnung "${d.titel}" geladen!`);
+        }
+
+        function oeffneFlaecheHistorie() {
+            zeigeFlaecheHistorie();
+            document.getElementById('flaecheHistoriePopup').style.display = 'flex';
+        }
+
+        function toggleVersandMenu(event) {
+            if (event && event.stopPropagation) event.stopPropagation();
+            const menu = document.getElementById('versandMenu');
+            const isHidden = menu.style.display === 'none' || menu.style.display === '';
+            menu.style.display = isHidden ? 'grid' : 'none';
+        }
+
+        function generiereShareText(raumArray, datenOverride) {
+            const aktuelleRaeume = raumArray || raeume;
+            const d = datenOverride || getAufmassDaten();
+            const gesamt = aktuelleRaeume.reduce((s, r) => s + r.flaeche, 0);
+
+            let text = `Flächenberechnung: ${d.titel}\n`;
+            if (d.strasse) text += `Adresse: ${d.strasse}\n`;
+            if (d.plz || d.ort) text += `${d.plz} ${d.ort}\n`;
+            if (d.beschreibung) text += `Beschreibung: ${d.beschreibung}\n`;
+            text += `\nGesamtfläche: ${formatFlaeche(gesamt)}\n\n`;
+
+            aktuelleRaeume.forEach(raum => {
+                text += `• ${raum.name}: ${formatFlaeche(raum.flaeche)} (${raum.laenge.toFixed(2).replace('.', ',')} ${raum.laengeE} × ${raum.breite.toFixed(2).replace('.', ',')} ${raum.breiteE})\n`;
+            });
+
+            return text;
+        }
+
+        function versendeBerechnungHistorie(id, typ) {
+            const berechnung = berechnungHistorie.find(item => item.id === id);
+            if (!berechnung) return;
+
+            const shareText = generiereShareText(berechnung.raeume, berechnung.daten);
+
+            if (typ === 'whatsapp') {
+                const url = `https://wa.me/?text=${encodeURIComponent(shareText)}`;
+                window.open(url, '_blank');
+            } else if (typ === 'mail') {
+                const subject = `Gespeicherte Flächenberechnung: ${berechnung.daten.titel}`;
+                const mailtoLink = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(shareText)}`;
+                window.location.href = mailtoLink;
+            }
+        }
+
+        function druckeErgebnisse() {
+            if (raeume.length === 0) {
+                alert("Keine Räume zum Drucken vorhanden.");
+                return;
+            }
+            window.print();
+        }
+
+        function versendePerWhatsApp() {
+            if (raeume.length === 0) {
+                alert("Keine Räume zum Versenden vorhanden.");
+                return;
+            }
+            const shareText = generiereShareText();
+            const url = `https://wa.me/?text=${encodeURIComponent(shareText)}`;
+            window.open(url, '_blank');
+        }
+
+        function versendeErgebnisse() {
+            if (raeume.length === 0) {
+                alert("Keine Räume zum Versenden vorhanden.");
+                return;
+            }
+            const shareText = generiereShareText();
+            const d = getAufmassDaten();
+            const subject = `Ergebnisse der Flächenberechnung: ${d.titel}`;
+            const mailtoLink = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(shareText)}`;
+            window.location.href = mailtoLink;
+        }
+
+        function erstelleUndOeffnePDF() {
+            if (raeume.length === 0) {
+                alert("Keine Räume zum Erstellen einer PDF vorhanden.");
+                return;
+            }
+
+            if (typeof window.jspdf === 'undefined' || typeof window.jspdf.jsPDF === 'undefined') {
+                alert("Die jsPDF Bibliothek konnte nicht geladen werden. Bitte Internetverbindung prüfen.");
+                return;
+            }
+
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            const d = getAufmassDaten();
+            const gesamtFlaeche = berechneGesamtFlaeche();
+            let y = 10;
+            const lineHeight = 7;
+
+            doc.setFontSize(16);
+            doc.text(`Flächenberechnung: ${d.titel}`, 10, y);
+            y += lineHeight;
+
+            doc.setFontSize(11);
+            if (d.strasse) { doc.text(`Adresse: ${d.strasse}`, 10, y); y += lineHeight; }
+            if (d.plz || d.ort) { doc.text(`${d.plz} ${d.ort}`, 10, y); y += lineHeight; }
+            if (d.beschreibung) { doc.text(`Beschreibung: ${d.beschreibung}`, 10, y); y += lineHeight; }
+
+            y += lineHeight;
+            doc.setFontSize(12);
+            doc.text(`Gesamtfläche: ${formatFlaeche(gesamtFlaeche)}`, 10, y);
+            y += lineHeight * 2;
+
+            doc.setFontSize(10);
+            raeume.forEach(raum => {
+                if (y > 280) {
+                    doc.addPage();
+                    y = 10;
+                }
+                doc.text(`Raum: ${raum.name}`, 10, y);
+                y += lineHeight;
+                doc.text(`Fläche: ${formatFlaeche(raum.flaeche)}`, 15, y);
+                y += lineHeight;
+                doc.text(`Maße: ${raum.laenge.toFixed(2).replace('.', ',')} ${raum.laengeE} x ${raum.breite.toFixed(2).replace('.', ',')} ${raum.breiteE}`, 15, y);
+                y += lineHeight * 1.2;
+            });
+
+            const dateiname = d.titel.replace(/[^a-z0-9]/gi, '_') || 'Flaechenberechnung';
+            doc.save(`${dateiname}.pdf`);
+        }
+
+        function oeffneOptionenPopup() {
+            const titel = getUeberschrift();
+            const sel = document.getElementById("popupUeberschrift");
+            const custom = document.getElementById("popupUeberschriftCustom");
+
+            if (["Wohnung","Lager","Halle","Büro","Agrar","Außenfläche"].includes(titel)) {
+                sel.value = titel;
+                custom.style.display = "none";
+                custom.value = "";
+            } else {
+                sel.value = "Sonstige";
+                custom.style.display = "block";
+                custom.value = titel;
+            }
+
+            document.getElementById("popupStrasse").value = document.getElementById("adresseStrasse").value;
+            document.getElementById("popupPLZ").value = document.getElementById("adressePLZ").value;
+            document.getElementById("popupOrt").value = document.getElementById("adresseOrt").value;
+            document.getElementById("popupBeschreibung").value = document.getElementById("beschreibung").value;
+
+            document.getElementById("optionenPopup").style.display = "flex";
+        }
+
+        function schliesseOptionenPopup() {
+            document.getElementById("optionenPopup").style.display = "none";
+        }
+
+        function togglePopupCustom() {
+            const sel = document.getElementById("popupUeberschrift").value;
+            document.getElementById("popupUeberschriftCustom").style.display =
+                (sel === "Sonstige" ? "block" : "none");
+        }
+
+        function speichereOptionen() {
+            let titel = document.getElementById("popupUeberschrift").value;
+
+            if (titel === "Sonstige") {
+                titel = document.getElementById("popupUeberschriftCustom").value.trim();
+                if (titel === "") titel = "Unbenannt";
+                document.getElementById("ueberschriftSelect").value = "Sonstige";
+                document.getElementById("ueberschriftCustom").value = titel;
+            } else {
+                document.getElementById("ueberschriftSelect").value = titel;
+                document.getElementById("ueberschriftCustom").value = "";
+            }
+
+            document.getElementById("adresseStrasse").value = document.getElementById("popupStrasse").value;
+            document.getElementById("adressePLZ").value = document.getElementById("popupPLZ").value;
+            document.getElementById("adresseOrt").value = document.getElementById("popupOrt").value;
+            document.getElementById("beschreibung").value = document.getElementById("popupBeschreibung").value;
+
+            schliesseOptionenPopup();
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            berechnungsHistorie = JSON.parse(localStorage.getItem('sener_historie')) || [];
+            berechnungHistorie = JSON.parse(localStorage.getItem('sener_berechnung_historie')) || [];
+
+            zeigeTab('winkel', null);
+            zeigeRaumListe();
+            berechneGesamtFlaeche();
+
+            const versandMenu = document.getElementById('versandMenu');
+            if (versandMenu) versandMenu.style.display = 'none';
+
+            if (typeof window.jspdf !== 'undefined' && typeof window.jspdf.jsPDF !== 'undefined') {
+                isPdfLibLoaded = true;
+            }
+
+            const istMasseInput = document.getElementById('istMasse');
+            if (istMasseInput) {
+                istMasseInput.addEventListener('keypress', function(event) {
+                    if (event.key === 'Enter') berechneMassen();
+                });
             }
         });
 
-        y += 10;
-        doc.setFontSize(14);
-        doc.text('Gesamtfläche: ' + raumHistorie.reduce((sum, r) => sum + r.flaeche, 0).toLocaleString('de-DE') + ' m²', 10, y);
-
-        doc.save('Flaechenberechnung.pdf');
-    };
-    document.head.appendChild(script);
-}
-
-function versendeErgebnisse() {
-    const mailtoLink = 'mailto:?subject=Flächenberechnung&body=';
-    let body = 'Flächenberechnung:\n\n';
-    raumHistorie.forEach(raum => {
-        body += `${raum.name}: ${raum.laenge} ${raum.laengeEinheit} x ${raum.breite} ${raum.breiteEinheit} = ${raum.flaeche.toLocaleString('de-DE')} m²\n`;
-    });
-    body += `\nGesamtfläche: ${raumHistorie.reduce((sum, r) => sum + r.flaeche, 0).toLocaleString('de-DE')} m²`;
-    window.location.href = mailtoLink + encodeURIComponent(body);
-}
-
-function versendePerWhatsApp() {
-    let message = 'Flächenberechnung:\n\n';
-    raumHistorie.forEach(raum => {
-        message += `${raum.name}: ${raum.laenge} ${raum.laengeEinheit} x ${raum.breite} ${raum.breiteEinheit} = ${raum.flaeche.toLocaleString('de-DE')} m²\n`;
-    });
-    message += `\nGesamtfläche: ${raumHistorie.reduce((sum, r) => sum + r.flaeche, 0).toLocaleString('de-DE')} m²`;
-
-    const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
-    window.open(whatsappUrl, '_blank');
-}
-
-// --- HISTORIE-FUNKTIONEN ---
-function oeffneWinkelHistorie() {
-    zeigeWinkelHistorieImPopup();
-    document.getElementById('winkelHistoriePopup').style.display = 'flex';
-}
-
-function zeigeWinkelHistorieImPopup() {
-    const liste = document.getElementById('winkelHistoryListe');
-    if (berechnungsHistorie.length === 0) {
-        liste.innerHTML = '<div class="empty-history">Noch keine Winkelberechnungen gespeichert.</div>';
-        return;
-    }
-
-    liste.innerHTML = '';
-    berechnungsHistorie.forEach(eintrag => {
-        const div = document.createElement('div');
-        div.className = 'history-item';
-        div.innerHTML = `
-            <div class="history-info" onclick="ladeWertAusWinkelHistorie(${eintrag.id})">
-                <div><strong>${eintrag.a.toLocaleString('de-DE')} mm</strong> (${eintrag.bereich})</div>
-                <div class="history-time">${eintrag.zeit}</div>
-                <div class="history-input">Eingabe: ${eintrag.input} mm</div>
-            </div>
-            <button class="history-delete" onclick="loescheWinkelEintrag(${eintrag.id}, event)">🗑️</button>
-        `;
-        liste.appendChild(div);
-    });
-}
-
-function loescheWinkelEintrag(id, event) {
-    if (event) event.stopPropagation();
-    berechnungsHistorie = berechnungsHistorie.filter(e => e.id !== id);
-    localStorage.setItem('sener_historie', JSON.stringify(berechnungsHistorie));
-    zeigeWinkelHistorieImPopup();
-}
-
-function ladeWertAusWinkelHistorie(id) {
-    const eintrag = berechnungsHistorie.find(e => e.id === id);
-    if (eintrag) {
-        document.getElementById('istMasse').value = eintrag.input;
-        document.getElementById('bereich').value = eintrag.bereich;
-        // Stelle sicher, dass der Winkel-Tab aktiv ist
-        zeigeTab('winkel');
-        setTimeout(berechneMassen, 300);
-    }
-}
-
-function schliesseWinkelHistorie() {
-    document.getElementById('winkelHistoriePopup').style.display = 'none';
-}
-
-function zurueckZurWinkelBerechnung() {
-    schliesseWinkelHistorie();
-    setTimeout(() => {
-        zeigeTab('winkel');
-    }, 300);
-}
-
-function oeffneFlaecheHistorie() {
-    zeigeFlaecheHistorieImPopup();
-    document.getElementById('flaecheHistoriePopup').style.display = 'flex';
-}
-
-function zeigeFlaecheHistorieImPopup() {
-    const liste = document.getElementById('flaecheHistoryListe');
-    if (berechnungHistorie.length === 0) {
-        liste.innerHTML = '<div class="empty-history">Noch keine Berechnungen gespeichert.</div>';
-        return;
-    }
-
-    liste.innerHTML = '';
-    berechnungHistorie.forEach(berechnung => {
-        const div = document.createElement('div');
-        div.className = 'wohnung-item';
-        div.innerHTML = `
-            <div class="wohnung-name">${berechnung.name}</div>
-            <div class="wohnung-flaeche">${berechnung.gesamtflaeche.toLocaleString('de-DE')} m²</div>
-            <div class="wohnung-actions">
-                <button class="wohnung-delete" onclick="loescheBerechnung(${berechnung.id}, event)">🗑️</button>
-                <button class="wohnung-send" onclick="versendeBerechnung(${berechnung.id}, event)">💬</button>
-            </div>
-        `;
-        liste.appendChild(div);
-    });
-}
-
-function loescheBerechnung(id, event) {
-    event.stopPropagation();
-    if (!confirm("Sind Sie sicher, dass Sie diese Berechnung löschen möchten?")) return;
-
-    berechnungHistorie = berechnungHistorie.filter(w => w.id !== id);
-    localStorage.setItem('sener_berechnung_historie', JSON.stringify(berechnungHistorie));
-    zeigeFlaecheHistorieImPopup();
-}
-
-function versendeBerechnung(id, event) {
-    event.stopPropagation();
-    const berechnung = berechnungHistorie.find(w => w.id === id);
-    if (!berechnung) return;
-
-    let message = `Berechnung: ${berechnung.name}\n`;
-    message += `Datum: ${berechnung.datum}\n\n`;
-    berechnung.raeume.forEach(raum => {
-        message += `${raum.name}: ${raum.laenge} ${raum.laengeEinheit} x ${raum.breite} ${raum.breiteEinheit} = ${raum.flaeche.toLocaleString('de-DE')} m²\n`;
-    });
-    const gesamtflaeche = berechnung.raeume.reduce((sum, r) => sum + r.flaeche, 0);
-    message += `\nGesamtfläche: ${gesamtflaeche.toLocaleString('de-DE')} m²`;
-
-    const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
-    window.open(whatsappUrl, '_blank');
-}
-
-function schliesseFlaecheHistorie() {
-    document.getElementById('flaecheHistoriePopup').style.display = 'none';
-}
-
-function zurueckZurFlaeche() {
-    schliesseFlaecheHistorie();
-    setTimeout(() => {
-        zeigeTab('flaeche');
-    }, 300);
-}
-
-// --- NEUES AKTIONEN-MENÜ ---
-function oeffneAktionenMenu() {
-    const menu = document.getElementById('aktionenMenu');
-    if (menu.style.display === 'block') {
-        menu.style.display = 'none'; // Menü schließen, wenn es offen ist
-    } else {
-        menu.style.display = 'block'; // Menü öffnen, wenn es geschlossen ist
-    }
-}
-
-// ===== 3er-Reihe =====
-function zeige3erReihe() {
-    const liste = document.getElementById('popupListe');
-    liste.innerHTML = '';
-    for (let n = 1; n <= 2300; n++) {
-        const wert = n * 3;
-        const div = document.createElement('div');
-        div.className = 'history-item';
-        div.innerHTML = `<div>${n.toLocaleString('de-DE')} × 3 = ${wert.toLocaleString('de-DE')} mm</div>`;
-        liste.appendChild(div);
-    }
-    document.getElementById('popup3er').style.display = 'flex';
-}
-
-function schliessePopup() {
-    document.getElementById('popup3er').style.display = 'none';
-}
-
-document.addEventListener('DOMContentLoaded', () => {
-    berechnungsHistorie = JSON.parse(localStorage.getItem('sener_historie')) || [];
-    raumHistorie = JSON.parse(localStorage.getItem('sener_raum_historie')) || [];
-    berechnungHistorie = JSON.parse(localStorage.getItem('sener_berechnung_historie')) || [];
-    zeigeRaumListe();
-    berechneGesamtFlaeche();
-});
-
-// Service Worker registrieren
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js') // Achten Sie auf den korrekten Pfad
-      .then(registration => {
-        console.log('SW registriert: ', registration);
-      })
-      .catch(error => {
-        console.log('SW Registrierung fehlgeschlagen: ', error);
-      });
-  });
-}
-</script>
-
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js')
+                    .catch(error => console.log('SW Registrierung fehlgeschlagen: ', error));
+            });
+        }
+    </script>
 </body>
 </html>
