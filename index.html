@@ -44,15 +44,17 @@
             max-width: 120px;
             height: auto;
         }
+
+        /* Tabs */
         .tabs {
             display: flex;
             justify-content: space-between;
             margin-bottom: 20px;
+            gap: 6px;
         }
         .tab-button {
             flex: 1;
             padding: 12px;
-            margin: 0 5px;
             background-color: #6c757d;
             color: white;
             border: none;
@@ -60,7 +62,8 @@
             cursor: pointer;
             font-size: 14px;
             font-weight: bold;
-            transition: background-color 0.2s;
+            transition: background-color 0.2s, transform 0.15s, box-shadow 0.15s;
+            user-select: none;
         }
         .tab-button.active {
             background-color: #28a745;
@@ -68,12 +71,24 @@
         .tab-button:hover {
             background-color: #5a6268;
         }
+        /* Drag & Drop Effekte für Tabs (Variante B) */
+        .tab-button.dragging {
+            opacity: 0.9;
+            transform: scale(1.05);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.7);
+            z-index: 10;
+        }
+        .tab-button.drag-over {
+            outline: 2px dashed #ffffff;
+        }
+
         .tab-content {
             display: none;
         }
         .tab-content.active {
             display: block;
         }
+
         .section {
             background-color: #252525;
             padding: 16px;
@@ -320,7 +335,6 @@
             color: #28a745;
         }
 
-        /* Buttons Styles */
         .speichern-button { background-color: #28a745; }
         .historie-button { background-color: #6c757d; }
         .whatsapp-button-popup { background-color: #25D366; }
@@ -405,11 +419,12 @@
         <img src="logo.png" alt="Sener Logo" class="app-logo">
         <h1>Sener Flächenberechnung</h1>
 
-        <div class="tabs">
-            <button class="tab-button active" onclick="zeigeTab('winkel', event)">Winkel</button>
-            <button class="tab-button" onclick="zeigeTab('dreieck', event)">Dreieck</button>
-            <button class="tab-button" onclick="zeigeTab('kreis', event)">Kreis</button>
-            <button class="tab-button" onclick="zeigeTab('flaeche', event)">Fläche</button>
+        <!-- Tabs mit Drag & Drop -->
+        <div class="tabs" id="tabsContainer">
+            <button class="tab-button active" data-tab="winkel" onclick="zeigeTab('winkel', event)">Winkel</button>
+            <button class="tab-button" data-tab="dreieck" onclick="zeigeTab('dreieck', event)">Dreieck</button>
+            <button class="tab-button" data-tab="kreis" onclick="zeigeTab('kreis', event)">Kreis</button>
+            <button class="tab-button" data-tab="flaeche" onclick="zeigeTab('flaeche', event)">Fläche</button>
         </div>
 
         <!-- WINKEL -->
@@ -718,6 +733,7 @@
         let berechnungHistorie = JSON.parse(localStorage.getItem('sener_berechnung_historie')) || [];
         let raeume = [];
         let isPdfLibLoaded = false;
+        let draggedTab = null;
 
         const normen = [
             { nw: "6", zoll: "1/8\"", iso: 10.2, ansi: 10.5 }, { nw: "8", zoll: "1/4\"", iso: 13.5, ansi: 13.72 },
@@ -735,6 +751,89 @@
             { nw: "700", zoll: "28\"", iso: 711.2, ansi: 711.20 }, { nw: "800", zoll: "32\"", iso: 812.8, ansi: 812.80 },
             { nw: "900", zoll: "36\"", iso: 914.4, ansi: 914.40 }, { nw: "1000", zoll: "40\"", iso: 1016.0, ansi: 1016.00 }
         ];
+
+        /* -------- Drag & Drop Tabs -------- */
+
+        function initDraggableTabs() {
+            const container = document.getElementById('tabsContainer');
+            if (!container) return;
+            const buttons = Array.from(container.querySelectorAll('.tab-button'));
+
+            // Reihenfolge aus localStorage wiederherstellen
+            const saved = localStorage.getItem('sener_tabs_order');
+            if (saved) {
+                try {
+                    const order = JSON.parse(saved);
+                    const map = {};
+                    buttons.forEach(btn => {
+                        map[btn.dataset.tab] = btn;
+                    });
+                    order.forEach(tabId => {
+                        if (map[tabId]) container.appendChild(map[tabId]);
+                    });
+                    // Tabs, die evtl. neu sind (Backup)
+                    buttons.forEach(btn => {
+                        if (!container.contains(btn)) container.appendChild(btn);
+                    });
+                } catch (e) {
+                    console.warn('Tab-Order konnte nicht geladen werden.', e);
+                }
+            }
+
+            // Drag-Events
+            container.querySelectorAll('.tab-button').forEach(btn => {
+                btn.setAttribute('draggable', 'true');
+
+                btn.addEventListener('dragstart', (e) => {
+                    draggedTab = btn;
+                    btn.classList.add('dragging');
+                    e.dataTransfer.effectAllowed = 'move';
+                    // kleiner Dummy, sonst einige Browser kein Drag
+                    e.dataTransfer.setData('text/plain', btn.dataset.tab);
+                });
+
+                btn.addEventListener('dragend', () => {
+                    draggedTab && draggedTab.classList.remove('dragging');
+                    container.querySelectorAll('.tab-button').forEach(b => b.classList.remove('drag-over'));
+                    draggedTab = null;
+                    speichernTabReihenfolge();
+                });
+
+                btn.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                    if (!draggedTab || draggedTab === btn) return;
+                    btn.classList.add('drag-over');
+
+                    const rect = btn.getBoundingClientRect();
+                    const offset = e.clientX - rect.left;
+                    const insertBefore = offset < rect.width / 2;
+
+                    if (insertBefore) {
+                        container.insertBefore(draggedTab, btn);
+                    } else {
+                        container.insertBefore(draggedTab, btn.nextSibling);
+                    }
+                });
+
+                btn.addEventListener('dragleave', () => {
+                    btn.classList.remove('drag-over');
+                });
+
+                btn.addEventListener('drop', (e) => {
+                    e.preventDefault();
+                    btn.classList.remove('drag-over');
+                });
+            });
+        }
+
+        function speichernTabReihenfolge() {
+            const container = document.getElementById('tabsContainer');
+            if (!container) return;
+            const order = Array.from(container.querySelectorAll('.tab-button')).map(b => b.dataset.tab);
+            localStorage.setItem('sener_tabs_order', JSON.stringify(order));
+        }
+
+        /* -------- Hilfsfunktionen Fläche / Formatierung -------- */
 
         function isHaModus() {
             const sel = document.getElementById('flaechenEinheitAnzeige');
@@ -780,15 +879,18 @@
             if (popup && popup.style.display === 'flex') zeigeFlaecheHistorie();
         }
 
+        /* -------- Tabs & Popups -------- */
+
         function zeigeTab(tabName, event) {
             if (event && event.stopPropagation) event.stopPropagation();
             document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
             document.querySelectorAll('.tab-button').forEach(b => b.classList.remove('active'));
 
             document.getElementById(tabName).classList.add('active');
-            const clickedButton = Array.from(document.getElementsByClassName('tab-button'))
-                .find(btn => btn.getAttribute('onclick') && btn.getAttribute('onclick').includes(tabName));
-            if (clickedButton) clickedButton.classList.add('active');
+
+            const container = document.getElementById('tabsContainer');
+            const btn = container.querySelector(`.tab-button[data-tab="${tabName}"]`);
+            if (btn) btn.classList.add('active');
 
             if (tabName === 'flaeche') {
                 zeigeRaumListe();
@@ -811,6 +913,8 @@
         function zurueckZurFlaeche() {
             schliesseFlaecheHistorie(null);
         }
+
+        /* -------- Winkel -------- */
 
         function berechneMassen() {
             const rawInput = document.getElementById('istMasse').value.replace(/,/g, '.').replace(/\s/g, '');
@@ -911,18 +1015,7 @@
             document.getElementById('winkelHistoriePopup').style.display = 'flex';
         }
 
-        function zeige3erReihe() {
-            const liste = document.getElementById('popupListe');
-            liste.innerHTML = '';
-            for (let n = 1; n <= 2300; n++) {
-                const wert = n * 3;
-                const div = document.createElement('div');
-                div.className = 'history-item';
-                div.innerHTML = `<div>${n.toLocaleString('de-DE')} × 3 = ${wert.toLocaleString('de-DE')} mm</div>`;
-                liste.appendChild(div);
-            }
-            document.getElementById('popup3er').style.display = 'flex';
-        }
+        /* -------- Dreieck -------- */
 
         function berechneDreieck() {
             const a = parseFloat(document.getElementById('seiteA').value.replace(/,/g, '.'));
@@ -944,6 +1037,8 @@
             document.getElementById('flaecheDreieck').textContent = flaecheM2.toFixed(3).replace('.', ',') + " m²";
             document.getElementById('ergebnisDreieck').style.display = 'block';
         }
+
+        /* -------- Kreis -------- */
 
         function getDurchmesserInMM() {
             let d = parseFloat(document.getElementById('durchmesser').value.replace(/,/g, '.'));
@@ -1033,6 +1128,8 @@
             document.getElementById('flaecheKreis').textContent = flaeche.toLocaleString('de-DE', options3Dec) + " m²";
             document.getElementById('ergebnisKreis').style.display = 'block';
         }
+
+        /* -------- Fläche -------- */
 
         function getUeberschrift() {
             const sel = document.getElementById("ueberschriftSelect").value;
@@ -1137,6 +1234,11 @@
         }
 
         function speichereBerechnung() {
+            if (raeume.length === 0) {
+                alert("Es gibt keine Räume zum Speichern!");
+                return;
+            }
+
             const daten = getAufmassDaten();
             const gesamtFlaeche = berechneGesamtFlaeche();
 
@@ -1226,6 +1328,8 @@
             zeigeFlaecheHistorie();
             document.getElementById('flaecheHistoriePopup').style.display = 'flex';
         }
+
+        /* -------- Aktionen / Versenden -------- */
 
         function toggleVersandMenu(event) {
             if (event && event.stopPropagation) event.stopPropagation();
@@ -1348,6 +1452,8 @@
             doc.save(`${dateiname}.pdf`);
         }
 
+        /* -------- Optionen-Popup -------- */
+
         function oeffneOptionenPopup() {
             const titel = getUeberschrift();
             const sel = document.getElementById("popupUeberschrift");
@@ -1402,10 +1508,10 @@
             schliesseOptionenPopup();
         }
 
-        document.addEventListener('DOMContentLoaded', () => {
-            berechnungsHistorie = JSON.parse(localStorage.getItem('sener_historie')) || [];
-            berechnungHistorie = JSON.parse(localStorage.getItem('sener_berechnung_historie')) || [];
+        /* -------- Initialisierung & Service Worker -------- */
 
+        document.addEventListener('DOMContentLoaded', () => {
+            // Historie aus localStorage ist oben schon initialisiert
             zeigeTab('winkel', null);
             zeigeRaumListe();
             berechneGesamtFlaeche();
@@ -1423,6 +1529,8 @@
                     if (event.key === 'Enter') berechneMassen();
                 });
             }
+
+            initDraggableTabs();
         });
 
         if ('serviceWorker' in navigator) {
