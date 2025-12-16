@@ -1,5 +1,4 @@
 const CACHE_NAME = "sener-flaechenrechner-v4";
-const CACHE_PREFIX = "sener-flaechenrechner-";
 const BASE = "/Sener-Flaechenrechner/";
 
 const urlsToCache = [
@@ -7,16 +6,15 @@ const urlsToCache = [
   BASE + "index.html",
   BASE + "manifest.json",
   BASE + "sw.js",
+  BASE + "Datenschutz.html",
 
-  // Icons / Assets (so wie bei dir im Repo)
-  BASE + "Apple-Touch-Symbol.png",
+  // Logos / Icons (wichtig!)
+  BASE + "logo.png",
   BASE + "Symbol-192.png",
   BASE + "Symbol-512.png",
+  BASE + "Apple-Touch-Symbol.png",
   BASE + "icon-192-maskable.png",
-  BASE + "icon-512-maskable.png",
-
-  // Optional: Datenschutz Seite (liegt bei dir)
-  BASE + "Datenschutz.html"
+  BASE + "icon-512-maskable.png"
 ];
 
 self.addEventListener("install", (event) => {
@@ -29,12 +27,7 @@ self.addEventListener("install", (event) => {
 self.addEventListener("activate", (event) => {
   event.waitUntil(
     caches.keys().then((keys) =>
-      Promise.all(
-        keys.map((key) => {
-          const isOld = key.startsWith(CACHE_PREFIX) && key !== CACHE_NAME;
-          return isOld ? caches.delete(key) : null;
-        })
-      )
+      Promise.all(keys.map((key) => (key !== CACHE_NAME ? caches.delete(key) : null)))
     )
   );
   self.clients.claim();
@@ -45,11 +38,9 @@ self.addEventListener("fetch", (event) => {
   if (req.method !== "GET") return;
 
   const url = new URL(req.url);
-
-  // nur eigene Origin
   if (url.origin !== self.location.origin) return;
 
-  // Navigation (Seitenaufrufe): network-first, fallback cache index.html
+  // Seiten-Navigation: network-first, fallback index.html
   if (req.mode === "navigate") {
     event.respondWith(
       fetch(req)
@@ -75,7 +66,7 @@ self.addEventListener("fetch", (event) => {
           caches.open(CACHE_NAME).then((cache) => cache.put(req, copy));
           return res;
         })
-        .catch(() => caches.match(BASE + "index.html"));
+        .catch(() => cached);
     })
   );
 });
