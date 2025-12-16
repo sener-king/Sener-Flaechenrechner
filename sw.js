@@ -7,16 +7,16 @@ const urlsToCache = [
   BASE + "manifest.json",
   BASE + "sw.js",
 
-  // Icons (neu)
-  BASE + "icon-192.png",
-  BASE + "icon-512.png",
+  // Icons (deine Dateinamen!)
+  BASE + "Symbol-192.png",
+  BASE + "Symbol-512.png",
   BASE + "icon-192-maskable.png",
   BASE + "icon-512-maskable.png",
-  BASE + "apple-touch-icon.png",
+  BASE + "Apple-Touch-Symbol.png",
 
   // optional (falls vorhanden)
   BASE + "logo.png",
-  BASE + "privacy.html"
+  BASE + "Datenschutz.html"
 ];
 
 self.addEventListener("install", (event) => {
@@ -37,13 +37,12 @@ self.addEventListener("activate", (event) => {
 
 self.addEventListener("fetch", (event) => {
   const req = event.request;
-
   if (req.method !== "GET") return;
 
   const url = new URL(req.url);
   if (url.origin !== self.location.origin) return;
 
-  // 1) Navigation -> index.html fallback
+  // Navigation -> index.html fallback
   if (req.mode === "navigate") {
     event.respondWith(
       fetch(req)
@@ -57,7 +56,7 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  // 2) HTML -> network-first
+  // HTML -> network-first
   if (req.headers.get("accept")?.includes("text/html")) {
     event.respondWith(
       fetch(req)
@@ -71,7 +70,7 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  // 3) Assets -> cache-first
+  // Assets -> cache-first
   event.respondWith(
     caches.match(req).then((cached) => {
       if (cached) return cached;
@@ -83,7 +82,7 @@ self.addEventListener("fetch", (event) => {
           caches.open(CACHE_NAME).then((cache) => cache.put(req, copy));
           return res;
         })
-        .catch(() => cached);
-    })
+        .catch(() => cached)
+    )
   );
 });
