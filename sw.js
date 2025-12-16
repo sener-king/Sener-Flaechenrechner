@@ -1,4 +1,4 @@
-const CACHE_NAME = "sener-flaechenrechner-v3";
+const CACHE_NAME = "sener-flaechenrechner-v4";
 const BASE = "/Sener-Flaechenrechner/";
 
 const urlsToCache = [
@@ -6,9 +6,17 @@ const urlsToCache = [
   BASE + "index.html",
   BASE + "manifest.json",
   BASE + "sw.js",
+
+  // Icons (neu)
+  BASE + "icon-192.png",
+  BASE + "icon-512.png",
+  BASE + "icon-192-maskable.png",
+  BASE + "icon-512-maskable.png",
+  BASE + "apple-touch-icon.png",
+
+  // optional (falls vorhanden)
   BASE + "logo.png",
-  BASE + "Sener_Dreieck_logo_192x192.png",
-  BASE + "Sener_Dreieck_logo_512x512.png"
+  BASE + "privacy.html"
 ];
 
 self.addEventListener("install", (event) => {
@@ -33,16 +41,13 @@ self.addEventListener("fetch", (event) => {
   if (req.method !== "GET") return;
 
   const url = new URL(req.url);
-
-  // Nur für deine GitHub-Pages Origin arbeiten (Sicherheit)
   if (url.origin !== self.location.origin) return;
 
-  // 1) Navigations-Requests (Seitenaufrufe) -> index.html als Fallback
+  // 1) Navigation -> index.html fallback
   if (req.mode === "navigate") {
     event.respondWith(
       fetch(req)
         .then((res) => {
-          // Update index im Cache
           const copy = res.clone();
           caches.open(CACHE_NAME).then((cache) => cache.put(BASE + "index.html", copy));
           return res;
@@ -52,7 +57,7 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  // 2) Für HTML: network-first (damit Updates schneller kommen)
+  // 2) HTML -> network-first
   if (req.headers.get("accept")?.includes("text/html")) {
     event.respondWith(
       fetch(req)
@@ -66,7 +71,7 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  // 3) Für Assets: cache-first
+  // 3) Assets -> cache-first
   event.respondWith(
     caches.match(req).then((cached) => {
       if (cached) return cached;
