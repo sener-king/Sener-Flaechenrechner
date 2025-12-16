@@ -1,4 +1,4 @@
-const CACHE_NAME = "sener-flaechenrechner-v2";
+const CACHE_NAME = "sener-flaechenrechner-v3";
 const BASE = "/Sener-Flaechenrechner/";
 
 const urlsToCache = [
