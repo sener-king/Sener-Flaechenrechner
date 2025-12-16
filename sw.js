@@ -1,4 +1,5 @@
 const CACHE_NAME = "sener-flaechenrechner-v4";
+const CACHE_PREFIX = "sener-flaechenrechner-";
 const BASE = "/Sener-Flaechenrechner/";
 
 const urlsToCache = [
@@ -7,15 +8,14 @@ const urlsToCache = [
   BASE + "manifest.json",
   BASE + "sw.js",
 
-  // Icons (deine Dateinamen!)
+  // Icons / Assets (so wie bei dir im Repo)
+  BASE + "Apple-Touch-Symbol.png",
   BASE + "Symbol-192.png",
   BASE + "Symbol-512.png",
   BASE + "icon-192-maskable.png",
   BASE + "icon-512-maskable.png",
-  BASE + "Apple-Touch-Symbol.png",
 
-  // optional (falls vorhanden)
-  BASE + "logo.png",
+  // Optional: Datenschutz Seite (liegt bei dir)
   BASE + "Datenschutz.html"
 ];
 
@@ -29,7 +29,12 @@ self.addEventListener("install", (event) => {
 self.addEventListener("activate", (event) => {
   event.waitUntil(
     caches.keys().then((keys) =>
-      Promise.all(keys.map((key) => (key !== CACHE_NAME ? caches.delete(key) : null)))
+      Promise.all(
+        keys.map((key) => {
+          const isOld = key.startsWith(CACHE_PREFIX) && key !== CACHE_NAME;
+          return isOld ? caches.delete(key) : null;
+        })
+      )
     )
   );
   self.clients.claim();
@@ -40,9 +45,11 @@ self.addEventListener("fetch", (event) => {
   if (req.method !== "GET") return;
 
   const url = new URL(req.url);
+
+  // nur eigene Origin
   if (url.origin !== self.location.origin) return;
 
-  // Navigation -> index.html fallback
+  // Navigation (Seitenaufrufe): network-first, fallback cache index.html
   if (req.mode === "navigate") {
     event.respondWith(
       fetch(req)
@@ -56,21 +63,7 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  // HTML -> network-first
-  if (req.headers.get("accept")?.includes("text/html")) {
-    event.respondWith(
-      fetch(req)
-        .then((res) => {
-          const copy = res.clone();
-          caches.open(CACHE_NAME).then((cache) => cache.put(req, copy));
-          return res;
-        })
-        .catch(() => caches.match(req).then((c) => c || caches.match(BASE + "index.html")))
-    );
-    return;
-  }
-
-  // Assets -> cache-first
+  // Assets: cache-first
   event.respondWith(
     caches.match(req).then((cached) => {
       if (cached) return cached;
@@ -82,7 +75,7 @@ self.addEventListener("fetch", (event) => {
           caches.open(CACHE_NAME).then((cache) => cache.put(req, copy));
           return res;
         })
-        .catch(() => cached)
-    )
+        .catch(() => caches.match(BASE + "index.html"));
+    })
   );
 });
