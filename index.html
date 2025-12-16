@@ -14,7 +14,7 @@
   <link rel="icon" type="image/png" sizes="512x512" href="./Symbol-512.png" />
   <link rel="apple-touch-icon" href="./Apple-Touch-Symbol.png" />
 
-  <!-- iOS PWA (optional aber gut) -->
+  <!-- iOS PWA -->
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="Sener Fläche" />
@@ -23,340 +23,321 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
   <style>
-    body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      margin: 0;
-      padding: 0;
-      background-color: #121212;
-      color: #ffffff;
-      line-height: 1.6;
+    :root{
+      --bg:#121212;
+      --card:#1e1e1e;
+      --panel:#252525;
+      --input:#333;
+      --border:#555;
+      --muted:#aaa;
+      --muted2:#888;
+      --green:#28a745;
+      --blue:#007bff;
+      --graybtn:#6c757d;
+      --graybtnHover:#5a6268;
+      --danger:#ff5555;
     }
-    .container {
-      max-width: 520px;
-      margin: 20px auto;
-      padding: 20px;
-      background-color: #1e1e1e;
-      border-radius: 12px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+    *{box-sizing:border-box}
+    body{
+      font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;
+      margin:0;padding:0;
+      background:var(--bg);
+      color:#fff;
+      line-height:1.6;
     }
-    h1 {
-      text-align: center;
-      color: #ffffff;
-      font-size: 1.5em;
-      margin-top: 10px;
-      padding-bottom: 10px;
-      border-bottom: 2px solid #007bff;
+    .container{
+      max-width:520px;
+      margin:20px auto;
+      padding:20px;
+      background:var(--card);
+      border-radius:12px;
+      box-shadow:0 4px 12px rgba(0,0,0,.5);
     }
-    .app-logo {
-      display: block;
-      margin: 0 auto 10px auto;
-      max-width: 120px;
-      height: auto;
+    h1{
+      text-align:center;
+      font-size:1.5em;
+      margin:10px 0 0 0;
+      padding-bottom:10px;
+      border-bottom:2px solid var(--blue);
+    }
+    .app-logo{
+      display:block;
+      margin:0 auto 10px auto;
+      max-width:120px;
+      height:auto;
     }
 
     /* Tabs */
-    .tabs {
-      display: flex;
-      justify-content: space-between;
-      margin-bottom: 20px;
-      gap: 6px;
+    .tabs{
+      display:flex;
+      justify-content:space-between;
+      margin:18px 0 20px 0;
+      gap:6px;
     }
-    .tab-button {
-      flex: 1;
-      padding: 12px;
-      background-color: #6c757d;
-      color: white;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-      font-size: 14px;
-      font-weight: bold;
-      transition: background-color 0.2s, transform 0.15s, box-shadow 0.15s;
-      user-select: none;
+    .tab-button{
+      flex:1;
+      padding:12px;
+      background:var(--graybtn);
+      color:#fff;
+      border:0;
+      border-radius:6px;
+      cursor:pointer;
+      font-size:14px;
+      font-weight:700;
+      transition:background-color .2s, transform .15s, box-shadow .15s;
+      user-select:none;
     }
-    .tab-button.active { background-color: #28a745; }
-    .tab-button:hover { background-color: #5a6268; }
+    .tab-button.active{background:var(--green)}
+    .tab-button:hover{background:var(--graybtnHover)}
+    .tab-button.dragging{
+      opacity:.9;
+      transform:scale(1.05);
+      box-shadow:0 4px 10px rgba(0,0,0,.7);
+      z-index:10;
+    }
+    .tab-button.drag-over{outline:2px dashed #fff}
 
-    /* Drag & Drop Effekte */
-    .tab-button.dragging {
-      opacity: 0.9;
-      transform: scale(1.05);
-      box-shadow: 0 4px 10px rgba(0,0,0,0.7);
-      z-index: 10;
-    }
-    .tab-button.drag-over { outline: 2px dashed #ffffff; }
+    .tab-content{display:none}
+    .tab-content.active{display:block}
 
-    .tab-content { display: none; }
-    .tab-content.active { display: block; }
+    .section{
+      background:var(--panel);
+      padding:16px;
+      border-radius:8px;
+      box-shadow:inset 0 0 6px rgba(0,0,0,.3);
+    }
+    label{
+      display:block;
+      margin-top:12px;
+      font-weight:700;
+      color:#ccc;
+      font-size:.95em;
+    }
+    input[type="number"], input[type="text"], select{
+      width:100%;
+      padding:12px;
+      margin-top:6px;
+      background:var(--input);
+      color:#fff;
+      border:1px solid var(--border);
+      border-radius:6px;
+      font-size:16px;
+    }
+    button{
+      width:100%;
+      padding:14px;
+      margin-top:16px;
+      background:var(--green);
+      color:#fff;
+      border:0;
+      border-radius:6px;
+      cursor:pointer;
+      font-size:16px;
+      font-weight:800;
+      transition:background-color .2s;
+    }
+    button:hover{background:#218838}
+    .icon{margin-right:8px}
 
-    .section {
-      background-color: #252525;
-      padding: 16px;
-      margin-top: 20px;
-      border-radius: 8px;
-      box-shadow: inset 0 0 6px rgba(0,0,0,0.3);
+    .historie-button{
+      background:var(--graybtn);
+      font-weight:700;
     }
-    label {
-      display: block;
-      margin-top: 12px;
-      font-weight: bold;
-      color: #cccccc;
-      font-size: 0.95em;
-    }
-    input[type="number"], select, input[type="text"] {
-      width: 100%;
-      padding: 12px;
-      margin-top: 6px;
-      background-color: #333333;
-      color: #ffffff;
-      border: 1px solid #555555;
-      border-radius: 6px;
-      font-size: 16px;
-      box-sizing: border-box;
-    }
-    button {
-      width: 100%;
-      padding: 14px;
-      margin-top: 16px;
-      background-color: #28a745;
-      color: white;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-      font-size: 16px;
-      font-weight: bold;
-      transition: background-color 0.2s;
-    }
-    button:hover { background-color: #218838; }
-    .icon { margin-right: 8px; }
+    .historie-button:hover{background:var(--graybtnHover)}
 
-    .result {
-      margin-top: 20px;
-      padding: 16px;
-      background-color: #252525;
-      border-radius: 8px;
+    .result{
+      margin-top:20px;
+      padding:16px;
+      background:var(--panel);
+      border-radius:8px;
     }
-    .result-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-      gap: 15px;
-      margin-top: 10px;
+    .result-grid{
+      display:grid;
+      grid-template-columns:repeat(auto-fit,minmax(140px,1fr));
+      gap:15px;
+      margin-top:10px;
     }
-    .result-item {
-      text-align: center;
-      padding: 10px;
-      background-color: #333333;
-      border-radius: 6px;
+    .result-item{
+      text-align:center;
+      padding:10px;
+      background:var(--input);
+      border-radius:6px;
     }
-    .result-label {
-      display: block;
-      font-size: 0.9em;
-      color: #aaa;
-      margin-bottom: 5px;
+    .result-label{
+      display:block;
+      font-size:.9em;
+      color:var(--muted);
+      margin-bottom:5px;
     }
-    .result-value {
-      font-size: 1.2em;
-      font-weight: bold;
-      color: #28a745;
+    .result-value{
+      font-size:1.2em;
+      font-weight:900;
+      color:var(--green);
     }
 
     /* Popups */
-    .popup {
-      display: none;
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background-color: rgba(0,0,0,0.8);
-      z-index: 1000;
-      justify-content: center;
-      align-items: center;
-      padding: 20px;
-      box-sizing: border-box;
+    .popup{
+      display:none;
+      position:fixed;
+      inset:0;
+      background:rgba(0,0,0,.8);
+      z-index:1000;
+      justify-content:center;
+      align-items:center;
+      padding:20px;
     }
-    .popup-content {
-      background-color: #1e1e1e;
-      border-radius: 12px;
-      width: 90%;
-      max-width: 500px;
-      max-height: 90vh;
-      overflow: hidden;
-      box-shadow: 0 5px 15px rgba(0,0,0,0.5);
-      display: flex;
-      flex-direction: column;
+    .popup-content{
+      background:var(--card);
+      border-radius:12px;
+      width:90%;
+      max-width:500px;
+      max-height:90vh;
+      overflow:hidden;
+      box-shadow:0 5px 15px rgba(0,0,0,.5);
+      display:flex;
+      flex-direction:column;
     }
-    .popup-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 16px;
-      border-bottom: 1px solid #333;
-      flex-shrink: 0;
+    .popup-header{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      padding:16px;
+      border-bottom:1px solid #333;
     }
-    .popup-header span {
-      font-size: 1.2em;
-      font-weight: bold;
-      color: #ffffff;
+    .popup-header span{font-size:1.15em;font-weight:900}
+    .popup-body{
+      padding:16px;
+      overflow-y:auto;
+      flex:1;
     }
-    .close-btn {
-      background: none;
-      border: none;
-      color: white;
-      font-size: 1.8em;
-      cursor: pointer;
-      width: 40px;
-      height: 40px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: background 0.2s;
+    .popup-footer{
+      padding:12px 16px 16px;
+      border-top:1px solid #333;
     }
-    .close-btn:hover {
-      background: rgba(255,255,255,0.2);
-      border-radius: 50%;
+    .close-btn{
+      background:none;
+      border:0;
+      color:#fff;
+      font-size:1.8em;
+      cursor:pointer;
+      width:40px;height:40px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
     }
-    .popup-body {
-      padding: 16px;
-      overflow-y: auto;
-      flex-grow: 1;
-    }
+    .close-btn:hover{background:rgba(255,255,255,.2);border-radius:50%}
 
-    .history-item {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 12px;
-      margin: 5px 0;
-      background-color: #252525;
-      border-radius: 6px;
-      transition: background-color 0.2s;
+    .history-item{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      padding:12px;
+      margin:6px 0;
+      background:var(--panel);
+      border-radius:6px;
     }
-    .history-info { flex-grow: 1; padding-right: 10px; }
-    .history-time { font-size: 0.85em; color: #aaa; margin-top: 4px; }
-    .history-input { font-size: 0.9em; color: #888; margin-top: 2px; }
-    .history-delete {
-      background: none;
-      border: none;
-      color: #ff5555;
-      font-size: 1.5em;
-      cursor: pointer;
+    .history-info{flex:1;padding-right:10px}
+    .history-time{font-size:.85em;color:var(--muted);margin-top:4px}
+    .history-input{font-size:.9em;color:var(--muted2);margin-top:2px}
+    .history-delete{
+      background:none;border:0;color:var(--danger);
+      font-size:1.5em;cursor:pointer;width:auto;
+      padding:6px 10px;margin:0;
     }
-    .empty-history {
-      padding: 30px;
-      text-align: center;
-      color: #888;
-    }
+    .empty-history{padding:24px;text-align:center;color:var(--muted2)}
 
     /* Fläche */
-    .raum-item {
-      padding: 10px;
-      margin: 5px 0;
-      background-color: #252525;
-      border-radius: 6px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
+    .flaeche-header-row{
+      display:flex;justify-content:space-between;align-items:center;
+      gap:10px;margin-bottom:10px;
     }
-    .raum-name { font-weight: bold; }
-    .raum-flaeche { font-weight: bold; color: #28a745; }
-    .raum-actions { display: flex; gap: 5px; }
-    .raum-delete {
-      background: none;
-      border: none;
-      color: #ff5555;
-      font-size: 1.2em;
-      cursor: pointer;
-      transition: color 0.2s;
-      width: auto;
-      padding: 6px 10px;
-      margin-top: 0;
+    .flaeche-header-row h3{margin:0;font-size:1.1em}
+    .optionen-icon-btn{
+      width:auto;margin:0;padding:6px 10px;
+      background:var(--blue);
+      border-radius:20px;
+      font-size:.9em;
+      white-space:nowrap;
     }
-    .raum-delete:hover { color: #e80000; }
-    .total-flaeche {
-      margin-top: 20px;
-      padding: 10px;
-      background-color: #333333;
-      border-radius: 6px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      font-weight: bold;
-      font-size: 1.2em;
-    }
-    .total-label { color: #ffffff; }
-    .total-value { color: #28a745; }
 
-    .speichern-button { background-color: #28a745; }
-    .historie-button { background-color: #6c757d; }
-    .historie-button:hover { background-color: #5a6268; }
+    .raum-item{
+      padding:10px;margin:6px 0;
+      background:var(--panel);
+      border-radius:6px;
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:10px;
+    }
+    .raum-name{font-weight:900}
+    .raum-flaeche{font-weight:900;color:var(--green);white-space:nowrap}
+    .raum-delete{
+      background:none;border:0;color:var(--danger);
+      font-size:1.2em;cursor:pointer;
+      width:auto;padding:6px 10px;margin:0;
+    }
+    .raum-delete:hover{color:#e80000}
 
-    /* Versand */
-    #versandMenu {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 12px;
-      margin-top: 12px;
+    .total-flaeche{
+      margin-top:16px;
+      padding:10px;
+      background:var(--input);
+      border-radius:6px;
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      font-weight:900;
+      font-size:1.15em;
     }
-    #versandMenu .versand-item {
-      background-color: #2f2f2f;
-      padding: 14px;
-      font-size: 14px;
-      border-radius: 6px;
-      border: none;
-      color: white;
-      font-weight: bold;
-      text-align: center;
-      width: 100%;
-      margin-top: 0;
-    }
-    #versandMenu .versand-item:hover { background-color: #404040; }
+    .total-value{color:var(--green)}
 
-    /* Optionen */
-    .flaeche-header-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 10px;
-      gap: 10px;
+    /* Versandmenu */
+    #versandMenu{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:12px;
+      margin-top:12px;
     }
-    .flaeche-header-row h3 { margin: 0; font-size: 1.1em; }
-    .optionen-icon-btn {
-      width: auto;
-      padding: 6px 10px;
-      margin-top: 0;
-      background-color: #007bff;
-      border-radius: 20px;
-      font-size: 0.9em;
-      white-space: nowrap;
+    #versandMenu .versand-item{
+      background:#2f2f2f;
+      padding:14px;
+      font-size:14px;
+      border-radius:6px;
+      border:0;
+      color:#fff;
+      font-weight:800;
+      text-align:center;
+      width:100%;
+      margin-top:0;
     }
-    #optionenPopup .popup-content { max-width: 420px; }
-    #optionenPopup input,
-    #optionenPopup select {
-      width: 100%;
-      margin-bottom: 12px;
-      padding: 10px;
-      background: #2b2b2b;
-      color: white;
-      border: 1px solid #444;
-      border-radius: 6px;
-      box-sizing: border-box;
+    #versandMenu .versand-item:hover{background:#404040}
+
+    /* Optionen Popup inputs */
+    #optionenPopup input, #optionenPopup select{
+      width:100%;
+      margin-bottom:12px;
+      padding:10px;
+      background:#2b2b2b;
+      color:#fff;
+      border:1px solid #444;
+      border-radius:6px;
     }
-    .popup-section {
-      margin-top: 20px;
-      font-size: 15px;
-      border-left: 4px solid #28a745;
-      padding-left: 8px;
+    .popup-section{
+      margin-top:14px;
+      font-size:15px;
+      border-left:4px solid var(--green);
+      padding-left:8px;
     }
-    .popup-save-btn {
-      width: 100%;
-      padding: 12px;
-      background: #28a745;
-      color: white;
-      border: none;
-      border-radius: 6px;
-      font-size: 17px;
-      margin-top: 10px;
+    .popup-save-btn{
+      width:100%;
+      padding:12px;
+      background:var(--green);
+      color:#fff;
+      border:0;
+      border-radius:6px;
+      font-size:17px;
+      font-weight:900;
+      margin-top:0;
     }
   </style>
 </head>
@@ -366,7 +347,7 @@
     <img src="./Symbol-512.png" alt="Sener Logo" class="app-logo" />
     <h1>Sener Flächenberechnung</h1>
 
-    <!-- Tabs mit Drag & Drop -->
+    <!-- Tabs -->
     <div class="tabs" id="tabsContainer">
       <button class="tab-button active" data-tab="winkel" onclick="zeigeTab('winkel', event)">Winkel</button>
       <button class="tab-button" data-tab="dreieck" onclick="zeigeTab('dreieck', event)">Dreieck</button>
@@ -378,7 +359,7 @@
     <div id="winkel" class="tab-content active">
       <div class="section">
         <label for="istMasse">Gemessene Maße in mm</label>
-        <input type="number" id="istMasse" placeholder="z.B. 4500" value="" inputmode="numeric" />
+        <input type="number" id="istMasse" placeholder="z.B. 4500" inputmode="numeric" />
 
         <label for="bereich">Bereich:</label>
         <select id="bereich">
@@ -395,7 +376,7 @@
       <div id="ergebnis" class="result" style="display:none;">
         <div class="result-grid">
           <div class="result-item">
-            <div style="font-size: 0.8em; color: #aaa;">Kathete A<br>(<span id="multiplier">-</span> × 3)</div>
+            <div style="font-size:.8em;color:var(--muted);">Kathete A<br>(<span id="multiplier">-</span> × 3)</div>
             <div class="result-value" id="masseA">-</div>
           </div>
           <div class="result-item">
@@ -414,13 +395,13 @@
     <div id="dreieck" class="tab-content">
       <div class="section">
         <label for="seiteA">Seite A (mm):</label>
-        <input type="number" id="seiteA" placeholder="z.B. 3000" value="" inputmode="numeric" />
+        <input type="number" id="seiteA" placeholder="z.B. 3000" inputmode="numeric" />
 
         <label for="seiteB">Seite B (mm):</label>
-        <input type="number" id="seiteB" placeholder="z.B. 4000" value="" inputmode="numeric" />
+        <input type="number" id="seiteB" placeholder="z.B. 4000" inputmode="numeric" />
 
         <label for="winkelGamma">Winkel γ (Grad):</label>
-        <input type="number" id="winkelGamma" placeholder="z.B. 90" value="" inputmode="numeric" />
+        <input type="number" id="winkelGamma" placeholder="z.B. 90" inputmode="numeric" />
 
         <button onclick="berechneDreieck()"><span class="icon">📐</span> Berechnen</button>
       </div>
@@ -444,7 +425,7 @@
       <div class="section">
         <label for="durchmesser">Durchmesser:</label>
         <div style="display:flex; gap:10px;">
-          <input type="number" id="durchmesser" placeholder="z.B. 21.3 oder 1000" value="" inputmode="decimal" oninput="updateNormAndCalculate()" />
+          <input type="number" id="durchmesser" placeholder="z.B. 21.3 oder 1000" inputmode="decimal" oninput="updateNormAndCalculate()" />
           <select id="durchmesserEinheit" onchange="updateNormAndCalculate()" style="width:120px; flex-shrink:0; margin-top:6px;">
             <option value="mm">mm</option>
             <option value="m">m</option>
@@ -485,7 +466,7 @@
           <option value="1000">DN 1000 (40")</option>
         </select>
 
-        <div id="normAnzeige" style="margin-top:10px; color:#aaa; font-size:0.9em;"></div>
+        <div id="normAnzeige" style="margin-top:10px;color:var(--muted);font-size:.9em;"></div>
         <button onclick="berechneKreis()"><span class="icon">⭕</span> Berechnen</button>
       </div>
 
@@ -507,7 +488,7 @@
     <div id="flaeche" class="tab-content">
       <div class="section">
 
-        <!-- versteckte Meta-Felder (werden vom Optionen-Popup befüllt) -->
+        <!-- versteckte Meta-Felder -->
         <div style="display:none;">
           <select id="ueberschriftSelect">
             <option value="Wohnung" selected>Wohnung</option>
@@ -535,7 +516,7 @@
 
         <label for="laenge">Länge:</label>
         <div style="display:flex; gap:10px;">
-          <input type="number" id="laenge" placeholder="z.B. 5.5" value="" inputmode="decimal" />
+          <input type="number" id="laenge" placeholder="z.B. 5.5" inputmode="decimal" />
           <select id="laengeEinheit" style="width:120px; flex-shrink:0; margin-top:6px;">
             <option value="m">m</option>
             <option value="cm">cm</option>
@@ -545,7 +526,7 @@
 
         <label for="breite">Breite:</label>
         <div style="display:flex; gap:10px;">
-          <input type="number" id="breite" placeholder="z.B. 4.2" value="" inputmode="decimal" />
+          <input type="number" id="breite" placeholder="z.B. 4.2" inputmode="decimal" />
           <select id="breiteEinheit" style="width:120px; flex-shrink:0; margin-top:6px;">
             <option value="m">m</option>
             <option value="cm">cm</option>
@@ -556,8 +537,8 @@
         <button onclick="berechneFlaeche()"><span class="icon">➕</span> Raum hinzufügen</button>
 
         <div id="ergebnisFlaeche" class="result">
-          <h3>Gespeicherte Räume</h3>
-          <div id="raumListe" style="max-height: 250px; overflow-y: auto;"></div>
+          <h3 style="margin:0 0 10px 0;">Gespeicherte Räume</h3>
+          <div id="raumListe" style="max-height:250px; overflow-y:auto;"></div>
 
           <div style="margin-top:15px;">
             <label for="flaechenEinheitAnzeige">Flächeneinheit (Anzeige):</label>
@@ -568,7 +549,7 @@
           </div>
 
           <div id="gesamtFlaecheDiv" class="total-flaeche" style="display:none;">
-            <span class="total-label">Gesamtfläche:</span>
+            <span>Gesamtfläche:</span>
             <span class="total-value" id="totalFlaeche">0 m²</span>
           </div>
 
@@ -594,7 +575,7 @@
     </div>
   </div>
 
-  <!-- WINKEL-HISTORIE-POPUP -->
+  <!-- WINKEL-HISTORIE -->
   <div id="winkelHistoriePopup" class="popup">
     <div class="popup-content">
       <div class="popup-header">
@@ -607,7 +588,7 @@
     </div>
   </div>
 
-  <!-- FLÄCHEN-HISTORIE-POPUP -->
+  <!-- FLÄCHEN-HISTORIE -->
   <div id="flaecheHistoriePopup" class="popup">
     <div class="popup-content">
       <div class="popup-header">
@@ -617,13 +598,13 @@
       <div class="popup-body">
         <div id="flaecheHistoryListe"></div>
       </div>
-      <div style="padding: 16px; border-top: 1px solid #333; flex-shrink: 0;">
-        <button onclick="zurueckZurFlaeche()" style="background-color:#6c757d;">🔙 Zurück zur Flächen-Eingabe</button>
+      <div class="popup-footer">
+        <button onclick="zurueckZurFlaeche()" class="historie-button" style="margin-top:0;">🔙 Zurück zur Flächen-Eingabe</button>
       </div>
     </div>
   </div>
 
-  <!-- 3er Reihe Popup -->
+  <!-- 3er Reihe -->
   <div id="popup3er" class="popup">
     <div class="popup-content">
       <div class="popup-header">
@@ -636,13 +617,14 @@
     </div>
   </div>
 
-  <!-- OPTIONEN POPUP -->
-  <div id="optionenPopup" class="popup" style="display:none;">
-    <div class="popup-content">
+  <!-- OPTIONEN -->
+  <div id="optionenPopup" class="popup">
+    <div class="popup-content" style="max-width:420px;">
       <div class="popup-header">
         <span>Optionen</span>
         <button class="close-btn" onclick="schliesseOptionenPopup()">×</button>
       </div>
+
       <div class="popup-body">
         <label>Berechnung – Überschrift</label>
         <select id="popupUeberschrift" onchange="togglePopupCustom()">
@@ -654,7 +636,7 @@
           <option value="Außenfläche">Außenfläche</option>
           <option value="Sonstige">Sonstige…</option>
         </select>
-        <input type="text" id="popupUeberschriftCustom" placeholder="Eigene Bezeichnung…" style="display:none; margin-top:8px;" />
+        <input type="text" id="popupUeberschriftCustom" placeholder="Eigene Bezeichnung…" style="display:none;" />
 
         <h4 class="popup-section">Adresse</h4>
         <label>Straße / Nr:</label>
@@ -667,9 +649,8 @@
         <h4 class="popup-section">Beschreibung / Messung</h4>
         <input type="text" id="popupBeschreibung" placeholder="z.B. Wohnung 1. OG links" />
       </div>
-      <div class="popup-body" style="padding-top:0;"></div>
-      <div class="popup-content" style="display:none;"></div>
-      <div class="popup-footer" style="padding: 12px 16px 16px; border-top: 1px solid #333; flex-shrink: 0;">
+
+      <div class="popup-footer">
         <button class="popup-save-btn" onclick="speichereOptionen()">✔️ Übernehmen</button>
       </div>
     </div>
@@ -702,7 +683,6 @@
     function initDraggableTabs() {
       const container = document.getElementById('tabsContainer');
       if (!container) return;
-
       const buttons = Array.from(container.querySelectorAll('.tab-button'));
 
       const saved = localStorage.getItem('sener_tabs_order');
@@ -713,7 +693,7 @@
           buttons.forEach(btn => { map[btn.dataset.tab] = btn; });
           order.forEach(tabId => { if (map[tabId]) container.appendChild(map[tabId]); });
           buttons.forEach(btn => { if (!container.contains(btn)) container.appendChild(btn); });
-        } catch (e) { console.warn('Tab-Order konnte nicht geladen werden.', e); }
+        } catch(e) {}
       }
 
       container.querySelectorAll('.tab-button').forEach(btn => {
@@ -827,7 +807,6 @@
       if (!popup || !liste || !input) return;
 
       liste.innerHTML = '';
-
       const minA = 300, maxA = 6900, stepA = 300;
 
       for (let a = minA; a <= maxA; a += stepA) {
@@ -927,7 +906,7 @@
       }
 
       berechnungsHistorie.forEach(item => {
-        let bereichLabel =
+        const bereichLabel =
           item.bereich === 'metallbau' ? 'Metallbau (3-4-5)' :
           item.bereich === 'wohnungsbau' ? 'Wohnungsbau (mittel)' :
           item.bereich === 'agrar' ? 'Landbau (genau)' : 'Unbekannt';
@@ -970,7 +949,7 @@
       }
 
       const gammaRad = gammaGrad * Math.PI / 180;
-      const c = Math.sqrt(a * a + b * b - 2 * a * b * Math.cos(gammaRad));
+      const c = Math.sqrt(a*a + b*b - 2*a*b*Math.cos(gammaRad));
       const flaecheMM2 = 0.5 * a * b * Math.sin(gammaRad);
       const flaecheM2 = flaecheMM2 / 1000000;
 
@@ -1000,10 +979,7 @@
       if (d_mm > 0) {
         for (const norm of normen) {
           const abstand = Math.abs(d_mm - norm.iso);
-          if (abstand < minAbstand) {
-            minAbstand = abstand;
-            naechsteNorm = norm;
-          }
+          if (abstand < minAbstand) { minAbstand = abstand; naechsteNorm = norm; }
         }
       }
 
@@ -1049,7 +1025,7 @@
     }
 
     function berechneKreis(durchmesser_mm_override) {
-      let d_mm = durchmesser_mm_override !== undefined ? durchmesser_mm_override : getDurchmesserInMM();
+      let d_mm = (durchmesser_mm_override !== undefined) ? durchmesser_mm_override : getDurchmesserInMM();
 
       if (isNaN(d_mm) || d_mm <= 0) {
         document.getElementById('ergebnisKreis').style.display = 'none';
@@ -1088,7 +1064,7 @@
       if (isNaN(wert)) return 0;
       if (einheit === 'mm') return wert / 1000;
       if (einheit === 'cm') return wert / 100;
-      return wert;
+      return wert; // m
     }
 
     function berechneFlaeche() {
@@ -1145,14 +1121,12 @@
         const div = document.createElement('div');
         div.className = 'raum-item';
         div.innerHTML = `
-          <div style="flex-grow: 1;">
+          <div style="flex:1;">
             <div class="raum-name">${raum.name}</div>
             <div class="history-input">${raum.laenge.toFixed(2).replace('.', ',')} ${raum.laengeE} × ${raum.breite.toFixed(2).replace('.', ',')} ${raum.breiteE}</div>
           </div>
           <div class="raum-flaeche">${formatFlaeche(raum.flaeche)}</div>
-          <div class="raum-actions">
-            <button class="raum-delete" onclick="loescheRaum(${raum.id})">🗑️</button>
-          </div>
+          <button class="raum-delete" onclick="loescheRaum(${raum.id})">🗑️</button>
         `;
         raumListeDiv.appendChild(div);
       });
@@ -1223,7 +1197,6 @@
       if (!berechnung) return;
 
       const d = berechnung.daten;
-
       const sel = document.getElementById("ueberschriftSelect");
       const custom = document.getElementById("ueberschriftCustom");
 
@@ -1346,9 +1319,13 @@
       const custom = document.getElementById("popupUeberschriftCustom");
 
       if (["Wohnung","Lager","Halle","Büro","Agrar","Außenfläche"].includes(titel)) {
-        sel.value = titel; custom.style.display = "none"; custom.value = "";
+        sel.value = titel;
+        custom.style.display = "none";
+        custom.value = "";
       } else {
-        sel.value = "Sonstige"; custom.style.display = "block"; custom.value = titel;
+        sel.value = "Sonstige";
+        custom.style.display = "block";
+        custom.value = titel;
       }
 
       document.getElementById("popupStrasse").value = document.getElementById("adresseStrasse").value;
@@ -1359,7 +1336,9 @@
       document.getElementById("optionenPopup").style.display = "flex";
     }
 
-    function schliesseOptionenPopup() { document.getElementById("optionenPopup").style.display = "none"; }
+    function schliesseOptionenPopup() {
+      document.getElementById("optionenPopup").style.display = "none";
+    }
 
     function togglePopupCustom() {
       const sel = document.getElementById("popupUeberschrift").value;
@@ -1386,17 +1365,15 @@
       schliesseOptionenPopup();
     }
 
-    /* Initialisierung & Service Worker */
+    /* Init + Service Worker */
     document.addEventListener('DOMContentLoaded', () => {
       zeigeTab('winkel', null);
       zeigeRaumListe();
       berechneGesamtFlaeche();
-      const versandMenu = document.getElementById('versandMenu');
-      if (versandMenu) versandMenu.style.display = 'none';
 
       const istMasseInput = document.getElementById('istMasse');
       if (istMasseInput) {
-        istMasseInput.addEventListener('keypress', function(event) {
+        istMasseInput.addEventListener('keypress', (event) => {
           if (event.key === 'Enter') berechneMassen();
         });
       }
@@ -1407,7 +1384,7 @@
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
         navigator.serviceWorker.register('./sw.js')
-          .catch(error => console.log('SW Registrierung fehlgeschlagen: ', error));
+          .catch(error => console.log('SW Registrierung fehlgeschlagen:', error));
       });
     }
   </script>
