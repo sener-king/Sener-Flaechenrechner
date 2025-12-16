@@ -3,22 +3,24 @@
   "name": "Sener Flächenberechnung",
   "short_name": "Sener Fläche",
   "description": "Einfache Flächen-, Kreis-, Dreiecks- und Winkelberechnung für Baustelle, Metallbau und Agrar.",
-  "start_url": "/Sener-Flaechenrechner/",
+  "start_url": "/Sener-Flaechenrechner/index.html",
   "scope": "/Sener-Flaechenrechner/",
   "display": "standalone",
   "background_color": "#121212",
   "theme_color": "#28a745",
-  "orientation": "portrait-primary",
+  "orientation": "portrait",
   "icons": [
     {
-      "src": "Sener_Dreieck_logo_192x192.png",
+      "src": "/Sener-Flaechenrechner/Sener_Dreieck_logo_192x192.png",
       "sizes": "192x192",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
     },
     {
-      "src": "Sener_Dreieck_logo_512x512.png",
+      "src": "/Sener-Flaechenrechner/Sener_Dreieck_logo_512x512.png",
       "sizes": "512x512",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
     }
   ]
 }
