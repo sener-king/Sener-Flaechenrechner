@@ -19,335 +19,85 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="Sener Fläche" />
 
-  <!-- jsPDF für PDF-Export -->
+  <!-- jsPDF -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
   <style>
-    :root{
-      --bg:#121212;
-      --card:#1e1e1e;
-      --panel:#252525;
-      --input:#333;
-      --border:#555;
-      --muted:#aaa;
-      --muted2:#888;
-      --green:#28a745;
-      --blue:#007bff;
-      --graybtn:#6c757d;
-      --graybtnHover:#5a6268;
-      --danger:#ff5555;
-    }
-    *{box-sizing:border-box}
-    body{
-      font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;
-      margin:0;padding:0;
-      background:var(--bg);
-      color:#fff;
-      line-height:1.6;
-    }
-    .container{
-      max-width:520px;
-      margin:20px auto;
-      padding:20px;
-      background:var(--card);
-      border-radius:12px;
-      box-shadow:0 4px 12px rgba(0,0,0,.5);
-    }
-    h1{
-      text-align:center;
-      font-size:1.5em;
-      margin:10px 0 0 0;
-      padding-bottom:10px;
-      border-bottom:2px solid var(--blue);
-    }
-    .app-logo{
-      display:block;
-      margin:0 auto 10px auto;
-      max-width:120px;
-      height:auto;
-    }
+    body{font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;margin:0;padding:0;background:#121212;color:#fff;line-height:1.6}
+    .container{max-width:520px;margin:20px auto;padding:20px;background:#1e1e1e;border-radius:12px;box-shadow:0 4px 12px rgba(0,0,0,.5)}
+    h1{text-align:center;font-size:1.5em;margin:10px 0 0;padding-bottom:10px;border-bottom:2px solid #007bff}
+    .app-logo{display:block;margin:0 auto 10px;max-width:120px;height:auto}
 
-    /* Tabs */
-    .tabs{
-      display:flex;
-      justify-content:space-between;
-      margin:18px 0 20px 0;
-      gap:6px;
-    }
-    .tab-button{
-      flex:1;
-      padding:12px;
-      background:var(--graybtn);
-      color:#fff;
-      border:0;
-      border-radius:6px;
-      cursor:pointer;
-      font-size:14px;
-      font-weight:700;
-      transition:background-color .2s, transform .15s, box-shadow .15s;
-      user-select:none;
-    }
-    .tab-button.active{background:var(--green)}
-    .tab-button:hover{background:var(--graybtnHover)}
-    .tab-button.dragging{
-      opacity:.9;
-      transform:scale(1.05);
-      box-shadow:0 4px 10px rgba(0,0,0,.7);
-      z-index:10;
-    }
+    .tabs{display:flex;justify-content:space-between;margin-bottom:20px;gap:6px}
+    .tab-button{flex:1;padding:12px;background:#6c757d;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:14px;font-weight:700;transition:.2s;user-select:none}
+    .tab-button.active{background:#28a745}
+    .tab-button:hover{background:#5a6268}
+    .tab-button.dragging{opacity:.9;transform:scale(1.05);box-shadow:0 4px 10px rgba(0,0,0,.7);z-index:10}
     .tab-button.drag-over{outline:2px dashed #fff}
 
     .tab-content{display:none}
     .tab-content.active{display:block}
 
-    .section{
-      background:var(--panel);
-      padding:16px;
-      border-radius:8px;
-      box-shadow:inset 0 0 6px rgba(0,0,0,.3);
-    }
-    label{
-      display:block;
-      margin-top:12px;
-      font-weight:700;
-      color:#ccc;
-      font-size:.95em;
-    }
-    input[type="number"], input[type="text"], select{
-      width:100%;
-      padding:12px;
-      margin-top:6px;
-      background:var(--input);
-      color:#fff;
-      border:1px solid var(--border);
-      border-radius:6px;
-      font-size:16px;
-    }
-    button{
-      width:100%;
-      padding:14px;
-      margin-top:16px;
-      background:var(--green);
-      color:#fff;
-      border:0;
-      border-radius:6px;
-      cursor:pointer;
-      font-size:16px;
-      font-weight:800;
-      transition:background-color .2s;
-    }
+    .section{background:#252525;padding:16px;margin-top:20px;border-radius:8px;box-shadow:inset 0 0 6px rgba(0,0,0,.3)}
+    label{display:block;margin-top:12px;font-weight:700;color:#ccc;font-size:.95em}
+    input[type="number"],select,input[type="text"]{width:100%;padding:12px;margin-top:6px;background:#333;color:#fff;border:1px solid #555;border-radius:6px;font-size:16px;box-sizing:border-box}
+    button{width:100%;padding:14px;margin-top:16px;background:#28a745;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:16px;font-weight:700;transition:.2s}
     button:hover{background:#218838}
     .icon{margin-right:8px}
 
-    .historie-button{
-      background:var(--graybtn);
-      font-weight:700;
-    }
-    .historie-button:hover{background:var(--graybtnHover)}
+    .result{margin-top:20px;padding:16px;background:#252525;border-radius:8px}
+    .result-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:15px;margin-top:10px}
+    .result-item{text-align:center;padding:10px;background:#333;border-radius:6px}
+    .result-label{display:block;font-size:.9em;color:#aaa;margin-bottom:5px}
+    .result-value{font-size:1.2em;font-weight:700;color:#28a745}
 
-    .result{
-      margin-top:20px;
-      padding:16px;
-      background:var(--panel);
-      border-radius:8px;
-    }
-    .result-grid{
-      display:grid;
-      grid-template-columns:repeat(auto-fit,minmax(140px,1fr));
-      gap:15px;
-      margin-top:10px;
-    }
-    .result-item{
-      text-align:center;
-      padding:10px;
-      background:var(--input);
-      border-radius:6px;
-    }
-    .result-label{
-      display:block;
-      font-size:.9em;
-      color:var(--muted);
-      margin-bottom:5px;
-    }
-    .result-value{
-      font-size:1.2em;
-      font-weight:900;
-      color:var(--green);
-    }
-
-    /* Popups */
-    .popup{
-      display:none;
-      position:fixed;
-      inset:0;
-      background:rgba(0,0,0,.8);
-      z-index:1000;
-      justify-content:center;
-      align-items:center;
-      padding:20px;
-    }
-    .popup-content{
-      background:var(--card);
-      border-radius:12px;
-      width:90%;
-      max-width:500px;
-      max-height:90vh;
-      overflow:hidden;
-      box-shadow:0 5px 15px rgba(0,0,0,.5);
-      display:flex;
-      flex-direction:column;
-    }
-    .popup-header{
-      display:flex;
-      justify-content:space-between;
-      align-items:center;
-      padding:16px;
-      border-bottom:1px solid #333;
-    }
-    .popup-header span{font-size:1.15em;font-weight:900}
-    .popup-body{
-      padding:16px;
-      overflow-y:auto;
-      flex:1;
-    }
-    .popup-footer{
-      padding:12px 16px 16px;
-      border-top:1px solid #333;
-    }
-    .close-btn{
-      background:none;
-      border:0;
-      color:#fff;
-      font-size:1.8em;
-      cursor:pointer;
-      width:40px;height:40px;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-    }
+    .popup{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.8);z-index:1000;justify-content:center;align-items:center;padding:20px;box-sizing:border-box}
+    .popup-content{background:#1e1e1e;border-radius:12px;width:90%;max-width:500px;max-height:90vh;overflow:hidden;box-shadow:0 5px 15px rgba(0,0,0,.5);display:flex;flex-direction:column}
+    .popup-header{display:flex;justify-content:space-between;align-items:center;padding:16px;border-bottom:1px solid #333}
+    .popup-header span{font-size:1.2em;font-weight:700}
+    .close-btn{background:none;border:none;color:#fff;font-size:1.8em;cursor:pointer;width:40px;height:40px;display:flex;align-items:center;justify-content:center}
     .close-btn:hover{background:rgba(255,255,255,.2);border-radius:50%}
+    .popup-body{padding:16px;overflow-y:auto;flex-grow:1}
 
-    .history-item{
-      display:flex;
-      justify-content:space-between;
-      align-items:center;
-      padding:12px;
-      margin:6px 0;
-      background:var(--panel);
-      border-radius:6px;
-    }
-    .history-info{flex:1;padding-right:10px}
-    .history-time{font-size:.85em;color:var(--muted);margin-top:4px}
-    .history-input{font-size:.9em;color:var(--muted2);margin-top:2px}
-    .history-delete{
-      background:none;border:0;color:var(--danger);
-      font-size:1.5em;cursor:pointer;width:auto;
-      padding:6px 10px;margin:0;
-    }
-    .empty-history{padding:24px;text-align:center;color:var(--muted2)}
+    .history-item{display:flex;justify-content:space-between;align-items:center;padding:12px;margin:5px 0;background:#252525;border-radius:6px}
+    .history-info{flex-grow:1;padding-right:10px}
+    .history-time{font-size:.85em;color:#aaa;margin-top:4px}
+    .history-input{font-size:.9em;color:#888;margin-top:2px}
+    .history-delete{background:none;border:none;color:#ff5555;font-size:1.5em;cursor:pointer;width:auto;padding:6px 10px;margin-top:0}
+    .empty-history{padding:30px;text-align:center;color:#888}
 
-    /* Fläche */
-    .flaeche-header-row{
-      display:flex;justify-content:space-between;align-items:center;
-      gap:10px;margin-bottom:10px;
-    }
-    .flaeche-header-row h3{margin:0;font-size:1.1em}
-    .optionen-icon-btn{
-      width:auto;margin:0;padding:6px 10px;
-      background:var(--blue);
-      border-radius:20px;
-      font-size:.9em;
-      white-space:nowrap;
-    }
+    .raum-item{padding:10px;margin:5px 0;background:#252525;border-radius:6px;display:flex;justify-content:space-between;align-items:center}
+    .raum-name{font-weight:700}
+    .raum-flaeche{font-weight:700;color:#28a745}
+    .raum-delete{background:none;border:none;color:#ff5555;font-size:1.2em;cursor:pointer;width:auto;padding:6px 10px;margin-top:0}
 
-    .raum-item{
-      padding:10px;margin:6px 0;
-      background:var(--panel);
-      border-radius:6px;
-      display:flex;
-      justify-content:space-between;
-      align-items:center;
-      gap:10px;
-    }
-    .raum-name{font-weight:900}
-    .raum-flaeche{font-weight:900;color:var(--green);white-space:nowrap}
-    .raum-delete{
-      background:none;border:0;color:var(--danger);
-      font-size:1.2em;cursor:pointer;
-      width:auto;padding:6px 10px;margin:0;
-    }
-    .raum-delete:hover{color:#e80000}
+    .total-flaeche{margin-top:20px;padding:10px;background:#333;border-radius:6px;display:flex;justify-content:space-between;align-items:center;font-weight:700;font-size:1.2em}
+    .total-value{color:#28a745}
 
-    .total-flaeche{
-      margin-top:16px;
-      padding:10px;
-      background:var(--input);
-      border-radius:6px;
-      display:flex;
-      justify-content:space-between;
-      align-items:center;
-      font-weight:900;
-      font-size:1.15em;
-    }
-    .total-value{color:var(--green)}
+    .speichern-button{background:#28a745}
+    .historie-button{background:#6c757d}
+    .historie-button:hover{background:#5a6268}
 
-    /* Versandmenu */
-    #versandMenu{
-      display:grid;
-      grid-template-columns:1fr 1fr;
-      gap:12px;
-      margin-top:12px;
-    }
-    #versandMenu .versand-item{
-      background:#2f2f2f;
-      padding:14px;
-      font-size:14px;
-      border-radius:6px;
-      border:0;
-      color:#fff;
-      font-weight:800;
-      text-align:center;
-      width:100%;
-      margin-top:0;
-    }
+    #versandMenu{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px}
+    #versandMenu .versand-item{background:#2f2f2f;padding:14px;font-size:14px;border-radius:6px;border:none;color:#fff;font-weight:700;text-align:center;width:100%;margin-top:0}
     #versandMenu .versand-item:hover{background:#404040}
 
-    /* Optionen Popup inputs */
-    #optionenPopup input, #optionenPopup select{
-      width:100%;
-      margin-bottom:12px;
-      padding:10px;
-      background:#2b2b2b;
-      color:#fff;
-      border:1px solid #444;
-      border-radius:6px;
-    }
-    .popup-section{
-      margin-top:14px;
-      font-size:15px;
-      border-left:4px solid var(--green);
-      padding-left:8px;
-    }
-    .popup-save-btn{
-      width:100%;
-      padding:12px;
-      background:var(--green);
-      color:#fff;
-      border:0;
-      border-radius:6px;
-      font-size:17px;
-      font-weight:900;
-      margin-top:0;
-    }
+    .flaeche-header-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;gap:10px}
+    .optionen-icon-btn{width:auto;padding:6px 10px;margin-top:0;background:#007bff;border-radius:20px;font-size:.9em;white-space:nowrap}
+
+    #optionenPopup .popup-content{max-width:420px}
+    #optionenPopup input,#optionenPopup select{width:100%;margin-bottom:12px;padding:10px;background:#2b2b2b;color:#fff;border:1px solid #444;border-radius:6px;box-sizing:border-box}
+    .popup-section{margin-top:20px;font-size:15px;border-left:4px solid #28a745;padding-left:8px}
+    .popup-save-btn{width:100%;padding:12px;background:#28a745;color:#fff;border:none;border-radius:6px;font-size:17px;margin-top:10px}
   </style>
 </head>
 
 <body>
   <div class="container">
-    <img src="./Symbol-512.png" alt="Sener Logo" class="app-logo" />
+    <!-- Logo: erst logo.png, wenn fehlt automatisch Symbol-512.png -->
+    <img src="./logo.png" alt="Sener Logo" class="app-logo" onerror="this.onerror=null;this.src='./Symbol-512.png';" />
     <h1>Sener Flächenberechnung</h1>
 
-    <!-- Tabs -->
     <div class="tabs" id="tabsContainer">
       <button class="tab-button active" data-tab="winkel" onclick="zeigeTab('winkel', event)">Winkel</button>
       <button class="tab-button" data-tab="dreieck" onclick="zeigeTab('dreieck', event)">Dreieck</button>
@@ -376,7 +126,7 @@
       <div id="ergebnis" class="result" style="display:none;">
         <div class="result-grid">
           <div class="result-item">
-            <div style="font-size:.8em;color:var(--muted);">Kathete A<br>(<span id="multiplier">-</span> × 3)</div>
+            <div style="font-size:0.8em;color:#aaa;">Kathete A<br>(<span id="multiplier">-</span> × 3)</div>
             <div class="result-value" id="masseA">-</div>
           </div>
           <div class="result-item">
@@ -396,13 +146,10 @@
       <div class="section">
         <label for="seiteA">Seite A (mm):</label>
         <input type="number" id="seiteA" placeholder="z.B. 3000" inputmode="numeric" />
-
         <label for="seiteB">Seite B (mm):</label>
         <input type="number" id="seiteB" placeholder="z.B. 4000" inputmode="numeric" />
-
         <label for="winkelGamma">Winkel γ (Grad):</label>
         <input type="number" id="winkelGamma" placeholder="z.B. 90" inputmode="numeric" />
-
         <button onclick="berechneDreieck()"><span class="icon">📐</span> Berechnen</button>
       </div>
 
@@ -466,7 +213,7 @@
           <option value="1000">DN 1000 (40")</option>
         </select>
 
-        <div id="normAnzeige" style="margin-top:10px;color:var(--muted);font-size:.9em;"></div>
+        <div id="normAnzeige" style="margin-top:10px; color:#aaa; font-size:0.9em;"></div>
         <button onclick="berechneKreis()"><span class="icon">⭕</span> Berechnen</button>
       </div>
 
@@ -488,7 +235,6 @@
     <div id="flaeche" class="tab-content">
       <div class="section">
 
-        <!-- versteckte Meta-Felder -->
         <div style="display:none;">
           <select id="ueberschriftSelect">
             <option value="Wohnung" selected>Wohnung</option>
@@ -499,11 +245,11 @@
             <option value="Außenfläche">Außenfläche</option>
             <option value="Sonstige">Sonstige…</option>
           </select>
-          <input type="text" id="ueberschriftCustom" value="" />
-          <input type="text" id="adresseStrasse" value="" />
-          <input type="text" id="adressePLZ" value="" />
-          <input type="text" id="adresseOrt" value="" />
-          <input type="text" id="beschreibung" value="" />
+          <input type="text" id="ueberschriftCustom" />
+          <input type="text" id="adresseStrasse" />
+          <input type="text" id="adressePLZ" />
+          <input type="text" id="adresseOrt" />
+          <input type="text" id="beschreibung" />
         </div>
 
         <div class="flaeche-header-row">
@@ -537,7 +283,7 @@
         <button onclick="berechneFlaeche()"><span class="icon">➕</span> Raum hinzufügen</button>
 
         <div id="ergebnisFlaeche" class="result">
-          <h3 style="margin:0 0 10px 0;">Gespeicherte Räume</h3>
+          <h3>Gespeicherte Räume</h3>
           <div id="raumListe" style="max-height:250px; overflow-y:auto;"></div>
 
           <div style="margin-top:15px;">
@@ -570,61 +316,50 @@
             <button class="versand-item" onclick="versendeErgebnisse()">📧 Per E-Mail versenden</button>
           </div>
         </div>
-
       </div>
     </div>
   </div>
 
-  <!-- WINKEL-HISTORIE -->
+  <!-- POPUPS -->
   <div id="winkelHistoriePopup" class="popup">
     <div class="popup-content">
       <div class="popup-header">
         <span>Historie der Winkelberechnungen</span>
         <button class="close-btn" onclick="schliesseWinkelHistorie(event)">×</button>
       </div>
-      <div class="popup-body">
-        <div id="winkelHistoryListe"></div>
-      </div>
+      <div class="popup-body"><div id="winkelHistoryListe"></div></div>
     </div>
   </div>
 
-  <!-- FLÄCHEN-HISTORIE -->
   <div id="flaecheHistoriePopup" class="popup">
     <div class="popup-content">
       <div class="popup-header">
         <span>Historie der Flächenberechnungen</span>
         <button class="close-btn" onclick="schliesseFlaecheHistorie(event)">×</button>
       </div>
-      <div class="popup-body">
-        <div id="flaecheHistoryListe"></div>
-      </div>
-      <div class="popup-footer">
-        <button onclick="zurueckZurFlaeche()" class="historie-button" style="margin-top:0;">🔙 Zurück zur Flächen-Eingabe</button>
+      <div class="popup-body"><div id="flaecheHistoryListe"></div></div>
+      <div style="padding:16px;border-top:1px solid #333;">
+        <button onclick="zurueckZurFlaeche()" style="background:#6c757d;">🔙 Zurück</button>
       </div>
     </div>
   </div>
 
-  <!-- 3er Reihe -->
   <div id="popup3er" class="popup">
     <div class="popup-content">
       <div class="popup-header">
         <span>3er-Multiplikatoren (n × 3)</span>
         <button class="close-btn" onclick="schliessePopup(event)">×</button>
       </div>
-      <div class="popup-body">
-        <div id="popupListe"></div>
-      </div>
+      <div class="popup-body"><div id="popupListe"></div></div>
     </div>
   </div>
 
-  <!-- OPTIONEN -->
   <div id="optionenPopup" class="popup">
-    <div class="popup-content" style="max-width:420px;">
+    <div class="popup-content">
       <div class="popup-header">
         <span>Optionen</span>
         <button class="close-btn" onclick="schliesseOptionenPopup()">×</button>
       </div>
-
       <div class="popup-body">
         <label>Berechnung – Überschrift</label>
         <select id="popupUeberschrift" onchange="togglePopupCustom()">
@@ -636,7 +371,7 @@
           <option value="Außenfläche">Außenfläche</option>
           <option value="Sonstige">Sonstige…</option>
         </select>
-        <input type="text" id="popupUeberschriftCustom" placeholder="Eigene Bezeichnung…" style="display:none;" />
+        <input type="text" id="popupUeberschriftCustom" placeholder="Eigene Bezeichnung…" style="display:none; margin-top:8px;" />
 
         <h4 class="popup-section">Adresse</h4>
         <label>Straße / Nr:</label>
@@ -648,9 +383,7 @@
 
         <h4 class="popup-section">Beschreibung / Messung</h4>
         <input type="text" id="popupBeschreibung" placeholder="z.B. Wohnung 1. OG links" />
-      </div>
 
-      <div class="popup-footer">
         <button class="popup-save-btn" onclick="speichereOptionen()">✔️ Übernehmen</button>
       </div>
     </div>
@@ -679,21 +412,20 @@
       { nw: "900", zoll: "36\"", iso: 914.4, ansi: 914.40 }, { nw: "1000", zoll: "40\"", iso: 1016.0, ansi: 1016.00 }
     ];
 
-    /* Drag & Drop Tabs */
     function initDraggableTabs() {
       const container = document.getElementById('tabsContainer');
       if (!container) return;
-      const buttons = Array.from(container.querySelectorAll('.tab-button'));
 
+      const buttons = Array.from(container.querySelectorAll('.tab-button'));
       const saved = localStorage.getItem('sener_tabs_order');
       if (saved) {
         try {
           const order = JSON.parse(saved);
           const map = {};
-          buttons.forEach(btn => { map[btn.dataset.tab] = btn; });
-          order.forEach(tabId => { if (map[tabId]) container.appendChild(map[tabId]); });
-          buttons.forEach(btn => { if (!container.contains(btn)) container.appendChild(btn); });
-        } catch(e) {}
+          buttons.forEach(b => map[b.dataset.tab] = b);
+          order.forEach(id => map[id] && container.appendChild(map[id]));
+          buttons.forEach(b => !container.contains(b) && container.appendChild(b));
+        } catch {}
       }
 
       container.querySelectorAll('.tab-button').forEach(btn => {
@@ -707,23 +439,20 @@
         });
 
         btn.addEventListener('dragend', () => {
-          if (draggedTab) draggedTab.classList.remove('dragging');
+          draggedTab && draggedTab.classList.remove('dragging');
           container.querySelectorAll('.tab-button').forEach(b => b.classList.remove('drag-over'));
           draggedTab = null;
-          speichernTabReihenfolge();
+          const order = Array.from(container.querySelectorAll('.tab-button')).map(b => b.dataset.tab);
+          localStorage.setItem('sener_tabs_order', JSON.stringify(order));
         });
 
         btn.addEventListener('dragover', (e) => {
           e.preventDefault();
           if (!draggedTab || draggedTab === btn) return;
           btn.classList.add('drag-over');
-
           const rect = btn.getBoundingClientRect();
-          const offset = e.clientX - rect.left;
-          const insertBefore = offset < rect.width / 2;
-
-          if (insertBefore) container.insertBefore(draggedTab, btn);
-          else container.insertBefore(draggedTab, btn.nextSibling);
+          const insertBefore = (e.clientX - rect.left) < rect.width / 2;
+          container.insertBefore(draggedTab, insertBefore ? btn : btn.nextSibling);
         });
 
         btn.addEventListener('dragleave', () => btn.classList.remove('drag-over'));
@@ -731,660 +460,370 @@
       });
     }
 
-    function speichernTabReihenfolge() {
-      const container = document.getElementById('tabsContainer');
-      if (!container) return;
-      const order = Array.from(container.querySelectorAll('.tab-button')).map(b => b.dataset.tab);
-      localStorage.setItem('sener_tabs_order', JSON.stringify(order));
-    }
-
-    /* Fläche Format */
-    function isHaModus() {
-      const sel = document.getElementById('flaechenEinheitAnzeige');
-      return sel && sel.value === 'ha';
-    }
-
-    function formatFlaeche(value) {
-      if (isNaN(value)) value = 0;
-
-      if (isHaModus()) {
-        const ha = value / 10000;
-        const formatted = ha < 10
-          ? ha.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
-          : ha.toLocaleString('de-DE', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
-        return `${formatted} ha`;
+    function isHaModus(){const sel=document.getElementById('flaechenEinheitAnzeige');return sel&&sel.value==='ha'}
+    function formatFlaeche(value){
+      if(isNaN(value)) value=0;
+      if(isHaModus()){
+        const ha=value/10000;
+        const f=ha<10?ha.toLocaleString('de-DE',{minimumFractionDigits:2,maximumFractionDigits:2}):ha.toLocaleString('de-DE',{minimumFractionDigits:1,maximumFractionDigits:1});
+        return `${f} ha`;
       }
-
-      if (value < 100) return `${Math.round(value).toLocaleString('de-DE')} m²`;
-      if (value < 1000) return `${(Math.round(value * 10) / 10).toLocaleString('de-DE', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} m²`;
-      return `${value.toLocaleString('de-DE', { minimumFractionDigits: 0, maximumFractionDigits: 3 })} m²`;
+      if(value<100) return `${Math.round(value).toLocaleString('de-DE')} m²`;
+      if(value<1000) return `${(Math.round(value*10)/10).toLocaleString('de-DE',{minimumFractionDigits:1,maximumFractionDigits:1})} m²`;
+      return `${value.toLocaleString('de-DE',{maximumFractionDigits:3})} m²`;
     }
 
-    function aktualisiereFlaechenAnzeige() {
-      zeigeRaumListe();
-      berechneGesamtFlaeche();
-      const popup = document.getElementById('flaecheHistoriePopup');
-      if (popup && popup.style.display === 'flex') zeigeFlaecheHistorie();
-    }
+    function aktualisiereFlaechenAnzeige(){zeigeRaumListe();berechneGesamtFlaeche();}
 
-    /* Tabs & Popups */
-    function zeigeTab(tabName, event) {
-      if (event && event.stopPropagation) event.stopPropagation();
-      document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-      document.querySelectorAll('.tab-button').forEach(b => b.classList.remove('active'));
-
+    function zeigeTab(tabName,event){
+      event&&event.stopPropagation&&event.stopPropagation();
+      document.querySelectorAll('.tab-content').forEach(c=>c.classList.remove('active'));
+      document.querySelectorAll('.tab-button').forEach(b=>b.classList.remove('active'));
       document.getElementById(tabName).classList.add('active');
-
-      const container = document.getElementById('tabsContainer');
-      const btn = container.querySelector(`.tab-button[data-tab="${tabName}"]`);
-      if (btn) btn.classList.add('active');
-
-      if (tabName === 'flaeche') {
-        zeigeRaumListe();
-        berechneGesamtFlaeche();
-      }
+      const btn=document.querySelector(`.tab-button[data-tab="${tabName}"]`);
+      btn&&btn.classList.add('active');
+      if(tabName==='flaeche'){zeigeRaumListe();berechneGesamtFlaeche();}
     }
 
-    function schliesseWinkelHistorie(event) {
-      if (event && event.stopPropagation) event.stopPropagation();
-      document.getElementById('winkelHistoriePopup').style.display = 'none';
-    }
-    function schliesseFlaecheHistorie(event) {
-      if (event && event.stopPropagation) event.stopPropagation();
-      document.getElementById('flaecheHistoriePopup').style.display = 'none';
-    }
-    function schliessePopup(event) {
-      if (event && event.stopPropagation) event.stopPropagation();
-      document.getElementById('popup3er').style.display = 'none';
-    }
-    function zurueckZurFlaeche() { schliesseFlaecheHistorie(null); }
+    function schliesseWinkelHistorie(e){e&&e.stopPropagation&&e.stopPropagation();document.getElementById('winkelHistoriePopup').style.display='none'}
+    function schliesseFlaecheHistorie(e){e&&e.stopPropagation&&e.stopPropagation();document.getElementById('flaecheHistoriePopup').style.display='none'}
+    function schliessePopup(e){e&&e.stopPropagation&&e.stopPropagation();document.getElementById('popup3er').style.display='none'}
+    function zurueckZurFlaeche(){schliesseFlaecheHistorie(null);}
 
-    /* Winkel */
-    function zeige3erReihe() {
-      const popup = document.getElementById('popup3er');
-      const liste = document.getElementById('popupListe');
-      const input = document.getElementById('istMasse');
-      if (!popup || !liste || !input) return;
-
-      liste.innerHTML = '';
-      const minA = 300, maxA = 6900, stepA = 300;
-
-      for (let a = minA; a <= maxA; a += stepA) {
-        const k = a / 3;
-        const b = k * 4;
-        const c = k * 5;
-
-        const div = document.createElement('div');
-        div.className = 'history-item';
-        div.style.cursor = 'pointer';
-        div.innerHTML = `
-          <div class="history-info">
-            <div class="raum-name">A: ${a.toLocaleString('de-DE')} mm (K: ${k.toLocaleString('de-DE')} mm)</div>
-            <div class="history-time">B: ${b.toLocaleString('de-DE')} mm · C: ${c.toLocaleString('de-DE')} mm</div>
-            <div class="history-input">Tippen → übernimmt Messung</div>
-          </div>
-        `;
-        div.onclick = () => {
-          input.value = String(a + 300);
-          document.getElementById('bereich').value = 'metallbau';
-          berechneMassen();
-          popup.style.display = 'none';
-        };
+    function zeige3erReihe(){
+      const popup=document.getElementById('popup3er');
+      const liste=document.getElementById('popupListe');
+      const input=document.getElementById('istMasse');
+      if(!popup||!liste||!input) return;
+      liste.innerHTML='';
+      for(let a=300;a<=6900;a+=300){
+        const k=a/3,b=k*4,c=k*5;
+        const div=document.createElement('div');
+        div.className='history-item';
+        div.style.cursor='pointer';
+        div.innerHTML=`<div class="history-info">
+          <div class="raum-name">A: ${a.toLocaleString('de-DE')} mm (K: ${k.toLocaleString('de-DE')} mm)</div>
+          <div class="history-time">B: ${b.toLocaleString('de-DE')} mm · C: ${c.toLocaleString('de-DE')} mm</div>
+          <div class="history-input">Tippen → übernimmt Messung</div>
+        </div>`;
+        div.onclick=()=>{input.value=String(a+300);document.getElementById('bereich').value='metallbau';berechneMassen();popup.style.display='none';};
         liste.appendChild(div);
       }
-
-      popup.style.display = 'flex';
+      popup.style.display='flex';
     }
 
-    function berechneMassen() {
-      const rawInput = document.getElementById('istMasse').value.replace(/,/g, '.').replace(/\s/g, '');
-      const istMasse = parseFloat(rawInput);
-      const bereich = document.getElementById('bereich').value;
-      const ergebnisDiv = document.getElementById('ergebnis');
-      const mindestMasse = 300;
-
-      if (isNaN(istMasse) || istMasse < mindestMasse) {
-        alert("Bitte geben Sie eine gültige Ist-Masse ≥ 300 mm ein.");
-        ergebnisDiv.style.display = 'none';
-        return;
-      }
-
-      let masseA, masseB, masseC, multiplier;
-
-      if (bereich === 'metallbau') {
-        if (istMasse < 600) {
-          alert("Für Metallbau bitte Ist-Masse ≥ 600 mm eingeben (wegen 300 mm Reserve).");
-          ergebnisDiv.style.display = 'none';
-          return;
-        }
-        const aMax = Math.floor((istMasse - 300) / 300) * 300;
-        masseA = aMax > 6900 ? 6900 : aMax;
-        if (masseA < mindestMasse) masseA = mindestMasse;
-        multiplier = masseA / 3;
-      } else if (bereich === 'wohnungsbau') {
-        const k = Math.floor(istMasse / 3 / 50) * 50;
-        multiplier = k < mindestMasse / 3 ? mindestMasse / 3 : k;
+    function berechneMassen(){
+      const raw=document.getElementById('istMasse').value.replace(/,/g,'.').replace(/\s/g,'');
+      const ist=parseFloat(raw);
+      const bereich=document.getElementById('bereich').value;
+      const out=document.getElementById('ergebnis');
+      if(isNaN(ist)||ist<300){alert("Bitte gültige Ist-Masse ≥ 300 mm.");out.style.display='none';return;}
+      let a,b,c,k;
+      if(bereich==='metallbau'){
+        if(ist<600){alert("Metallbau: Ist-Masse ≥ 600 mm (300 mm Reserve).");out.style.display='none';return;}
+        const aMax=Math.floor((ist-300)/300)*300;
+        a=Math.min(6900,Math.max(300,aMax));
+        k=a/3;
+      } else if(bereich==='wohnungsbau'){
+        const kk=Math.floor(ist/3/50)*50; k=Math.max(100,kk);
       } else {
-        const k = Math.floor(istMasse / 3 / 10) * 10;
-        multiplier = k < mindestMasse / 3 ? mindestMasse / 3 : k;
+        const kk=Math.floor(ist/3/10)*10; k=Math.max(100,kk);
       }
+      a=k*3;b=k*4;c=k*5;
 
-      masseA = multiplier * 3;
-      masseB = multiplier * 4;
-      masseC = multiplier * 5;
+      const opt={maximumFractionDigits:0};
+      document.getElementById('masseA').textContent=a.toLocaleString('de-DE',opt)+" mm";
+      document.getElementById('masseB').textContent=b.toLocaleString('de-DE',opt)+" mm";
+      document.getElementById('masseC').textContent=c.toLocaleString('de-DE',opt)+" mm";
+      document.getElementById('multiplier').textContent=k.toLocaleString('de-DE',opt);
+      out.style.display='block';
 
-      const options0Dec = { maximumFractionDigits: 0 };
-      document.getElementById('masseA').textContent = masseA.toLocaleString('de-DE', options0Dec) + " mm";
-      document.getElementById('masseB').textContent = masseB.toLocaleString('de-DE', options0Dec) + " mm";
-      document.getElementById('masseC').textContent = masseC.toLocaleString('de-DE', options0Dec) + " mm";
-      document.getElementById('multiplier').textContent = multiplier.toLocaleString('de-DE', options0Dec);
-
-      ergebnisDiv.style.display = 'block';
-
-      const eintrag = {
-        id: Date.now(),
-        zeit: new Date().toLocaleString('de-DE'),
-        input: istMasse,
-        bereich: bereich,
-        a: masseA,
-        b: masseB,
-        c: masseC,
-        k: multiplier
-      };
-
-      berechnungsHistorie.unshift(eintrag);
-      if (berechnungsHistorie.length > 50) berechnungsHistorie.pop();
-      localStorage.setItem('sener_historie', JSON.stringify(berechnungsHistorie));
+      berechnungsHistorie.unshift({id:Date.now(),zeit:new Date().toLocaleString('de-DE'),input:ist,bereich,a,b,c,k});
+      if(berechnungsHistorie.length>50) berechnungsHistorie.pop();
+      localStorage.setItem('sener_historie',JSON.stringify(berechnungsHistorie));
     }
 
-    function zeigeWinkelHistorie() {
-      const liste = document.getElementById('winkelHistoryListe');
-      liste.innerHTML = '';
-      if (berechnungsHistorie.length === 0) {
-        liste.innerHTML = '<p class="empty-history">Keine Winkelberechnungen vorhanden.</p>';
-        return;
-      }
-
-      berechnungsHistorie.forEach(item => {
-        const bereichLabel =
-          item.bereich === 'metallbau' ? 'Metallbau (3-4-5)' :
-          item.bereich === 'wohnungsbau' ? 'Wohnungsbau (mittel)' :
-          item.bereich === 'agrar' ? 'Landbau (genau)' : 'Unbekannt';
-
-        const div = document.createElement('div');
-        div.className = 'history-item';
-        div.innerHTML = `
-          <div class="history-info">
-            <div class="raum-name">A: ${item.a.toLocaleString('de-DE', { maximumFractionDigits: 0 })} mm (3-4-5)</div>
-            <div class="history-input">Ist-Masse: ${item.input.toLocaleString('de-DE', { maximumFractionDigits: 0 })} mm (${bereichLabel})</div>
-            <div class="history-time">K: ${item.k.toLocaleString('de-DE', { maximumFractionDigits: 0 })} mm | B: ${item.b.toLocaleString('de-DE', { maximumFractionDigits: 0 })} mm | C: ${item.c.toLocaleString('de-DE', { maximumFractionDigits: 0 })} mm</div>
-          </div>
-          <button class="history-delete" onclick="event.stopPropagation(); loescheWinkelHistorie(${item.id})">🗑️</button>
-        `;
+    function zeigeWinkelHistorie(){
+      const liste=document.getElementById('winkelHistoryListe');
+      liste.innerHTML='';
+      if(berechnungsHistorie.length===0){liste.innerHTML='<p class="empty-history">Keine Winkelberechnungen vorhanden.</p>';return;}
+      berechnungsHistorie.forEach(item=>{
+        const label=item.bereich==='metallbau'?'Metallbau (3-4-5)':item.bereich==='wohnungsbau'?'Wohnungsbau (mittel)':'Landbau (genau)';
+        const div=document.createElement('div');
+        div.className='history-item';
+        div.innerHTML=`<div class="history-info">
+          <div class="raum-name">A: ${item.a.toLocaleString('de-DE',{maximumFractionDigits:0})} mm</div>
+          <div class="history-input">Ist: ${item.input.toLocaleString('de-DE',{maximumFractionDigits:0})} mm (${label})</div>
+          <div class="history-time">K: ${item.k.toLocaleString('de-DE',{maximumFractionDigits:0})} | B: ${item.b.toLocaleString('de-DE',{maximumFractionDigits:0})} | C: ${item.c.toLocaleString('de-DE',{maximumFractionDigits:0})}</div>
+        </div>
+        <button class="history-delete" onclick="event.stopPropagation();loescheWinkelHistorie(${item.id})">🗑️</button>`;
         liste.appendChild(div);
       });
     }
+    function loescheWinkelHistorie(id){berechnungsHistorie=berechnungsHistorie.filter(x=>x.id!==id);localStorage.setItem('sener_historie',JSON.stringify(berechnungsHistorie));zeigeWinkelHistorie();}
+    function oeffneWinkelHistorie(){zeigeWinkelHistorie();document.getElementById('winkelHistoriePopup').style.display='flex';}
 
-    function loescheWinkelHistorie(id) {
-      berechnungsHistorie = berechnungsHistorie.filter(item => item.id !== id);
-      localStorage.setItem('sener_historie', JSON.stringify(berechnungsHistorie));
-      zeigeWinkelHistorie();
+    function berechneDreieck(){
+      const a=parseFloat(document.getElementById('seiteA').value.replace(/,/g,'.'));
+      const b=parseFloat(document.getElementById('seiteB').value.replace(/,/g,'.'));
+      const g=parseFloat(document.getElementById('winkelGamma').value.replace(/,/g,'.'));
+      if(isNaN(a)||isNaN(b)||isNaN(g)||a<=0||b<=0||g<=0||g>=180){alert("Bitte gültige Werte für A, B und γ eingeben.");document.getElementById('ergebnisDreieck').style.display='none';return;}
+      const gr=g*Math.PI/180;
+      const c=Math.sqrt(a*a+b*b-2*a*b*Math.cos(gr));
+      const fl=0.5*a*b*Math.sin(gr)/1000000;
+      document.getElementById('seiteC').textContent=c.toFixed(2).replace('.',',')+" mm";
+      document.getElementById('flaecheDreieck').textContent=fl.toFixed(3).replace('.',',')+" m²";
+      document.getElementById('ergebnisDreieck').style.display='block';
     }
 
-    function oeffneWinkelHistorie() {
-      zeigeWinkelHistorie();
-      document.getElementById('winkelHistoriePopup').style.display = 'flex';
+    function getDurchmesserInMM(){
+      let d=parseFloat(document.getElementById('durchmesser').value.replace(/,/g,'.'));
+      const e=document.getElementById('durchmesserEinheit').value;
+      if(isNaN(d)) return 0;
+      if(e==='zoll') return d*25.4;
+      if(e==='m') return d*1000;
+      return d;
     }
 
-    /* Dreieck */
-    function berechneDreieck() {
-      const a = parseFloat(document.getElementById('seiteA').value.replace(/,/g, '.'));
-      const b = parseFloat(document.getElementById('seiteB').value.replace(/,/g, '.'));
-      const gammaGrad = parseFloat(document.getElementById('winkelGamma').value.replace(/,/g, '.'));
-
-      if (isNaN(a) || isNaN(b) || isNaN(gammaGrad) || a <= 0 || b <= 0 || gammaGrad <= 0 || gammaGrad >= 180) {
-        alert("Bitte gültige Werte für A, B und γ (0° < γ < 180°) eingeben.");
-        document.getElementById('ergebnisDreieck').style.display = 'none';
-        return;
-      }
-
-      const gammaRad = gammaGrad * Math.PI / 180;
-      const c = Math.sqrt(a*a + b*b - 2*a*b*Math.cos(gammaRad));
-      const flaecheMM2 = 0.5 * a * b * Math.sin(gammaRad);
-      const flaecheM2 = flaecheMM2 / 1000000;
-
-      document.getElementById('seiteC').textContent = c.toFixed(2).replace('.', ',') + " mm";
-      document.getElementById('flaecheDreieck').textContent = flaecheM2.toFixed(3).replace('.', ',') + " m²";
-      document.getElementById('ergebnisDreieck').style.display = 'block';
-    }
-
-    /* Kreis */
-    function getDurchmesserInMM() {
-      let d = parseFloat(document.getElementById('durchmesser').value.replace(/,/g, '.'));
-      const einheit = document.getElementById('durchmesserEinheit').value;
-      let d_mm = isNaN(d) ? 0 : d;
-      if (einheit === 'zoll') d_mm = d * 25.4;
-      else if (einheit === 'm') d_mm = d * 1000;
-      return d_mm;
-    }
-
-    function updateNormAndCalculate() {
-      const d_mm = getDurchmesserInMM();
-      const rohrNormSelect = document.getElementById('rohrNorm');
-      const normAnzeige = document.getElementById('normAnzeige');
-
-      let naechsteNorm = null;
-      let minAbstand = Infinity;
-
-      if (d_mm > 0) {
-        for (const norm of normen) {
-          const abstand = Math.abs(d_mm - norm.iso);
-          if (abstand < minAbstand) { minAbstand = abstand; naechsteNorm = norm; }
+    function updateNormAndCalculate(){
+      const d_mm=getDurchmesserInMM();
+      const sel=document.getElementById('rohrNorm');
+      const out=document.getElementById('normAnzeige');
+      let best=null,dist=Infinity;
+      if(d_mm>0){
+        for(const n of normen){
+          const a=Math.abs(d_mm-n.iso);
+          if(a<dist){dist=a;best=n;}
         }
       }
-
-      if (naechsteNorm && d_mm > 0) {
-        rohrNormSelect.value = naechsteNorm.nw;
-        normAnzeige.innerHTML = `
-          <strong>Nächste Norm:</strong> NW ${naechsteNorm.nw} (${naechsteNorm.zoll})<br>
-          <strong>ISO (Außen-Ø):</strong> ${naechsteNorm.iso.toFixed(2).replace('.', ',')} mm<br>
-          <strong>ANSI (Außen-Ø):</strong> ${naechsteNorm.ansi.toFixed(2).replace('.', ',')} mm
-        `;
+      if(best&&d_mm>0){
+        sel.value=best.nw;
+        out.innerHTML=`<strong>Nächste Norm:</strong> NW ${best.nw} (${best.zoll})<br><strong>ISO:</strong> ${best.iso.toFixed(2).replace('.',',')} mm<br><strong>ANSI:</strong> ${best.ansi.toFixed(2).replace('.',',')} mm`;
       } else {
-        rohrNormSelect.value = "";
-        normAnzeige.innerHTML = "Keine gängige Norm erkannt.";
+        sel.value=""; out.innerHTML="Keine gängige Norm erkannt.";
       }
-
       berechneKreis(d_mm);
     }
 
-    function updateDurchmesserFromNorm() {
-      const rohrNorm = document.getElementById('rohrNorm').value;
-      const durchmesserInput = document.getElementById('durchmesser');
-      const durchmesserEinheit = document.getElementById('durchmesserEinheit');
-      const normAnzeige = document.getElementById('normAnzeige');
-
-      if (rohrNorm === "") {
-        durchmesserInput.value = "";
-        normAnzeige.innerHTML = "Keine Norm ausgewählt.";
-        berechneKreis(0);
-        return;
-      }
-
-      const norm = normen.find(n => n.nw === rohrNorm);
-      if (norm) {
-        durchmesserInput.value = norm.iso.toFixed(2).replace('.', ',');
-        durchmesserEinheit.value = 'mm';
-        normAnzeige.innerHTML = `
-          <strong>Ausgewählte Norm:</strong> NW ${norm.nw} (${norm.zoll})<br>
-          <strong>ISO (Außen-Ø):</strong> ${norm.iso.toFixed(2).replace('.', ',')} mm<br>
-          <strong>ANSI (Außen-Ø):</strong> ${norm.ansi.toFixed(2).replace('.', ',')} mm
-        `;
-        berechneKreis(norm.iso);
-      }
+    function updateDurchmesserFromNorm(){
+      const v=document.getElementById('rohrNorm').value;
+      const d=document.getElementById('durchmesser');
+      const e=document.getElementById('durchmesserEinheit');
+      const out=document.getElementById('normAnzeige');
+      if(!v){d.value="";out.innerHTML="Keine Norm ausgewählt.";berechneKreis(0);return;}
+      const n=normen.find(x=>x.nw===v);
+      if(!n) return;
+      d.value=n.iso.toFixed(2).replace('.',',');
+      e.value='mm';
+      out.innerHTML=`<strong>Ausgewählte Norm:</strong> NW ${n.nw} (${n.zoll})<br><strong>ISO:</strong> ${n.iso.toFixed(2).replace('.',',')} mm<br><strong>ANSI:</strong> ${n.ansi.toFixed(2).replace('.',',')} mm`;
+      berechneKreis(n.iso);
     }
 
-    function berechneKreis(durchmesser_mm_override) {
-      let d_mm = (durchmesser_mm_override !== undefined) ? durchmesser_mm_override : getDurchmesserInMM();
-
-      if (isNaN(d_mm) || d_mm <= 0) {
-        document.getElementById('ergebnisKreis').style.display = 'none';
-        document.getElementById('umfangKreis').textContent = "-";
-        document.getElementById('flaecheKreis').textContent = "-";
-        return;
-      }
-
-      const dm = d_mm / 1000;
-      const umfang = Math.PI * dm;
-      const flaeche = Math.PI * (dm / 2) ** 2;
-
-      document.getElementById('umfangKreis').textContent = umfang.toLocaleString('de-DE', { minimumFractionDigits: 3, maximumFractionDigits: 3 }) + " m";
-      document.getElementById('flaecheKreis').textContent = flaeche.toLocaleString('de-DE', { minimumFractionDigits: 3, maximumFractionDigits: 3 }) + " m²";
-      document.getElementById('ergebnisKreis').style.display = 'block';
+    function berechneKreis(override){
+      const d_mm=(override!==undefined)?override:getDurchmesserInMM();
+      if(!d_mm||d_mm<=0){document.getElementById('ergebnisKreis').style.display='none';return;}
+      const dm=d_mm/1000;
+      const umfang=Math.PI*dm;
+      const fl=Math.PI*(dm/2)**2;
+      document.getElementById('umfangKreis').textContent=umfang.toLocaleString('de-DE',{minimumFractionDigits:3,maximumFractionDigits:3})+" m";
+      document.getElementById('flaecheKreis').textContent=fl.toLocaleString('de-DE',{minimumFractionDigits:3,maximumFractionDigits:3})+" m²";
+      document.getElementById('ergebnisKreis').style.display='block';
     }
 
-    /* Fläche */
-    function getUeberschrift() {
-      const sel = document.getElementById("ueberschriftSelect").value;
-      if (sel === "Sonstige") return document.getElementById("ueberschriftCustom").value.trim() || "Unbenannt";
+    function getUeberschrift(){
+      const sel=document.getElementById("ueberschriftSelect").value;
+      if(sel==="Sonstige") return document.getElementById("ueberschriftCustom").value.trim()||"Unbenannt";
       return sel;
     }
-
-    function getAufmassDaten() {
-      return {
-        titel: getUeberschrift(),
-        strasse: document.getElementById("adresseStrasse").value.trim(),
-        plz: document.getElementById("adressePLZ").value.trim(),
-        ort: document.getElementById("adresseOrt").value.trim(),
-        beschreibung: document.getElementById("beschreibung").value.trim()
+    function getAufmassDaten(){
+      return{
+        titel:getUeberschrift(),
+        strasse:document.getElementById("adresseStrasse").value.trim(),
+        plz:document.getElementById("adressePLZ").value.trim(),
+        ort:document.getElementById("adresseOrt").value.trim(),
+        beschreibung:document.getElementById("beschreibung").value.trim()
       };
     }
+    function einheitInMeter(w,e){if(isNaN(w))return 0; if(e==='mm')return w/1000; if(e==='cm')return w/100; return w;}
 
-    function einheitInMeter(wert, einheit) {
-      if (isNaN(wert)) return 0;
-      if (einheit === 'mm') return wert / 1000;
-      if (einheit === 'cm') return wert / 100;
-      return wert; // m
+    function berechneFlaeche(){
+      const name=document.getElementById('raumName').value.trim();
+      const L=parseFloat(document.getElementById('laenge').value.replace(/,/g,'.'));
+      const B=parseFloat(document.getElementById('breite').value.replace(/,/g,'.'));
+      const Le=document.getElementById('laengeEinheit').value;
+      const Be=document.getElementById('breiteEinheit').value;
+      if(!name||isNaN(L)||isNaN(B)||L<=0||B<=0){alert("Bitte Raumnamen sowie gültige Länge und Breite eingeben.");return;}
+      const fl=einheitInMeter(L,Le)*einheitInMeter(B,Be);
+      raeume.unshift({id:Date.now(),name,laenge:L,breite:B,laengeE:Le,breiteE:Be,flaeche:fl});
+      zeigeRaumListe();berechneGesamtFlaeche();
+      document.getElementById('raumName').value='';document.getElementById('laenge').value='';document.getElementById('breite').value='';
     }
 
-    function berechneFlaeche() {
-      const raumName = document.getElementById('raumName').value.trim();
-      const laengeInput = parseFloat(document.getElementById('laenge').value.replace(/,/g, '.'));
-      const breiteInput = parseFloat(document.getElementById('breite').value.replace(/,/g, '.'));
-      const laengeEinheit = document.getElementById('laengeEinheit').value;
-      const breiteEinheit = document.getElementById('breiteEinheit').value;
-
-      if (!raumName || isNaN(laengeInput) || isNaN(breiteInput) || laengeInput <= 0 || breiteInput <= 0) {
-        alert("Bitte Raumnamen sowie gültige Länge und Breite eingeben.");
-        return;
-      }
-
-      const laengeM = einheitInMeter(laengeInput, laengeEinheit);
-      const breiteM = einheitInMeter(breiteInput, breiteEinheit);
-      const flaeche = laengeM * breiteM;
-
-      raeume.unshift({
-        id: Date.now(),
-        name: raumName,
-        laenge: laengeInput,
-        breite: breiteInput,
-        laengeE: laengeEinheit,
-        breiteE: breiteEinheit,
-        flaeche: flaeche
-      });
-
-      zeigeRaumListe();
-      berechneGesamtFlaeche();
-
-      document.getElementById('raumName').value = '';
-      document.getElementById('laenge').value = '';
-      document.getElementById('breite').value = '';
-    }
-
-    function loescheRaum(id) {
-      raeume = raeume.filter(raum => raum.id !== id);
-      zeigeRaumListe();
-      berechneGesamtFlaeche();
-    }
-
-    function zeigeRaumListe() {
-      const raumListeDiv = document.getElementById('raumListe');
-      raumListeDiv.innerHTML = '';
-
-      if (raeume.length === 0) {
-        raumListeDiv.innerHTML = '<p class="empty-history">Noch keine Räume erfasst.</p>';
-        document.getElementById('gesamtFlaecheDiv').style.display = 'none';
-        return;
-      }
-
-      raeume.forEach(raum => {
-        const div = document.createElement('div');
-        div.className = 'raum-item';
-        div.innerHTML = `
-          <div style="flex:1;">
-            <div class="raum-name">${raum.name}</div>
-            <div class="history-input">${raum.laenge.toFixed(2).replace('.', ',')} ${raum.laengeE} × ${raum.breite.toFixed(2).replace('.', ',')} ${raum.breiteE}</div>
+    function loescheRaum(id){raeume=raeume.filter(r=>r.id!==id);zeigeRaumListe();berechneGesamtFlaeche();}
+    function zeigeRaumListe(){
+      const div=document.getElementById('raumListe'); div.innerHTML='';
+      if(raeume.length===0){div.innerHTML='<p class="empty-history">Noch keine Räume erfasst.</p>';document.getElementById('gesamtFlaecheDiv').style.display='none';return;}
+      raeume.forEach(r=>{
+        const el=document.createElement('div'); el.className='raum-item';
+        el.innerHTML=`<div style="flex-grow:1;">
+            <div class="raum-name">${r.name}</div>
+            <div class="history-input">${r.laenge.toFixed(2).replace('.',',')} ${r.laengeE} × ${r.breite.toFixed(2).replace('.',',')} ${r.breiteE}</div>
           </div>
-          <div class="raum-flaeche">${formatFlaeche(raum.flaeche)}</div>
-          <button class="raum-delete" onclick="loescheRaum(${raum.id})">🗑️</button>
-        `;
-        raumListeDiv.appendChild(div);
+          <div class="raum-flaeche">${formatFlaeche(r.flaeche)}</div>
+          <div class="raum-actions"><button class="raum-delete" onclick="loescheRaum(${r.id})">🗑️</button></div>`;
+        div.appendChild(el);
       });
     }
 
-    function berechneGesamtFlaeche() {
-      const gesamtFlaeche = raeume.reduce((sum, raum) => sum + raum.flaeche, 0);
-      document.getElementById('totalFlaeche').textContent = formatFlaeche(gesamtFlaeche);
-      document.getElementById('gesamtFlaecheDiv').style.display = raeume.length > 0 ? 'flex' : 'none';
-      return gesamtFlaeche;
+    function berechneGesamtFlaeche(){
+      const sum=raeume.reduce((s,r)=>s+r.flaeche,0);
+      document.getElementById('totalFlaeche').textContent=formatFlaeche(sum);
+      document.getElementById('gesamtFlaecheDiv').style.display=raeume.length?'flex':'none';
+      return sum;
     }
 
-    function speichereBerechnung() {
-      if (raeume.length === 0) { alert("Es gibt keine Räume zum Speichern!"); return; }
-
-      const daten = getAufmassDaten();
-      const gesamtFlaeche = berechneGesamtFlaeche();
-
-      const berechnung = {
-        id: Date.now(),
-        zeit: new Date().toLocaleString('de-DE'),
-        daten: daten,
-        raeume: raeume.slice(),
-        gesamt: gesamtFlaeche
-      };
-
-      berechnungHistorie.unshift(berechnung);
-      if (berechnungHistorie.length > 50) berechnungHistorie.pop();
-      localStorage.setItem('sener_berechnung_historie', JSON.stringify(berechnungHistorie));
-
+    function speichereBerechnung(){
+      if(!raeume.length){alert("Es gibt keine Räume zum Speichern!");return;}
+      const daten=getAufmassDaten();
+      const gesamt=berechneGesamtFlaeche();
+      berechnungHistorie.unshift({id:Date.now(),zeit:new Date().toLocaleString('de-DE'),daten,raeume:raeume.slice(),gesamt});
+      if(berechnungHistorie.length>50) berechnungHistorie.pop();
+      localStorage.setItem('sener_berechnung_historie',JSON.stringify(berechnungHistorie));
       alert(`Berechnung "${daten.titel}" gespeichert!`);
     }
 
-    function zeigeFlaecheHistorie() {
-      const liste = document.getElementById('flaecheHistoryListe');
-      liste.innerHTML = '';
-
-      if (berechnungHistorie.length === 0) {
-        liste.innerHTML = '<p class="empty-history">Keine gespeicherten Flächenberechnungen vorhanden.</p>';
-        return;
-      }
-
-      berechnungHistorie.forEach(item => {
-        const d = item.daten;
-        const div = document.createElement('div');
-        div.className = 'history-item';
-        div.innerHTML = `
-          <div class="history-info" onclick="ladeBerechnung(${item.id})" style="cursor:pointer;">
+    function zeigeFlaecheHistorie(){
+      const liste=document.getElementById('flaecheHistoryListe'); liste.innerHTML='';
+      if(!berechnungHistorie.length){liste.innerHTML='<p class="empty-history">Keine gespeicherten Flächenberechnungen vorhanden.</p>';return;}
+      berechnungHistorie.forEach(item=>{
+        const d=item.daten;
+        const el=document.createElement('div'); el.className='history-item';
+        el.innerHTML=`<div class="history-info" onclick="ladeBerechnung(${item.id})" style="cursor:pointer;">
             <div class="raum-name">${d.titel}</div>
             <div class="raum-flaeche">${formatFlaeche(item.gesamt)}</div>
             <div class="history-time">${item.zeit} (${item.raeume.length} Räume)</div>
             <div class="history-input">${d.strasse ? d.strasse + ', ' : ''}${(d.plz || d.ort) ? (d.plz + ' ' + d.ort) : ''}</div>
           </div>
-          <button class="history-delete" onclick="event.stopPropagation(); loescheBerechnungHistorie(${item.id})">🗑️</button>
-        `;
-        liste.appendChild(div);
+          <button class="history-delete" onclick="event.stopPropagation();loescheBerechnungHistorie(${item.id})">🗑️</button>`;
+        liste.appendChild(el);
       });
     }
-
-    function loescheBerechnungHistorie(id) {
-      berechnungHistorie = berechnungHistorie.filter(item => item.id !== id);
-      localStorage.setItem('sener_berechnung_historie', JSON.stringify(berechnungHistorie));
-      zeigeFlaecheHistorie();
-    }
-
-    function ladeBerechnung(id) {
-      const berechnung = berechnungHistorie.find(item => item.id === id);
-      if (!berechnung) return;
-
-      const d = berechnung.daten;
-      const sel = document.getElementById("ueberschriftSelect");
-      const custom = document.getElementById("ueberschriftCustom");
-
-      if (["Wohnung","Lager","Halle","Büro","Agrar","Außenfläche"].includes(d.titel)) {
-        sel.value = d.titel;
-        custom.value = "";
-      } else {
-        sel.value = "Sonstige";
-        custom.value = d.titel;
-      }
-
-      document.getElementById("adresseStrasse").value = d.strasse;
-      document.getElementById("adressePLZ").value = d.plz;
-      document.getElementById("adresseOrt").value = d.ort;
-      document.getElementById("beschreibung").value = d.beschreibung;
-
-      raeume = berechnung.raeume.slice();
-      zeigeRaumListe();
-      berechneGesamtFlaeche();
-
-      document.getElementById('flaecheHistoriePopup').style.display = 'none';
-      document.getElementById('versandMenu').style.display = 'none';
+    function loescheBerechnungHistorie(id){berechnungHistorie=berechnungHistorie.filter(x=>x.id!==id);localStorage.setItem('sener_berechnung_historie',JSON.stringify(berechnungHistorie));zeigeFlaecheHistorie();}
+    function ladeBerechnung(id){
+      const b=berechnungHistorie.find(x=>x.id===id); if(!b) return;
+      const d=b.daten;
+      const sel=document.getElementById("ueberschriftSelect");
+      const cust=document.getElementById("ueberschriftCustom");
+      if(["Wohnung","Lager","Halle","Büro","Agrar","Außenfläche"].includes(d.titel)){sel.value=d.titel;cust.value="";} else {sel.value="Sonstige";cust.value=d.titel;}
+      document.getElementById("adresseStrasse").value=d.strasse;
+      document.getElementById("adressePLZ").value=d.plz;
+      document.getElementById("adresseOrt").value=d.ort;
+      document.getElementById("beschreibung").value=d.beschreibung;
+      raeume=b.raeume.slice(); zeigeRaumListe(); berechneGesamtFlaeche();
+      document.getElementById('flaecheHistoriePopup').style.display='none';
+      document.getElementById('versandMenu').style.display='none';
       alert(`Berechnung "${d.titel}" geladen!`);
     }
+    function oeffneFlaecheHistorie(){zeigeFlaecheHistorie();document.getElementById('flaecheHistoriePopup').style.display='flex';}
 
-    function oeffneFlaecheHistorie() {
-      zeigeFlaecheHistorie();
-      document.getElementById('flaecheHistoriePopup').style.display = 'flex';
+    function toggleVersandMenu(e){
+      e&&e.stopPropagation&&e.stopPropagation();
+      const m=document.getElementById('versandMenu');
+      const hidden=m.style.display==='none'||m.style.display==='';
+      m.style.display=hidden?'grid':'none';
     }
 
-    /* Versand */
-    function toggleVersandMenu(event) {
-      if (event && event.stopPropagation) event.stopPropagation();
-      const menu = document.getElementById('versandMenu');
-      const isHidden = menu.style.display === 'none' || menu.style.display === '';
-      menu.style.display = isHidden ? 'grid' : 'none';
+    function generiereShareText(raumArray,datenOverride){
+      const rr=raumArray||raeume;
+      const d=datenOverride||getAufmassDaten();
+      const ges=rr.reduce((s,r)=>s+r.flaeche,0);
+      let t=`Flächenberechnung: ${d.titel}\n`;
+      if(d.strasse) t+=`Adresse: ${d.strasse}\n`;
+      if(d.plz||d.ort) t+=`${d.plz} ${d.ort}\n`;
+      if(d.beschreibung) t+=`Beschreibung: ${d.beschreibung}\n`;
+      t+=`\nGesamtfläche: ${formatFlaeche(ges)}\n\n`;
+      rr.forEach(r=>{t+=`• ${r.name}: ${formatFlaeche(r.flaeche)} (${r.laenge.toFixed(2).replace('.',',')} ${r.laengeE} × ${r.breite.toFixed(2).replace('.',',')} ${r.breiteE})\n`;});
+      return t;
     }
 
-    function generiereShareText(raumArray, datenOverride) {
-      const aktuelleRaeume = raumArray || raeume;
-      const d = datenOverride || getAufmassDaten();
-      const gesamt = aktuelleRaeume.reduce((s, r) => s + r.flaeche, 0);
-
-      let text = `Flächenberechnung: ${d.titel}\n`;
-      if (d.strasse) text += `Adresse: ${d.strasse}\n`;
-      if (d.plz || d.ort) text += `${d.plz} ${d.ort}\n`;
-      if (d.beschreibung) text += `Beschreibung: ${d.beschreibung}\n`;
-      text += `\nGesamtfläche: ${formatFlaeche(gesamt)}\n\n`;
-
-      aktuelleRaeume.forEach(raum => {
-        text += `• ${raum.name}: ${formatFlaeche(raum.flaeche)} (${raum.laenge.toFixed(2).replace('.', ',')} ${raum.laengeE} × ${raum.breite.toFixed(2).replace('.', ',')} ${raum.breiteE})\n`;
-      });
-
-      return text;
+    function druckeErgebnisse(){if(!raeume.length){alert("Keine Räume zum Drucken vorhanden.");return;}window.print();}
+    function versendePerWhatsApp(){if(!raeume.length){alert("Keine Räume zum Versenden vorhanden.");return;}window.open(`https://wa.me/?text=${encodeURIComponent(generiereShareText())}`,'_blank');}
+    function versendeErgebnisse(){
+      if(!raeume.length){alert("Keine Räume zum Versenden vorhanden.");return;}
+      const d=getAufmassDaten();
+      const subject=`Ergebnisse der Flächenberechnung: ${d.titel}`;
+      window.location.href=`mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(generiereShareText())}`;
     }
 
-    function druckeErgebnisse() {
-      if (raeume.length === 0) { alert("Keine Räume zum Drucken vorhanden."); return; }
-      window.print();
-    }
-
-    function versendePerWhatsApp() {
-      if (raeume.length === 0) { alert("Keine Räume zum Versenden vorhanden."); return; }
-      const shareText = generiereShareText();
-      window.open(`https://wa.me/?text=${encodeURIComponent(shareText)}`, '_blank');
-    }
-
-    function versendeErgebnisse() {
-      if (raeume.length === 0) { alert("Keine Räume zum Versenden vorhanden."); return; }
-      const shareText = generiereShareText();
-      const d = getAufmassDaten();
-      const subject = `Ergebnisse der Flächenberechnung: ${d.titel}`;
-      window.location.href = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(shareText)}`;
-    }
-
-    function erstelleUndOeffnePDF() {
-      if (raeume.length === 0) { alert("Keine Räume zum Erstellen einer PDF vorhanden."); return; }
-      if (!window.jspdf || !window.jspdf.jsPDF) {
-        alert("Die jsPDF Bibliothek konnte nicht geladen werden. Bitte Internetverbindung prüfen.");
-        return;
-      }
-
-      const { jsPDF } = window.jspdf;
-      const doc = new jsPDF();
-      const d = getAufmassDaten();
-      const gesamtFlaeche = berechneGesamtFlaeche();
-      let y = 10;
-      const lineHeight = 7;
-
-      doc.setFontSize(16);
-      doc.text(`Flächenberechnung: ${d.titel}`, 10, y); y += lineHeight;
-
+    function erstelleUndOeffnePDF(){
+      if(!raeume.length){alert("Keine Räume zum Erstellen einer PDF vorhanden.");return;}
+      if(!window.jspdf||!window.jspdf.jsPDF){alert("jsPDF konnte nicht geladen werden (Internet prüfen).");return;}
+      const {jsPDF}=window.jspdf;
+      const doc=new jsPDF();
+      const d=getAufmassDaten();
+      const ges=berechneGesamtFlaeche();
+      let y=10,lh=7;
+      doc.setFontSize(16); doc.text(`Flächenberechnung: ${d.titel}`,10,y); y+=lh;
       doc.setFontSize(11);
-      if (d.strasse) { doc.text(`Adresse: ${d.strasse}`, 10, y); y += lineHeight; }
-      if (d.plz || d.ort) { doc.text(`${d.plz} ${d.ort}`, 10, y); y += lineHeight; }
-      if (d.beschreibung) { doc.text(`Beschreibung: ${d.beschreibung}`, 10, y); y += lineHeight; }
-
-      y += lineHeight;
-      doc.setFontSize(12);
-      doc.text(`Gesamtfläche: ${formatFlaeche(gesamtFlaeche)}`, 10, y);
-      y += lineHeight * 2;
-
+      if(d.strasse){doc.text(`Adresse: ${d.strasse}`,10,y); y+=lh;}
+      if(d.plz||d.ort){doc.text(`${d.plz} ${d.ort}`,10,y); y+=lh;}
+      if(d.beschreibung){doc.text(`Beschreibung: ${d.beschreibung}`,10,y); y+=lh;}
+      y+=lh; doc.setFontSize(12); doc.text(`Gesamtfläche: ${formatFlaeche(ges)}`,10,y); y+=lh*2;
       doc.setFontSize(10);
-      raeume.forEach(raum => {
-        if (y > 280) { doc.addPage(); y = 10; }
-        doc.text(`Raum: ${raum.name}`, 10, y); y += lineHeight;
-        doc.text(`Fläche: ${formatFlaeche(raum.flaeche)}`, 15, y); y += lineHeight;
-        doc.text(`Maße: ${raum.laenge.toFixed(2).replace('.', ',')} ${raum.laengeE} x ${raum.breite.toFixed(2).replace('.', ',')} ${raum.breiteE}`, 15, y);
-        y += lineHeight * 1.2;
+      raeume.forEach(r=>{
+        if(y>280){doc.addPage(); y=10;}
+        doc.text(`Raum: ${r.name}`,10,y); y+=lh;
+        doc.text(`Fläche: ${formatFlaeche(r.flaeche)}`,15,y); y+=lh;
+        doc.text(`Maße: ${r.laenge.toFixed(2).replace('.',',')} ${r.laengeE} x ${r.breite.toFixed(2).replace('.',',')} ${r.breiteE}`,15,y);
+        y+=lh*1.2;
       });
-
-      const dateiname = (d.titel || 'Flaechenberechnung').replace(/[^a-z0-9]/gi, '_');
-      doc.save(`${dateiname}.pdf`);
+      const name=(d.titel||'Flaechenberechnung').replace(/[^a-z0-9]/gi,'_');
+      doc.save(`${name}.pdf`);
     }
 
-    /* Optionen */
-    function oeffneOptionenPopup() {
-      const titel = getUeberschrift();
-      const sel = document.getElementById("popupUeberschrift");
-      const custom = document.getElementById("popupUeberschriftCustom");
-
-      if (["Wohnung","Lager","Halle","Büro","Agrar","Außenfläche"].includes(titel)) {
-        sel.value = titel;
-        custom.style.display = "none";
-        custom.value = "";
+    function oeffneOptionenPopup(){
+      const titel=getUeberschrift();
+      const sel=document.getElementById("popupUeberschrift");
+      const custom=document.getElementById("popupUeberschriftCustom");
+      if(["Wohnung","Lager","Halle","Büro","Agrar","Außenfläche"].includes(titel)){sel.value=titel;custom.style.display="none";custom.value="";} else {sel.value="Sonstige";custom.style.display="block";custom.value=titel;}
+      document.getElementById("popupStrasse").value=document.getElementById("adresseStrasse").value;
+      document.getElementById("popupPLZ").value=document.getElementById("adressePLZ").value;
+      document.getElementById("popupOrt").value=document.getElementById("adresseOrt").value;
+      document.getElementById("popupBeschreibung").value=document.getElementById("beschreibung").value;
+      document.getElementById("optionenPopup").style.display="flex";
+    }
+    function schliesseOptionenPopup(){document.getElementById("optionenPopup").style.display="none";}
+    function togglePopupCustom(){document.getElementById("popupUeberschriftCustom").style.display=(document.getElementById("popupUeberschrift").value==="Sonstige"?"block":"none");}
+    function speichereOptionen(){
+      let titel=document.getElementById("popupUeberschrift").value;
+      if(titel==="Sonstige"){
+        titel=document.getElementById("popupUeberschriftCustom").value.trim()||"Unbenannt";
+        document.getElementById("ueberschriftSelect").value="Sonstige";
+        document.getElementById("ueberschriftCustom").value=titel;
       } else {
-        sel.value = "Sonstige";
-        custom.style.display = "block";
-        custom.value = titel;
+        document.getElementById("ueberschriftSelect").value=titel;
+        document.getElementById("ueberschriftCustom").value="";
       }
-
-      document.getElementById("popupStrasse").value = document.getElementById("adresseStrasse").value;
-      document.getElementById("popupPLZ").value = document.getElementById("adressePLZ").value;
-      document.getElementById("popupOrt").value = document.getElementById("adresseOrt").value;
-      document.getElementById("popupBeschreibung").value = document.getElementById("beschreibung").value;
-
-      document.getElementById("optionenPopup").style.display = "flex";
-    }
-
-    function schliesseOptionenPopup() {
-      document.getElementById("optionenPopup").style.display = "none";
-    }
-
-    function togglePopupCustom() {
-      const sel = document.getElementById("popupUeberschrift").value;
-      document.getElementById("popupUeberschriftCustom").style.display = (sel === "Sonstige" ? "block" : "none");
-    }
-
-    function speichereOptionen() {
-      let titel = document.getElementById("popupUeberschrift").value;
-
-      if (titel === "Sonstige") {
-        titel = document.getElementById("popupUeberschriftCustom").value.trim() || "Unbenannt";
-        document.getElementById("ueberschriftSelect").value = "Sonstige";
-        document.getElementById("ueberschriftCustom").value = titel;
-      } else {
-        document.getElementById("ueberschriftSelect").value = titel;
-        document.getElementById("ueberschriftCustom").value = "";
-      }
-
-      document.getElementById("adresseStrasse").value = document.getElementById("popupStrasse").value;
-      document.getElementById("adressePLZ").value = document.getElementById("popupPLZ").value;
-      document.getElementById("adresseOrt").value = document.getElementById("popupOrt").value;
-      document.getElementById("beschreibung").value = document.getElementById("popupBeschreibung").value;
-
+      document.getElementById("adresseStrasse").value=document.getElementById("popupStrasse").value;
+      document.getElementById("adressePLZ").value=document.getElementById("popupPLZ").value;
+      document.getElementById("adresseOrt").value=document.getElementById("popupOrt").value;
+      document.getElementById("beschreibung").value=document.getElementById("popupBeschreibung").value;
       schliesseOptionenPopup();
     }
 
-    /* Init + Service Worker */
-    document.addEventListener('DOMContentLoaded', () => {
-      zeigeTab('winkel', null);
+    document.addEventListener('DOMContentLoaded',()=>{
+      zeigeTab('winkel',null);
       zeigeRaumListe();
       berechneGesamtFlaeche();
-
-      const istMasseInput = document.getElementById('istMasse');
-      if (istMasseInput) {
-        istMasseInput.addEventListener('keypress', (event) => {
-          if (event.key === 'Enter') berechneMassen();
-        });
-      }
-
+      const menu=document.getElementById('versandMenu'); if(menu) menu.style.display='none';
+      const inp=document.getElementById('istMasse'); if(inp) inp.addEventListener('keypress',e=>{if(e.key==='Enter') berechneMassen();});
       initDraggableTabs();
     });
 
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./sw.js')
-          .catch(error => console.log('SW Registrierung fehlgeschlagen:', error));
+    if('serviceWorker' in navigator){
+      window.addEventListener('load',()=>{
+        navigator.serviceWorker.register('./sw.js', { scope: './' })
+          .catch(err=>console.log('SW Registrierung fehlgeschlagen:',err));
       });
     }
   </script>
