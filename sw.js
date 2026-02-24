@@ -9,11 +9,7 @@ const CORE_ASSETS = [
   "./index.html",
   "./manifest.json",
   "./sw.js",
-
-  // Seiten (optional – wenn Datei existiert)
   "./privacy.html",
-
-  // Icons / Logos
   "./logo.png",
   "./icon-192.png",
   "./icon-512.png",
@@ -31,8 +27,6 @@ async function safeAddAll(cache, urls) {
       await cache.put(url, res);
     })
   );
-
-  // optional: logging
   results.forEach((r, i) => {
     if (r.status === "rejected") {
       console.log("[SW] Skip cache:", urls[i], r.reason?.message || r.reason);
@@ -44,7 +38,6 @@ self.addEventListener("install", (event) => {
   event.waitUntil((async () => {
     const cache = await caches.open(CACHE_NAME);
     await safeAddAll(cache, CORE_ASSETS);
-    // nicht automatisch skipWaiting erzwingen – Update kontrollierter über message
   })());
 });
 
@@ -65,13 +58,12 @@ self.addEventListener("message", (event) => {
 
 self.addEventListener("fetch", (event) => {
   const req = event.request;
-
   // nur GET & same-origin
   if (req.method !== "GET") return;
   const url = new URL(req.url);
   if (url.origin !== self.location.origin) return;
 
-  // HTML Navigation: Network-first (aktuelle Version), fallback cache
+  // HTML Navigation: Network-first, fallback cache
   if (req.mode === "navigate") {
     event.respondWith((async () => {
       try {
@@ -91,7 +83,6 @@ self.addEventListener("fetch", (event) => {
   event.respondWith((async () => {
     const cached = await caches.match(req);
     if (cached) return cached;
-
     try {
       const res = await fetch(req);
       if (res && res.status === 200) {
