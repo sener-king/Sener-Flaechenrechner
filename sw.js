@@ -1,72 +1,106 @@
-const CACHE_NAME = "sener-flaechenrechner-v4";
-const BASE = "/Sener-Flaechenrechner/";
+/* Sener Flächenrechner - Service Worker (v5) */
 
-const urlsToCache = [
-  BASE,
-  BASE + "index.html",
-  BASE + "manifest.json",
-  BASE + "sw.js",
-  BASE + "Datenschutz.html",
+const CACHE_VERSION = "v5";
+const CACHE_NAME = `sener-flaechenrechner-${CACHE_VERSION}`;
 
-  // Logos / Icons (wichtig!)
-  BASE + "logo.png",
-  BASE + "Symbol-192.png",
-  BASE + "Symbol-512.png",
-  BASE + "Apple-Touch-Symbol.png",
-  BASE + "icon-192-maskable.png",
-  BASE + "icon-512-maskable.png"
+// Wichtig: KEIN harter BASE-Pfad (funktioniert in / und in /repo/ auf GitHub Pages)
+const CORE_ASSETS = [
+  "./",
+  "./index.html",
+  "./manifest.json",
+  "./sw.js",
+
+  // Seiten (optional – wenn Datei existiert)
+  "./privacy.html",
+
+  // Icons / Logos
+  "./logo.png",
+  "./icon-192.png",
+  "./icon-512.png",
+  "./icon-192-maskable.png",
+  "./icon-512-maskable.png",
+  "./apple-touch-icon.png"
 ];
 
-self.addEventListener("install", (event) => {
-  event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => cache.addAll(urlsToCache))
+// Hilfsfunktion: beim Caching fehlende Dateien nicht die Installation killen
+async function safeAddAll(cache, urls) {
+  const results = await Promise.allSettled(
+    urls.map(async (url) => {
+      const res = await fetch(url, { cache: "no-cache" });
+      if (!res.ok) throw new Error(`Fetch failed ${res.status} for ${url}`);
+      await cache.put(url, res);
+    })
   );
-  self.skipWaiting();
+
+  // optional: logging
+  results.forEach((r, i) => {
+    if (r.status === "rejected") {
+      console.log("[SW] Skip cache:", urls[i], r.reason?.message || r.reason);
+    }
+  });
+}
+
+self.addEventListener("install", (event) => {
+  event.waitUntil((async () => {
+    const cache = await caches.open(CACHE_NAME);
+    await safeAddAll(cache, CORE_ASSETS);
+    // nicht automatisch skipWaiting erzwingen – Update kontrollierter über message
+  })());
 });
 
 self.addEventListener("activate", (event) => {
-  event.waitUntil(
-    caches.keys().then((keys) =>
-      Promise.all(keys.map((key) => (key !== CACHE_NAME ? caches.delete(key) : null)))
-    )
-  );
-  self.clients.claim();
+  event.waitUntil((async () => {
+    const keys = await caches.keys();
+    await Promise.all(keys.map((k) => (k !== CACHE_NAME ? caches.delete(k) : null)));
+    await self.clients.claim();
+  })());
+});
+
+// Message: erlaubt deinem index.html "SKIP_WAITING" zu senden
+self.addEventListener("message", (event) => {
+  if (event.data && event.data.type === "SKIP_WAITING") {
+    self.skipWaiting();
+  }
 });
 
 self.addEventListener("fetch", (event) => {
   const req = event.request;
-  if (req.method !== "GET") return;
 
+  // nur GET & same-origin
+  if (req.method !== "GET") return;
   const url = new URL(req.url);
   if (url.origin !== self.location.origin) return;
 
-  // Seiten-Navigation: network-first, fallback index.html
+  // HTML Navigation: Network-first (aktuelle Version), fallback cache
   if (req.mode === "navigate") {
-    event.respondWith(
-      fetch(req)
-        .then((res) => {
-          const copy = res.clone();
-          caches.open(CACHE_NAME).then((cache) => cache.put(BASE + "index.html", copy));
-          return res;
-        })
-        .catch(() => caches.match(BASE + "index.html"))
-    );
+    event.respondWith((async () => {
+      try {
+        const res = await fetch(req, { cache: "no-store" });
+        const cache = await caches.open(CACHE_NAME);
+        cache.put("./index.html", res.clone());
+        return res;
+      } catch {
+        const cached = await caches.match("./index.html");
+        return cached || Response.error();
+      }
+    })());
     return;
   }
 
-  // Assets: cache-first
-  event.respondWith(
-    caches.match(req).then((cached) => {
-      if (cached) return cached;
+  // Assets: Cache-first, dann Network + in Cache schreiben
+  event.respondWith((async () => {
+    const cached = await caches.match(req);
+    if (cached) return cached;
 
-      return fetch(req)
-        .then((res) => {
-          if (!res || res.status !== 200) return res;
-          const copy = res.clone();
-          caches.open(CACHE_NAME).then((cache) => cache.put(req, copy));
-          return res;
-        })
-        .catch(() => cached);
-    })
-  );
+    try {
+      const res = await fetch(req);
+      if (res && res.status === 200) {
+        const cache = await caches.open(CACHE_NAME);
+        cache.put(req, res.clone());
+      }
+      return res;
+    } catch {
+      return cached || Response.error();
+    }
+  })());
 });
