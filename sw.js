@@ -1,9 +1,7 @@
-/* Sener Flächenrechner - Service Worker (v5) */
+/* Sener Flächenrechner - Service Worker (v6) */
+const CACHE_VERSION = "v6";
+const CACHE_NAME    = `sener-flaechenrechner-${CACHE_VERSION}`;
 
-const CACHE_VERSION = "v5";
-const CACHE_NAME = `sener-flaechenrechner-${CACHE_VERSION}`;
-
-// Wichtig: KEIN harter BASE-Pfad (funktioniert in / und in /repo/ auf GitHub Pages)
 const CORE_ASSETS = [
   "./",
   "./index.html",
@@ -18,80 +16,89 @@ const CORE_ASSETS = [
   "./apple-touch-icon.png"
 ];
 
-// Hilfsfunktion: beim Caching fehlende Dateien nicht die Installation killen
+// Einzelne Assets sicher cachen – fehlende Dateien killen nicht die Installation
 async function safeAddAll(cache, urls) {
   const results = await Promise.allSettled(
     urls.map(async (url) => {
       const res = await fetch(url, { cache: "no-cache" });
-      if (!res.ok) throw new Error(`Fetch failed ${res.status} for ${url}`);
+      if (!res.ok) throw new Error(`HTTP ${res.status} – ${url}`);
       await cache.put(url, res);
     })
   );
   results.forEach((r, i) => {
     if (r.status === "rejected") {
-      console.log("[SW] Skip cache:", urls[i], r.reason?.message || r.reason);
+      console.log("[SW] Cache übersprungen:", urls[i], r.reason?.message ?? r.reason);
     }
   });
 }
 
+// ── Install ──────────────────────────────────────────────────────────────────
 self.addEventListener("install", (event) => {
   event.waitUntil((async () => {
     const cache = await caches.open(CACHE_NAME);
     await safeAddAll(cache, CORE_ASSETS);
+    // skipWaiting wird nur auf Anfrage aus index.html ausgelöst (kontrolliertes Update)
   })());
 });
 
+// ── Activate ─────────────────────────────────────────────────────────────────
 self.addEventListener("activate", (event) => {
   event.waitUntil((async () => {
+    // Alle alten Cache-Versionen löschen
     const keys = await caches.keys();
-    await Promise.all(keys.map((k) => (k !== CACHE_NAME ? caches.delete(k) : null)));
+    await Promise.all(
+      keys.map(k => k !== CACHE_NAME ? caches.delete(k) : null)
+    );
     await self.clients.claim();
   })());
 });
 
-// Message: erlaubt deinem index.html "SKIP_WAITING" zu senden
+// ── Message (SKIP_WAITING) ────────────────────────────────────────────────────
 self.addEventListener("message", (event) => {
-  if (event.data && event.data.type === "SKIP_WAITING") {
+  if (event.data?.type === "SKIP_WAITING") {
     self.skipWaiting();
   }
 });
 
+// ── Fetch ─────────────────────────────────────────────────────────────────────
 self.addEventListener("fetch", (event) => {
   const req = event.request;
-  // nur GET & same-origin
+
+  // Nur GET-Anfragen der eigenen Origin behandeln
   if (req.method !== "GET") return;
   const url = new URL(req.url);
   if (url.origin !== self.location.origin) return;
 
-  // HTML Navigation: Network-first, fallback cache
+  // HTML-Navigation: Network-first → immer aktuelle Version ausliefern
   if (req.mode === "navigate") {
     event.respondWith((async () => {
       try {
-        const res = await fetch(req, { cache: "no-store" });
+        const res   = await fetch(req, { cache: "no-store" });
         const cache = await caches.open(CACHE_NAME);
-        cache.put("./index.html", res.clone());
+        cache.put("./index.html", res.clone()); // Cache still aktuell halten
         return res;
       } catch {
-        const cached = await caches.match("./index.html");
-        return cached || Response.error();
+        // Offline-Fallback
+        return (await caches.match("./index.html")) ?? Response.error();
       }
     })());
     return;
   }
 
-  // Assets: Cache-first, dann Network + in Cache schreiben
+  // Alle anderen Assets: Cache-first → Netzwerk als Fallback
   event.respondWith((async () => {
     const cached = await caches.match(req);
     if (cached) return cached;
+
     try {
       const res = await fetch(req);
-      if (res && res.status === 200) {
+      if (res?.status === 200) {
         const cache = await caches.open(CACHE_NAME);
         cache.put(req, res.clone());
       }
       return res;
     } catch {
-      return cached || Response.error();
+      return cached ?? Response.error();
     }
   })());
 });
