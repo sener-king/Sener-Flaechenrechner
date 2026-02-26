@@ -1,15 +1,15 @@
 <!DOCTYPE html>
 <html lang="de" class="dark">
-
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <title>Sener Flächenberechnung</title>
+    <title>Flächenrechner King</title>
 
     <!-- PWA -->
     <link rel="manifest" href="./manifest.json" />
     <meta name="theme-color" content="#28a745" />
-    <meta name="color-scheme" content="dark light" />
+    <meta name="color-scheme" content="dark" />
+    <meta name="description" content="Flächenrechner King – Winkel, Fläche, Kreis, Dreieck für Baustelle, Metallbau und Agrar." />
 
     <!-- Icons -->
     <link rel="icon" type="image/png" sizes="192x192" href="./icon-192.png" />
@@ -19,1453 +19,1376 @@
     <!-- iOS PWA -->
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-    <meta name="apple-mobile-web-app-title" content="Sener Fläche" />
+    <meta name="apple-mobile-web-app-title" content="Flächenrechner King" />
 
-    <!-- jsPDF -->
-    <script defer src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <!-- jsPDF CDN mit Fehlerbehandlung -->
+    <script defer src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"
+            onerror="window._jspdfFehler=true;"></script>
 
     <style>
         :root {
-            --bg: #121212;
-            --card: #1e1e1e;
-            --card2: #252525;
-            --muted: #aaa;
-            --muted2: #888;
-            --border: #333;
-            --green: #28a745;
+            --bg:     #0f0f0f;
+            --card:   #1a1a1a;
+            --card2:  #222;
+            --card3:  #2a2a2a;
+            --muted:  #999;
+            --muted2: #666;
+            --border: #2e2e2e;
+            --green:  #28a745;
             --green2: #218838;
-            --grey: #6c757d;
-            --grey2: #5a6268;
-            --blue: #007bff;
-            --danger: #ff5555;
+            --green3: #0d3320;
+            --grey:   #3f3f46;
+            --grey2:  #52525b;
+            --blue:   #3b82f6;
+            --danger: #ef4444;
+            --r:      12px;
+            --rs:     8px;
         }
 
-        * { box-sizing: border-box }
+        * { box-sizing: border-box; margin: 0; padding: 0 }
 
         body {
-            font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, sans-serif;
-            margin: 0;
-            padding: 0;
+            font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
             background: var(--bg);
-            color: #fff;
-            line-height: 1.6;
+            color: #f0f0f0;
+            min-height: 100vh;
             -webkit-tap-highlight-color: transparent;
+            overscroll-behavior: none;
         }
 
-        .container {
-            max-width: 520px;
-            margin: 20px auto;
-            padding: 20px;
-            background: var(--card);
-            border-radius: 12px;
-            box-shadow: 0 4px 12px rgba(0,0,0,.5);
+        /* ── HEADER ── */
+        .app-header {
+            background: #111;
+            padding: env(safe-area-inset-top, 0) 16px 0;
+            border-bottom: 1px solid var(--border);
+            position: sticky;
+            top: 0;
+            z-index: 100;
         }
 
-        h1 {
-            text-align: center;
-            font-size: 1.5em;
-            margin: 10px 0 0;
-            padding-bottom: 10px;
-            border-bottom: 2px solid var(--blue);
+        .header-inner {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 0;
         }
 
         .app-logo {
-            display: block;
-            margin: 0 auto 10px;
-            max-width: 120px;
-            height: auto;
+            width: 40px; height: 40px;
+            border-radius: 9px;
+            object-fit: cover;
+            flex-shrink: 0;
         }
 
-        .tabs {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 20px;
-            gap: 6px;
+        .app-title h1 {
+            font-size: 1.15em;
+            font-weight: 800;
+            color: #fff;
+            line-height: 1.1;
         }
+
+        .app-title p {
+            font-size: .72em;
+            color: var(--green);
+            font-weight: 600;
+            margin-top: 1px;
+        }
+
+        /* ── TABS ── */
+        .tabs-bar {
+            display: flex;
+            gap: 4px;
+            overflow-x: auto;
+            scrollbar-width: none;
+            padding: 10px 16px;
+            background: #111;
+            border-bottom: 1px solid var(--border);
+            position: sticky;
+            top: 65px;
+            z-index: 99;
+        }
+
+        .tabs-bar::-webkit-scrollbar { display: none }
 
         .tab-button {
             flex: 1;
-            padding: 12px;
-            background: var(--grey);
-            color: #fff;
-            border: none;
-            border-radius: 6px;
+            min-width: 70px;
+            padding: 9px 6px;
+            background: var(--card2);
+            color: var(--muted);
+            border: 1px solid var(--border);
+            border-radius: var(--rs);
             cursor: pointer;
-            font-size: 14px;
+            font-size: 12.5px;
             font-weight: 700;
-            transition: .2s;
+            font-family: inherit;
+            transition: all .18s;
             user-select: none;
+            white-space: nowrap;
+            text-align: center;
         }
 
-        .tab-button.active { background: var(--green) }
-        .tab-button:hover  { background: var(--grey2) }
-        .tab-button.dragging {
-            opacity: .9;
-            transform: scale(1.05);
-            box-shadow: 0 4px 10px rgba(0,0,0,.7);
-            z-index: 10;
+        .tab-button.active {
+            background: var(--green);
+            color: #fff;
+            border-color: var(--green);
+            box-shadow: 0 0 12px rgba(40,167,69,.3);
         }
-        .tab-button.drag-over { outline: 2px dashed #fff }
+
+        .tab-button:not(.active):hover { background: var(--card3); color: #fff }
+        .tab-button.dragging { opacity:.8; transform:scale(1.05); z-index:10 }
+        .tab-button.drag-over { border-color: var(--green) }
+
+        /* ── MAIN ── */
+        .main {
+            max-width: 560px;
+            margin: 0 auto;
+            padding: 14px 12px 90px;
+        }
 
         .tab-content { display: none }
         .tab-content.active { display: block }
 
-        .section {
-            background: var(--card2);
+        /* ── CARD ── */
+        .card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: var(--r);
             padding: 16px;
-            margin-top: 20px;
-            border-radius: 8px;
-            box-shadow: inset 0 0 6px rgba(0,0,0,.3);
+            margin-bottom: 12px;
         }
 
+        .card-title {
+            font-size: .95em;
+            font-weight: 700;
+            color: var(--green);
+            margin-bottom: 14px;
+            display: flex;
+            align-items: center;
+            gap: 7px;
+        }
+
+        /* ── FORM ── */
         label {
             display: block;
-            margin-top: 12px;
+            margin-top: 13px;
+            font-size: .8em;
             font-weight: 700;
-            color: #ccc;
-            font-size: .95em;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: .4px;
         }
 
-        input[type="number"],
-        select,
-        input[type="text"] {
+        label:first-child { margin-top: 0 }
+
+        input[type="text"],
+        select {
             width: 100%;
-            padding: 12px;
-            margin-top: 6px;
-            background: #333;
+            padding: 12px 13px;
+            margin-top: 5px;
+            background: var(--card2);
             color: #fff;
-            border: 1px solid #555;
-            border-radius: 6px;
+            border: 1px solid var(--border);
+            border-radius: var(--rs);
             font-size: 16px;
+            font-family: inherit;
+            font-weight: 600;
+            transition: border-color .2s, box-shadow .2s;
+            -webkit-appearance: none;
         }
 
+        input:focus, select:focus {
+            outline: none;
+            border-color: var(--green);
+            box-shadow: 0 0 0 3px rgba(40,167,69,.12);
+        }
+
+        input.err {
+            border-color: var(--danger) !important;
+            animation: shake .3s ease;
+        }
+
+        @keyframes shake {
+            0%,100% { transform:translateX(0) }
+            25%      { transform:translateX(-5px) }
+            75%      { transform:translateX(5px) }
+        }
+
+        .row { display:flex; gap:8px; align-items:flex-end }
+        .row input  { flex:1 }
+        .row select { width:90px; flex-shrink:0; margin-top:5px; padding:12px 8px; font-size:13px }
+
+        /* ── BUTTONS ── */
         button {
             width: 100%;
-            padding: 14px;
-            margin-top: 16px;
-            background: var(--green);
-            color: #fff;
+            padding: 13px;
+            margin-top: 12px;
             border: none;
-            border-radius: 6px;
+            border-radius: var(--rs);
             cursor: pointer;
-            font-size: 16px;
+            font-size: 14.5px;
             font-weight: 700;
-            transition: .2s;
+            font-family: inherit;
+            transition: all .18s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 7px;
+            -webkit-tap-highlight-color: transparent;
         }
 
-        button:hover { background: var(--green2) }
-        .icon { margin-right: 8px }
+        button:active { transform: scale(.97) }
 
-        .result {
-            margin-top: 20px;
-            padding: 16px;
+        .btn-p  { background:var(--green); color:#fff; box-shadow:0 3px 10px rgba(40,167,69,.2) }
+        .btn-p:hover { background:var(--green2) }
+        .btn-s  { background:var(--card2); color:var(--muted); border:1px solid var(--border) }
+        .btn-s:hover { background:var(--card3); color:#fff }
+        .btn-g  { background:transparent; color:var(--muted); border:1px dashed var(--border) }
+        .btn-g:hover { border-color:var(--green); color:var(--green) }
+        .btn-sm { width:auto; padding:7px 12px; margin-top:0; font-size:12.5px }
+
+        /* ── RESULTS ── */
+        .rg3 { display:grid; grid-template-columns:repeat(3,1fr); gap:9px; margin-top:12px }
+        .rg2 { display:grid; grid-template-columns:1fr 1fr;       gap:9px; margin-top:12px }
+
+        .ri {
             background: var(--card2);
-            border-radius: 8px;
-        }
-
-        .result-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-            gap: 15px;
-            margin-top: 10px;
-        }
-
-        .result-item {
+            border: 1px solid var(--border);
+            border-radius: var(--rs);
+            padding: 12px 9px;
             text-align: center;
-            padding: 10px;
-            background: #333;
-            border-radius: 6px;
+            cursor: pointer;
+            transition: all .18s;
+            position: relative;
+            overflow: hidden;
         }
 
-        .result-label {
-            display: block;
+        .ri:hover { border-color:var(--green); background:var(--card3) }
+
+        .ri::after {
+            content: "✓ Kopiert";
+            position: absolute;
+            inset: 0;
+            background: var(--green);
+            border-radius: var(--rs);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
             font-size: .9em;
+            color: #fff;
+            opacity: 0;
+            transition: opacity .18s;
+        }
+
+        .ri.copied::after { opacity:1 }
+
+        .rl {
+            display: block;
+            font-size: .72em;
             color: var(--muted);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: .3px;
             margin-bottom: 5px;
         }
 
-        .result-value {
-            font-size: 1.2em;
-            font-weight: 700;
+        .rv {
+            font-size: 1.1em;
+            font-weight: 800;
             color: var(--green);
+            line-height: 1.2;
         }
 
+        .copy-hint {
+            text-align: center;
+            font-size: .75em;
+            color: var(--muted2);
+            margin-top: 8px;
+        }
+
+        /* ── RAUM LISTE ── */
+        .raum-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 11px;
+            background: var(--card2);
+            border: 1px solid var(--border);
+            border-radius: var(--rs);
+            margin-bottom: 7px;
+        }
+
+        .raum-info { flex:1; min-width:0 }
+        .raum-name { font-weight:700; font-size:.92em; white-space:nowrap; overflow:hidden; text-overflow:ellipsis }
+        .raum-mass { font-size:.78em; color:var(--muted); margin-top:2px }
+        .raum-fl   { font-weight:800; color:var(--green); font-size:.95em; white-space:nowrap }
+
+        .del-btn {
+            background: none;
+            border: none;
+            color: var(--danger);
+            font-size: 1.1em;
+            cursor: pointer;
+            width: 32px; height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 6px;
+            transition: background .18s;
+            flex-shrink: 0;
+            padding: 0;
+            margin: 0;
+        }
+
+        .del-btn:hover { background: rgba(239,68,68,.15) }
+
+        .total-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 13px 15px;
+            background: var(--green3);
+            border: 1px solid var(--green2);
+            border-radius: var(--rs);
+            margin: 12px 0;
+        }
+
+        .total-lbl { font-weight:700; font-size:.9em; color:#a7f3d0 }
+        .total-val { font-weight:800; font-size:1.25em; color:var(--green) }
+
+        /* ── VERSAND GRID ── */
+        .v-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 7px;
+            margin-top: 8px;
+        }
+
+        .v-btn {
+            background: var(--card2);
+            border: 1px solid var(--border);
+            color: #fff;
+            padding: 12px 9px;
+            border-radius: var(--rs);
+            font-size: 13px;
+            font-weight: 700;
+            font-family: inherit;
+            cursor: pointer;
+            text-align: center;
+            transition: all .18s;
+            width: 100%;
+            margin: 0;
+        }
+
+        .v-btn:hover { background:var(--card3); border-color:var(--green) }
+
+        /* ── NORM INFO ── */
+        .norm-info {
+            margin-top: 9px;
+            padding: 9px 11px;
+            background: var(--card2);
+            border: 1px solid var(--border);
+            border-radius: var(--rs);
+            font-size: .82em;
+            color: var(--muted);
+            line-height: 1.6;
+        }
+
+        .norm-info strong { color: #fff }
+
+        /* ── POPUP (Bottom Sheet) ── */
         .popup {
             display: none;
             position: fixed;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
+            inset: 0;
             background: rgba(0,0,0,.8);
             z-index: 1000;
             justify-content: center;
-            align-items: center;
-            padding: 20px;
+            align-items: flex-end;
         }
 
-        .popup-content {
+        .popup.show { display: flex }
+
+        .popup-sheet {
             background: var(--card);
-            border-radius: 12px;
-            width: 90%;
-            max-width: 500px;
-            max-height: 90vh;
-            overflow: hidden;
-            box-shadow: 0 5px 15px rgba(0,0,0,.5);
+            border-radius: 18px 18px 0 0;
+            width: 100%;
+            max-width: 560px;
+            max-height: 88vh;
             display: flex;
             flex-direction: column;
+            box-shadow: 0 -6px 30px rgba(0,0,0,.7);
+            animation: slideUp .22s ease;
+            padding-bottom: env(safe-area-inset-bottom, 0);
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(100%) }
+            to   { transform: translateY(0) }
+        }
+
+        .popup-handle {
+            width: 38px; height: 4px;
+            background: var(--border);
+            border-radius: 2px;
+            margin: 11px auto 0;
+            flex-shrink: 0;
         }
 
         .popup-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 16px;
+            padding: 13px 16px;
             border-bottom: 1px solid var(--border);
+            flex-shrink: 0;
         }
 
-        .popup-header span { font-size: 1.2em; font-weight: 700 }
+        .popup-title { font-size: 1em; font-weight: 700 }
 
         .close-btn {
-            background: none;
+            background: var(--card2);
             border: none;
-            color: #fff;
-            font-size: 1.8em;
+            color: var(--muted);
+            font-size: 1em;
             cursor: pointer;
-            width: 40px; height: 40px;
+            width: 32px; height: 32px;
             display: flex;
             align-items: center;
             justify-content: center;
+            border-radius: 50%;
+            transition: all .18s;
+            padding: 0;
+            margin: 0;
         }
 
-        .close-btn:hover {
-            background: rgba(255,255,255,.2);
-            border-radius: 50%;
-        }
+        .close-btn:hover { background:var(--card3); color:#fff }
 
         .popup-body {
-            padding: 16px;
+            padding: 13px 16px;
             overflow-y: auto;
-            flex-grow: 1;
+            flex: 1;
+            -webkit-overflow-scrolling: touch;
         }
 
-        .history-item {
+        /* ── HISTORY ITEM ── */
+        .hi {
             display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 12px;
-            margin: 8px 0;
-            background: var(--card2);
-            border-radius: 6px;
-        }
-
-        .history-info { flex-grow: 1; padding-right: 10px }
-        .history-time { font-size: .85em; color: var(--muted); margin-top: 4px }
-        .history-input { font-size: .9em; color: var(--muted2); margin-top: 2px }
-
-        .history-delete {
-            background: none;
-            border: none;
-            color: var(--danger);
-            font-size: 1.5em;
-            cursor: pointer;
-            width: auto;
-            padding: 6px 10px;
-            margin-top: 0;
-        }
-
-        .empty-history {
-            padding: 30px;
-            text-align: center;
-            color: var(--muted2);
-        }
-
-        .raum-item {
-            padding: 10px;
-            margin: 8px 0;
-            background: var(--card2);
-            border-radius: 6px;
-            display: flex;
-            justify-content: space-between;
             align-items: center;
             gap: 10px;
+            padding: 11px;
+            background: var(--card2);
+            border: 1px solid var(--border);
+            border-radius: var(--rs);
+            margin-bottom: 7px;
         }
 
-        .raum-name { font-weight: 700 }
-        .raum-flaeche { font-weight: 700; color: var(--green); white-space: nowrap }
+        .hi-info { flex:1; min-width:0 }
+        .hi-title { font-weight:700; font-size:.9em }
+        .hi-sub   { font-size:.77em; color:var(--muted); margin-top:3px }
 
-        .raum-delete {
+        .hi-del {
             background: none;
             border: none;
             color: var(--danger);
             font-size: 1.2em;
             cursor: pointer;
+            padding: 6px;
+            margin: 0;
             width: auto;
-            padding: 6px 10px;
-            margin-top: 0;
+            border-radius: 6px;
+            transition: background .18s;
         }
 
-        .total-flaeche {
-            margin-top: 20px;
-            padding: 10px;
-            background: #333;
-            border-radius: 6px;
+        .hi-del:hover { background:rgba(239,68,68,.15) }
+
+        .reihe-active { border-color:var(--green) !important; background:var(--green3) !important }
+
+        /* ── EMPTY ── */
+        .empty { text-align:center; padding:38px 20px; color:var(--muted2); font-size:.88em }
+
+        /* ── TOAST ── */
+        #tc {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 9999;
+            pointer-events: none;
+            width: 90%;
+            max-width: 380px;
             display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-weight: 700;
-            font-size: 1.2em;
+            flex-direction: column;
+            gap: 7px;
         }
 
-        .total-value { color: var(--green) }
-        .speichern-button { background: var(--green) }
-        .historie-button { background: var(--grey) }
-        .historie-button:hover { background: var(--grey2) }
-
-        #versandMenu {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 12px;
-            margin-top: 12px;
-        }
-
-        #versandMenu .versand-item {
-            background: #2f2f2f;
-            padding: 14px;
-            font-size: 14px;
-            border-radius: 6px;
-            border: none;
+        .toast {
+            padding: 12px 16px;
+            border-radius: 10px;
+            font-size: 13.5px;
+            font-weight: 600;
+            font-family: inherit;
             color: #fff;
-            font-weight: 700;
+            opacity: 0;
+            transform: translateY(14px) scale(.95);
+            transition: all .22s cubic-bezier(.34,1.4,.64,1);
             text-align: center;
-            width: 100%;
-            margin-top: 0;
+            box-shadow: 0 4px 16px rgba(0,0,0,.45);
         }
 
-        #versandMenu .versand-item:hover { background: #404040 }
+        .toast.show { opacity:1; transform:translateY(0) scale(1) }
+        .toast.ok   { background:linear-gradient(135deg,#166534,#22c55e) }
+        .toast.err  { background:linear-gradient(135deg,#7f1d1d,#ef4444) }
+        .toast.inf  { background:linear-gradient(135deg,#1e3a5f,#3b82f6) }
+        .toast.cpy  { background:linear-gradient(135deg,#134e4a,#14b8a6) }
 
-        .flaeche-header-row {
-            display: flex;
-            justify-content: space-between;
+        /* ── CONFIRM ── */
+        #co {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,.78);
+            z-index: 2000;
+            justify-content: center;
             align-items: center;
-            margin-bottom: 10px;
-            gap: 10px;
+            padding: 20px;
         }
 
-        .optionen-icon-btn {
-            width: auto;
-            padding: 6px 10px;
-            margin-top: 0;
-            background: var(--blue);
-            border-radius: 20px;
-            font-size: .9em;
-            white-space: nowrap;
-        }
+        #co.show { display:flex }
 
-        #optionenPopup .popup-content { max-width: 420px }
-
-        #optionenPopup input,
-        #optionenPopup select {
+        .cb {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: var(--r);
+            padding: 24px 20px;
             width: 100%;
-            margin-bottom: 12px;
-            padding: 10px;
-            background: #2b2b2b;
-            color: #fff;
-            border: 1px solid #444;
-            border-radius: 6px;
-        }
-
-        .popup-section {
-            margin-top: 20px;
-            font-size: 15px;
-            border-left: 4px solid var(--green);
-            padding-left: 8px;
-        }
-
-        .popup-save-btn {
-            width: 100%;
-            padding: 12px;
-            background: var(--green);
-            color: #fff;
-            border: none;
-            border-radius: 6px;
-            font-size: 17px;
-            margin-top: 10px;
-        }
-
-        .footer-links {
-            margin-top: 14px;
+            max-width: 300px;
             text-align: center;
-            font-size: .9em;
-            color: var(--muted);
+            animation: popIn .18s ease;
         }
 
-        .footer-links a { color: #9ad2ff; text-decoration: none }
-        .footer-links a:hover { text-decoration: underline }
-
-        /* 3er-Reihe Highlight für aktive Stufe */
-        .reihe-item-active {
-            border: 2px solid var(--green) !important;
+        @keyframes popIn {
+            from { transform:scale(.88); opacity:0 }
+            to   { transform:scale(1);  opacity:1 }
         }
+
+        .cb-icon { font-size:2.2em; margin-bottom:9px }
+        .cb-text { font-size:.95em; font-weight:600; margin-bottom:18px; line-height:1.5; color:#e0e0e0 }
+        .cb-btns { display:flex; gap:9px }
+        .cb-btns button { flex:1; padding:11px; margin:0; font-size:13px }
+        .cb-no  { background:var(--card2); color:var(--muted); border:1px solid var(--border); border-radius:var(--rs) }
+        .cb-yes { background:var(--danger); color:#fff; border:none; border-radius:var(--rs) }
+
+        /* ── OPTIONEN ── */
+        .sec-title {
+            font-size: .78em;
+            font-weight: 700;
+            color: var(--green);
+            text-transform: uppercase;
+            letter-spacing: .7px;
+            margin: 16px 0 5px;
+            border-left: 3px solid var(--green);
+            padding-left: 7px;
+        }
+
+        /* ── HEADER ROW ── */
+        .hrow { display:flex; justify-content:space-between; align-items:center; margin-bottom:14px }
+        .hrow h3 { font-size:.95em; font-weight:700; color:var(--green) }
+
+        /* ── EINHEIT INLINE ── */
+        .eu { width:88px; flex-shrink:0; margin-top:5px; padding:12px 7px; font-size:13px }
+
+        /* ── FOOTER ── */
+        .footer { text-align:center; margin-top:18px; font-size:.78em; color:var(--muted2) }
+        .footer a { color:var(--blue); text-decoration:none }
     </style>
 </head>
-
 <body>
-    <div class="container">
-        <img src="./logo.png" alt="Sener Logo" class="app-logo"
-             onerror="this.onerror=null;this.src='./icon-512.png';" />
-        <h1>Sener Flächenberechnung</h1>
 
-        <div class="tabs" id="tabsContainer">
-            <button class="tab-button active" data-tab="winkel"   onclick="zeigeTab('winkel',event)">Winkel</button>
-            <button class="tab-button"        data-tab="dreieck"  onclick="zeigeTab('dreieck',event)">Dreieck</button>
-            <button class="tab-button"        data-tab="kreis"    onclick="zeigeTab('kreis',event)">Kreis</button>
-            <button class="tab-button"        data-tab="flaeche"  onclick="zeigeTab('flaeche',event)">Fläche</button>
-        </div>
+<!-- TOAST -->
+<div id="tc"></div>
 
-        <!-- ===== WINKEL ===== -->
-        <div id="winkel" class="tab-content active">
-            <div class="section">
-                <label for="istMasse">Gemessene Maße in mm</label>
-                <input type="number" id="istMasse" placeholder="z.B. 2000" inputmode="numeric" />
-
-                <label for="bereich">Bereich:</label>
-                <select id="bereich">
-                    <option value="metallbau" selected>Metallbau (3-4-5) Berechnung</option>
-                    <option value="wohnungsbau">Wohnungsbau (genau)</option>
-                    <option value="agrar">Landbau (mittel)</option>
-                </select>
-
-                <button onclick="berechneMassen()"><span class="icon">📐</span> Berechnen</button>
-                <button class="historie-button" onclick="oeffneWinkelHistorie()"><span class="icon">📜</span> Historie Winkel</button>
-                <button class="historie-button" onclick="zeige3erReihe()"><span class="icon">🧮</span> 3er-Reihe anzeigen</button>
-            </div>
-
-            <div id="ergebnis" class="result" style="display:none;">
-                <div class="result-grid">
-                    <div class="result-item">
-                        <div style="font-size:0.8em;color:var(--muted);">
-                            Kathete A<br>(<span id="multiplier">-</span> × 3)
-                        </div>
-                        <div class="result-value" id="masseA">-</div>
-                    </div>
-                    <div class="result-item">
-                        <span class="result-label">Kathete B<br>(4er-Seite)</span>
-                        <div class="result-value" id="masseB">-</div>
-                    </div>
-                    <div class="result-item">
-                        <span class="result-label">Hypotenuse C<br>(5er-Seite)</span>
-                        <div class="result-value" id="masseC">-</div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- ===== DREIECK ===== -->
-        <div id="dreieck" class="tab-content">
-            <div class="section">
-                <label for="seiteA">Seite A (mm):</label>
-                <input type="number" id="seiteA" placeholder="z.B. 3000" inputmode="numeric" />
-                <label for="seiteB">Seite B (mm):</label>
-                <input type="number" id="seiteB" placeholder="z.B. 4000" inputmode="numeric" />
-                <label for="winkelGamma">Winkel γ (Grad):</label>
-                <input type="number" id="winkelGamma" placeholder="z.B. 90" inputmode="numeric" />
-                <button onclick="berechneDreieck()"><span class="icon">📐</span> Berechnen</button>
-            </div>
-
-            <div id="ergebnisDreieck" class="result" style="display:none;">
-                <div class="result-grid">
-                    <div class="result-item">
-                        <span class="result-label">Seite C (mm)</span>
-                        <span class="result-value" id="seiteC">-</span>
-                    </div>
-                    <div class="result-item">
-                        <span class="result-label">Fläche (m²)</span>
-                        <span class="result-value" id="flaecheDreieck">-</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- ===== KREIS ===== -->
-        <div id="kreis" class="tab-content">
-            <div class="section">
-                <label for="durchmesser">Durchmesser:</label>
-                <div style="display:flex; gap:10px;">
-                    <input type="number" id="durchmesser" placeholder="z.B. 21,3 oder 1000"
-                           inputmode="decimal" oninput="updateNormAndCalculate()" />
-                    <select id="durchmesserEinheit" onchange="updateNormAndCalculate()"
-                            style="width:120px; flex-shrink:0; margin-top:6px;">
-                        <option value="mm">mm</option>
-                        <option value="m">m</option>
-                        <option value="zoll">Zoll</option>
-                    </select>
-                </div>
-
-                <label for="rohrNorm">Rohrnorm (NW/DN):</label>
-                <select id="rohrNorm" onchange="updateDurchmesserFromNorm()">
-                    <option value="">Wähle Norm...</option>
-                    <option value="6">DN 6 (1/8")</option>
-                    <option value="8">DN 8 (1/4")</option>
-                    <option value="10">DN 10 (3/8")</option>
-                    <option value="15">DN 15 (1/2")</option>
-                    <option value="20">DN 20 (3/4")</option>
-                    <option value="25">DN 25 (1")</option>
-                    <option value="32">DN 32 (1 1/4")</option>
-                    <option value="40">DN 40 (1 1/2")</option>
-                    <option value="50">DN 50 (2")</option>
-                    <option value="65">DN 65 (2 1/2")</option>
-                    <option value="80">DN 80 (3")</option>
-                    <option value="90">DN 90 (3 1/2")</option>
-                    <option value="100">DN 100 (4")</option>
-                    <option value="125">DN 125 (5")</option>
-                    <option value="150">DN 150 (6")</option>
-                    <option value="175">DN 175 (7")</option>
-                    <option value="200">DN 200 (8")</option>
-                    <option value="250">DN 250 (10")</option>
-                    <option value="300">DN 300 (12")</option>
-                    <option value="350">DN 350 (14")</option>
-                    <option value="400">DN 400 (16")</option>
-                    <option value="450">DN 450 (18")</option>
-                    <option value="500">DN 500 (20")</option>
-                    <option value="600">DN 600 (24")</option>
-                    <option value="700">DN 700 (28")</option>
-                    <option value="800">DN 800 (32")</option>
-                    <option value="900">DN 900 (36")</option>
-                    <option value="1000">DN 1000 (40")</option>
-                </select>
-
-                <div id="normAnzeige" style="margin-top:10px; color:var(--muted); font-size:0.9em;"></div>
-                <button onclick="berechneKreis()"><span class="icon">⭕</span> Berechnen</button>
-            </div>
-
-            <div id="ergebnisKreis" class="result" style="display:none;">
-                <div class="result-grid">
-                    <div class="result-item">
-                        <span class="result-label">Umfang</span>
-                        <span class="result-value" id="umfangKreis">-</span>
-                    </div>
-                    <div class="result-item">
-                        <span class="result-label">Fläche (m²)</span>
-                        <span class="result-value" id="flaecheKreis">-</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- ===== FLÄCHE ===== -->
-        <div id="flaeche" class="tab-content">
-            <div class="section">
-                <div style="display:none;">
-                    <select id="ueberschriftSelect">
-                        <option value="Wohnung" selected>Wohnung</option>
-                        <option value="Lager">Lager</option>
-                        <option value="Halle">Halle</option>
-                        <option value="Büro">Büro</option>
-                        <option value="Agrar">Agrar</option>
-                        <option value="Außenfläche">Außenfläche</option>
-                        <option value="Sonstige">Sonstige…</option>
-                    </select>
-                    <input type="text" id="ueberschriftCustom" />
-                    <input type="text" id="adresseStrasse" />
-                    <input type="text" id="adressePLZ" />
-                    <input type="text" id="adresseOrt" />
-                    <input type="text" id="beschreibung" />
-                </div>
-
-                <div class="flaeche-header-row">
-                    <h3 style="margin:0;">Flächenberechnung</h3>
-                    <button class="optionen-icon-btn" onclick="oeffneOptionenPopup()">⚙️ Optionen</button>
-                </div>
-
-                <label for="raumName">Raumname:</label>
-                <input type="text" id="raumName" placeholder="z.B. Wohnzimmer" />
-
-                <label for="laenge">Länge:</label>
-                <div style="display:flex; gap:10px;">
-                    <input type="number" id="laenge" placeholder="z.B. 5,5" inputmode="decimal" />
-                    <select id="laengeEinheit" style="width:120px; flex-shrink:0; margin-top:6px;">
-                        <option value="m">m</option>
-                        <option value="cm">cm</option>
-                        <option value="mm">mm</option>
-                    </select>
-                </div>
-
-                <label for="breite">Breite:</label>
-                <div style="display:flex; gap:10px;">
-                    <input type="number" id="breite" placeholder="z.B. 4,2" inputmode="decimal" />
-                    <select id="breiteEinheit" style="width:120px; flex-shrink:0; margin-top:6px;">
-                        <option value="m">m</option>
-                        <option value="cm">cm</option>
-                        <option value="mm">mm</option>
-                    </select>
-                </div>
-
-                <button onclick="berechneFlaeche()"><span class="icon">➕</span> Raum hinzufügen</button>
-
-                <div id="ergebnisFlaeche" class="result">
-                    <h3 style="margin-top:0;">Gespeicherte Räume</h3>
-                    <div id="raumListe" style="max-height:250px; overflow-y:auto;"></div>
-
-                    <div style="margin-top:15px;">
-                        <label for="flaechenEinheitAnzeige">Flächeneinheit (Anzeige):</label>
-                        <select id="flaechenEinheitAnzeige" onchange="aktualisiereFlaechenAnzeige()">
-                            <option value="m2" selected>Quadratmeter (m²)</option>
-                            <option value="ha">Hektar (ha)</option>
-                        </select>
-                    </div>
-
-                    <div id="gesamtFlaecheDiv" class="total-flaeche" style="display:none;">
-                        <span>Gesamtfläche:</span>
-                        <span class="total-value" id="totalFlaeche">0 m²</span>
-                    </div>
-
-                    <button class="speichern-button" onclick="speichereBerechnung()">
-                        <span class="icon">💾</span> Berechnung speichern
-                    </button>
-
-                    <button class="historie-button" onclick="oeffneFlaecheHistorie()" style="margin-top:15px;">
-                        <span class="icon">📜</span> Historie der Flächenberechnungen
-                    </button>
-
-                    <button class="historie-button" onclick="toggleVersandMenu(event)" style="margin-top:15px;">
-                        <span class="icon">📤</span> Versenden
-                    </button>
-
-                    <div id="versandMenu" style="display:none; border-top:1px solid var(--border); padding-top:10px;">
-                        <button class="versand-item" onclick="druckeErgebnisse()">🖨️ Drucken (Browser)</button>
-                        <button class="versand-item" onclick="erstelleUndOeffnePDF()">📄 Als PDF speichern / versenden</button>
-                        <button class="versand-item" onclick="versendePerWhatsApp()">💬 Per WhatsApp versenden</button>
-                        <button class="versand-item" onclick="versendeErgebnisse()">📧 Per E-Mail versenden</button>
-                    </div>
-
-                    <div class="footer-links">
-                        <a href="./privacy.html">Datenschutz</a>
-                    </div>
-                </div>
-            </div>
+<!-- CONFIRM -->
+<div id="co">
+    <div class="cb">
+        <div class="cb-icon">🗑️</div>
+        <div class="cb-text" id="ct">Wirklich löschen?</div>
+        <div class="cb-btns">
+            <button class="cb-no"  onclick="ca(false)">Abbrechen</button>
+            <button class="cb-yes" onclick="ca(true)">Löschen</button>
         </div>
     </div>
+</div>
 
-    <!-- ===== POPUPS ===== -->
-    <div id="winkelHistoriePopup" class="popup">
-        <div class="popup-content">
-            <div class="popup-header">
-                <span>Historie der Winkelberechnungen</span>
-                <button class="close-btn" onclick="schliesseWinkelHistorie(event)">×</button>
-            </div>
-            <div class="popup-body">
-                <div id="winkelHistoryListe"></div>
-            </div>
+<!-- HEADER -->
+<div class="app-header">
+    <div class="header-inner">
+        <img src="./icon-512.png" alt="Logo" class="app-logo" onerror="this.style.display='none'" />
+        <div class="app-title">
+            <h1>Flächenrechner King 👑</h1>
+            <p>Profi-Werkzeug für die Baustelle</p>
         </div>
     </div>
+</div>
 
-    <div id="flaecheHistoriePopup" class="popup">
-        <div class="popup-content">
-            <div class="popup-header">
-                <span>Historie der Flächenberechnungen</span>
-                <button class="close-btn" onclick="schliesseFlaecheHistorie(event)">×</button>
+<!-- TABS -->
+<div class="tabs-bar" id="tabsContainer">
+    <button class="tab-button active" data-tab="winkel"  onclick="zTab('winkel',event)">📐 Winkel</button>
+    <button class="tab-button"        data-tab="dreieck" onclick="zTab('dreieck',event)">📏 Dreieck</button>
+    <button class="tab-button"        data-tab="kreis"   onclick="zTab('kreis',event)">⭕ Kreis</button>
+    <button class="tab-button"        data-tab="flaeche" onclick="zTab('flaeche',event)">🏠 Fläche</button>
+</div>
+
+<div class="main">
+
+<!-- ===== WINKEL ===== -->
+<div id="winkel" class="tab-content active">
+    <div class="card">
+        <div class="card-title">📐 Metallbau 3-4-5 Berechnung</div>
+        <label>Gemessene Maße in mm</label>
+        <input type="text" id="istMasse" placeholder="z.B. 3280" inputmode="decimal" autocomplete="off" />
+        <label>Bereich</label>
+        <select id="bereich">
+            <option value="metallbau" selected>Metallbau (3-4-5)</option>
+            <option value="wohnungsbau">Wohnungsbau (mittel)</option>
+            <option value="agrar">Landbau (genau)</option>
+        </select>
+        <button class="btn-p" onclick="berechneMassen()">📐 Berechnen</button>
+        <button class="btn-s" onclick="oeffneWinkelHistorie()">📜 Historie</button>
+        <button class="btn-g" onclick="zeige3erReihe()">🧮 3er-Reihe anzeigen</button>
+    </div>
+    <div id="ergebnis" class="card" style="display:none;">
+        <div class="card-title">✅ Ergebnis</div>
+        <div class="rg3">
+            <div class="ri" onclick="kopiere('masseA',this)">
+                <span class="rl">Kathete A<br><small style="font-size:.85em;color:var(--muted2)"><span id="multiplier">-</span>×3</small></span>
+                <div class="rv" id="masseA">-</div>
             </div>
-            <div class="popup-body">
-                <div id="flaecheHistoryListe"></div>
+            <div class="ri" onclick="kopiere('masseB',this)">
+                <span class="rl">Kathete B<br><small style="font-size:.85em;color:var(--muted2)">4er-Seite</small></span>
+                <div class="rv" id="masseB">-</div>
             </div>
-            <div style="padding:16px; border-top:1px solid var(--border);">
-                <button onclick="zurueckZurFlaeche()" style="background:var(--grey);">🔙 Zurück</button>
+            <div class="ri" onclick="kopiere('masseC',this)">
+                <span class="rl">Hypotenuse C<br><small style="font-size:.85em;color:var(--muted2)">5er-Seite</small></span>
+                <div class="rv" id="masseC">-</div>
             </div>
         </div>
+        <p class="copy-hint">💡 Wert antippen → in Zwischenablage kopieren</p>
     </div>
+</div>
 
-    <div id="popup3er" class="popup">
-        <div class="popup-content">
-            <div class="popup-header">
-                <span>3er-Reihe (300 mm – 6.900 mm)</span>
-                <button class="close-btn" onclick="schliessePopup(event)">×</button>
+<!-- ===== DREIECK ===== -->
+<div id="dreieck" class="tab-content">
+    <div class="card">
+        <div class="card-title">📏 Dreiecksberechnung</div>
+        <label>Seite A (mm)</label>
+        <input type="text" id="seiteA" placeholder="z.B. 3000" inputmode="decimal" autocomplete="off" />
+        <label>Seite B (mm)</label>
+        <input type="text" id="seiteB" placeholder="z.B. 4000" inputmode="decimal" autocomplete="off" />
+        <label>Winkel γ (Grad)</label>
+        <input type="text" id="winkelGamma" placeholder="z.B. 90" inputmode="decimal" autocomplete="off" />
+        <button class="btn-p" onclick="berechneDreieck()">📏 Berechnen</button>
+    </div>
+    <div id="ergebnisDreieck" class="card" style="display:none;">
+        <div class="card-title">✅ Ergebnis</div>
+        <div class="rg2">
+            <div class="ri" onclick="kopiere('seiteC',this)">
+                <span class="rl">Seite C (mm)</span>
+                <div class="rv" id="seiteC">-</div>
             </div>
-            <div class="popup-body">
-                <div id="popupListe"></div>
+            <div class="ri" onclick="kopiere('flaecheDreieck',this)">
+                <span class="rl">Fläche (m²)</span>
+                <div class="rv" id="flaecheDreieck">-</div>
             </div>
         </div>
+        <p class="copy-hint">💡 Wert antippen → kopieren</p>
     </div>
+</div>
 
-    <div id="optionenPopup" class="popup">
-        <div class="popup-content">
-            <div class="popup-header">
-                <span>Optionen</span>
-                <button class="close-btn" onclick="schliesseOptionenPopup()">×</button>
+<!-- ===== KREIS ===== -->
+<div id="kreis" class="tab-content">
+    <div class="card">
+        <div class="card-title">⭕ Kreisberechnung</div>
+        <label>Durchmesser</label>
+        <div class="row">
+            <input type="text" id="durchmesser" placeholder="z.B. 21,3" inputmode="decimal" autocomplete="off" oninput="updateNorm()" />
+            <select class="eu" id="durchmesserEinheit" onchange="updateNorm()">
+                <option value="mm">mm</option>
+                <option value="m">m</option>
+                <option value="zoll">Zoll</option>
+            </select>
+        </div>
+        <label>Rohrnorm (NW/DN)</label>
+        <select id="rohrNorm" onchange="normAuswahl()">
+            <option value="">Wähle Norm...</option>
+            <option value="6">DN 6 (1/8")</option><option value="8">DN 8 (1/4")</option>
+            <option value="10">DN 10 (3/8")</option><option value="15">DN 15 (1/2")</option>
+            <option value="20">DN 20 (3/4")</option><option value="25">DN 25 (1")</option>
+            <option value="32">DN 32 (1¼")</option><option value="40">DN 40 (1½")</option>
+            <option value="50">DN 50 (2")</option><option value="65">DN 65 (2½")</option>
+            <option value="80">DN 80 (3")</option><option value="90">DN 90 (3½")</option>
+            <option value="100">DN 100 (4")</option><option value="125">DN 125 (5")</option>
+            <option value="150">DN 150 (6")</option><option value="175">DN 175 (7")</option>
+            <option value="200">DN 200 (8")</option><option value="250">DN 250 (10")</option>
+            <option value="300">DN 300 (12")</option><option value="350">DN 350 (14")</option>
+            <option value="400">DN 400 (16")</option><option value="450">DN 450 (18")</option>
+            <option value="500">DN 500 (20")</option><option value="600">DN 600 (24")</option>
+            <option value="700">DN 700 (28")</option><option value="800">DN 800 (32")</option>
+            <option value="900">DN 900 (36")</option><option value="1000">DN 1000 (40")</option>
+        </select>
+        <div id="normAnzeige" class="norm-info" style="display:none;"></div>
+        <button class="btn-p" onclick="berechneKreis()">⭕ Berechnen</button>
+    </div>
+    <div id="ergebnisKreis" class="card" style="display:none;">
+        <div class="card-title">✅ Ergebnis</div>
+        <div class="rg2">
+            <div class="ri" onclick="kopiere('umfangKreis',this)">
+                <span class="rl">Umfang</span>
+                <div class="rv" id="umfangKreis">-</div>
             </div>
-            <div class="popup-body">
-                <label>Berechnung – Überschrift</label>
-                <select id="popupUeberschrift" onchange="togglePopupCustom()">
-                    <option value="Wohnung">Wohnung</option>
-                    <option value="Lager">Lager</option>
-                    <option value="Halle">Halle</option>
-                    <option value="Büro">Büro</option>
-                    <option value="Agrar">Agrar</option>
-                    <option value="Außenfläche">Außenfläche</option>
-                    <option value="Sonstige">Sonstige…</option>
-                </select>
-                <input type="text" id="popupUeberschriftCustom"
-                       placeholder="Eigene Bezeichnung…"
-                       style="display:none; margin-top:8px;" />
-
-                <h4 class="popup-section">Adresse</h4>
-                <label>Straße / Nr:</label>
-                <input type="text" id="popupStrasse" placeholder="Musterstraße 12" />
-                <label>PLZ:</label>
-                <input type="text" id="popupPLZ" placeholder="12345" inputmode="numeric" />
-                <label>Ort:</label>
-                <input type="text" id="popupOrt" placeholder="Mülheim an der Ruhr" />
-
-                <h4 class="popup-section">Beschreibung / Messung</h4>
-                <input type="text" id="popupBeschreibung" placeholder="z.B. Wohnung 1. OG links" />
-
-                <button class="popup-save-btn" onclick="speichereOptionen()">✔️ Übernehmen</button>
+            <div class="ri" onclick="kopiere('flaecheKreis',this)">
+                <span class="rl">Fläche (m²)</span>
+                <div class="rv" id="flaecheKreis">-</div>
             </div>
         </div>
+        <p class="copy-hint">💡 Wert antippen → kopieren</p>
+    </div>
+</div>
+
+<!-- ===== FLÄCHE ===== -->
+<div id="flaeche" class="tab-content">
+    <!-- versteckte Felder -->
+    <div style="display:none;">
+        <select id="ueberschriftSelect"><option value="Wohnung" selected>Wohnung</option><option value="Lager">Lager</option><option value="Halle">Halle</option><option value="Büro">Büro</option><option value="Agrar">Agrar</option><option value="Außenfläche">Außenfläche</option><option value="Sonstige">Sonstige…</option></select>
+        <input type="text" id="ueberschriftCustom" /><input type="text" id="adresseStrasse" />
+        <input type="text" id="adressePLZ" /><input type="text" id="adresseOrt" /><input type="text" id="beschreibung" />
     </div>
 
-    <script>
-    "use strict";
+    <div class="card">
+        <div class="hrow">
+            <h3>➕ Raum erfassen</h3>
+            <button class="btn-s btn-sm" onclick="oeffneOptionen()">⚙️ Optionen</button>
+        </div>
+        <label>Raumname</label>
+        <input type="text" id="raumName" placeholder="z.B. Wohnzimmer" autocomplete="off" />
+        <label>Länge</label>
+        <div class="row">
+            <input type="text" id="laenge" placeholder="z.B. 5,5" inputmode="decimal" autocomplete="off" />
+            <select class="eu" id="laengeEinheit"><option value="m">m</option><option value="cm">cm</option><option value="mm">mm</option></select>
+        </div>
+        <label>Breite</label>
+        <div class="row">
+            <input type="text" id="breite" placeholder="z.B. 4,2" inputmode="decimal" autocomplete="off" />
+            <select class="eu" id="breiteEinheit"><option value="m">m</option><option value="cm">cm</option><option value="mm">mm</option></select>
+        </div>
+        <button class="btn-p" onclick="addRaum()">➕ Raum hinzufügen</button>
+    </div>
 
-    const APP_VERSION = "2026-02-25-02";
-
-    // ====== STATE ======
-    let berechnungsHistorie = JSON.parse(localStorage.getItem('sener_historie'))            || [];
-    let berechnungHistorie  = JSON.parse(localStorage.getItem('sener_berechnung_historie')) || [];
-    let raeume     = [];
-    let draggedTab = null;
-
-    // ====== NORMEN ======
-    const normen = [
-      { nw:"6",    zoll:'1/8"',   iso:10.2,   ansi:10.5   },
-      { nw:"8",    zoll:'1/4"',   iso:13.5,   ansi:13.72  },
-      { nw:"10",   zoll:'3/8"',   iso:17.2,   ansi:17.15  },
-      { nw:"15",   zoll:'1/2"',   iso:21.3,   ansi:21.34  },
-      { nw:"20",   zoll:'3/4"',   iso:26.9,   ansi:26.67  },
-      { nw:"25",   zoll:'1"',     iso:33.7,   ansi:33.40  },
-      { nw:"32",   zoll:'1 1/4"', iso:42.4,   ansi:42.16  },
-      { nw:"40",   zoll:'1 1/2"', iso:48.3,   ansi:48.26  },
-      { nw:"50",   zoll:'2"',     iso:60.3,   ansi:60.33  },
-      { nw:"65",   zoll:'2 1/2"', iso:76.1,   ansi:73.03  },
-      { nw:"80",   zoll:'3"',     iso:88.9,   ansi:88.90  },
-      { nw:"90",   zoll:'3 1/2"', iso:101.6,  ansi:101.60 },
-      { nw:"100",  zoll:'4"',     iso:114.3,  ansi:114.30 },
-      { nw:"125",  zoll:'5"',     iso:139.7,  ansi:141.30 },
-      { nw:"150",  zoll:'6"',     iso:168.3,  ansi:168.28 },
-      { nw:"175",  zoll:'7"',     iso:193.7,  ansi:193.70 },
-      { nw:"200",  zoll:'8"',     iso:219.1,  ansi:219.08 },
-      { nw:"250",  zoll:'10"',    iso:273.0,  ansi:273.05 },
-      { nw:"300",  zoll:'12"',    iso:323.9,  ansi:323.85 },
-      { nw:"350",  zoll:'14"',    iso:355.6,  ansi:355.60 },
-      { nw:"400",  zoll:'16"',    iso:406.4,  ansi:406.40 },
-      { nw:"450",  zoll:'18"',    iso:457.2,  ansi:457.20 },
-      { nw:"500",  zoll:'20"',    iso:508.0,  ansi:508.00 },
-      { nw:"600",  zoll:'24"',    iso:609.6,  ansi:609.60 },
-      { nw:"700",  zoll:'28"',    iso:711.2,  ansi:711.20 },
-      { nw:"800",  zoll:'32"',    iso:812.8,  ansi:812.80 },
-      { nw:"900",  zoll:'36"',    iso:914.4,  ansi:914.40 },
-      { nw:"1000", zoll:'40"',    iso:1016.0, ansi:1016.00}
-    ];
-
-    // ====== HELPERS ======
-    const $ = id => document.getElementById(id);
-
-    function safeNum(s) {
-      if (s === null || s === undefined) return NaN;
-      return parseFloat(String(s).replace(/\s/g, '').replace(/,/g, '.'));
-    }
-
-    function isHaModus() {
-      const sel = $('flaechenEinheitAnzeige');
-      return sel && sel.value === 'ha';
-    }
-
-    function formatFlaeche(value) {
-      value = Number(value);
-      if (!isFinite(value)) value = 0;
-      if (isHaModus()) {
-        const ha = value / 10000;
-        return (ha < 10
-          ? ha.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
-          : ha.toLocaleString('de-DE', { minimumFractionDigits: 1, maximumFractionDigits: 1 })
-        ) + ' ha';
-      }
-      if (value < 100)  return `${Math.round(value).toLocaleString('de-DE')} m²`;
-      if (value < 1000) return `${(Math.round(value * 10) / 10).toLocaleString('de-DE', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} m²`;
-      return `${value.toLocaleString('de-DE', { maximumFractionDigits: 3 })} m²`;
-    }
-
-    function einheitInMeter(w, e) {
-      w = Number(w);
-      if (!isFinite(w)) return 0;
-      if (e === 'mm') return w / 1000;
-      if (e === 'cm') return w / 100;
-      return w;
-    }
-
-    // ====== METALLBAU-KERNLOGIK ======
-    /**
-     * Berechnet Kathete A nach der 3-4-5 Metallbau-Regel:
-     *
-     * 1. Rest = Ist-Maß % 300
-     * 2. Rest < 150  → eine Stufe tiefer  (floor - 300)
-     *    Rest ≥ 150  → normales floor
-     * 3. Grenzen: min 300 mm, max 6900 mm
-     *
-     * Beispiele:
-     *   3010 → Rest  10 → < 150 → floor(3010/300)=10 → 10×300-300 = 2700 ✅
-     *   3280 → Rest 280 → ≥ 150 → floor(3280/300)=10 → 10×300     = 3000 ✅
-     *   2015 → Rest 215 → ≥ 150 → floor(2015/300)= 6 →  6×300     = 1800 ✅
-     *   1850 → Rest  50 → < 150 → floor(1850/300)= 6 →  6×300-300 = 1500 ✅
-     *   4150 → Rest 250 → ≥ 150 → floor(4150/300)=13 → 13×300     = 3900 ✅
-     *   2850 → Rest 150 → ≥ 150 → floor(2850/300)= 9 →  9×300     = 2700 ✅
-     */
-    function metallbauA(ist) {
-      // Obergrenze direkt begrenzen
-      ist = Math.min(ist, 6900);
-
-      const rest     = ist % 300;
-      const stufe    = Math.floor(ist / 300);
-      const a        = rest < 150 ? (stufe - 1) * 300 : stufe * 300;
-
-      return Math.min(6900, Math.max(300, a));
-    }
-
-    // ====== TABS ======
-    function zeigeTab(tabName, event) {
-      event && event.stopPropagation && event.stopPropagation();
-      document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-      document.querySelectorAll('.tab-button').forEach(b => b.classList.remove('active'));
-      $(tabName).classList.add('active');
-      const btn = document.querySelector(`.tab-button[data-tab="${tabName}"]`);
-      btn && btn.classList.add('active');
-      if (tabName === 'flaeche') { zeigeRaumListe(); berechneGesamtFlaeche(); }
-    }
-
-    function initDraggableTabs() {
-      const container = $('tabsContainer');
-      if (!container) return;
-      const buttons = Array.from(container.querySelectorAll('.tab-button'));
-      const saved   = localStorage.getItem('sener_tabs_order');
-
-      if (saved) {
-        try {
-          const order = JSON.parse(saved);
-          const map   = {};
-          buttons.forEach(b => map[b.dataset.tab] = b);
-          order.forEach(id => map[id] && container.appendChild(map[id]));
-          buttons.forEach(b => !container.contains(b) && container.appendChild(b));
-        } catch {}
-      }
-
-      container.querySelectorAll('.tab-button').forEach(btn => {
-        btn.setAttribute('draggable', 'true');
-
-        btn.addEventListener('dragstart', e => {
-          draggedTab = btn;
-          btn.classList.add('dragging');
-          e.dataTransfer.effectAllowed = 'move';
-          e.dataTransfer.setData('text/plain', btn.dataset.tab);
-        });
-
-        btn.addEventListener('dragend', () => {
-          draggedTab && draggedTab.classList.remove('dragging');
-          container.querySelectorAll('.tab-button').forEach(b => b.classList.remove('drag-over'));
-          draggedTab = null;
-          const order = Array.from(container.querySelectorAll('.tab-button')).map(b => b.dataset.tab);
-          localStorage.setItem('sener_tabs_order', JSON.stringify(order));
-        });
-
-        btn.addEventListener('dragover', e => {
-          e.preventDefault();
-          if (!draggedTab || draggedTab === btn) return;
-          btn.classList.add('drag-over');
-          const rect         = btn.getBoundingClientRect();
-          const insertBefore = (e.clientX - rect.left) < rect.width / 2;
-          container.insertBefore(draggedTab, insertBefore ? btn : btn.nextSibling);
-        });
-
-        btn.addEventListener('dragleave', () => btn.classList.remove('drag-over'));
-        btn.addEventListener('drop',      e => { e.preventDefault(); btn.classList.remove('drag-over'); });
-      });
-    }
-
-    // ====== POPUP HELPERS ======
-    function schliesseWinkelHistorie(e)  { e && e.stopPropagation && e.stopPropagation(); $('winkelHistoriePopup').style.display = 'none'; }
-    function schliesseFlaecheHistorie(e) { e && e.stopPropagation && e.stopPropagation(); $('flaecheHistoriePopup').style.display = 'none'; }
-    function schliessePopup(e)           { e && e.stopPropagation && e.stopPropagation(); $('popup3er').style.display = 'none'; }
-    function zurueckZurFlaeche()         { schliesseFlaecheHistorie(null); }
-
-    // ====== WINKEL BERECHNUNG ======
-    function berechneMassen() {
-      const ist     = safeNum($('istMasse').value);
-      const bereich = $('bereich').value;
-      const out     = $('ergebnis');
-
-      if (!isFinite(ist) || ist < 300) {
-        alert("Bitte gültige Ist-Maße ≥ 300 mm eingeben.");
-        out.style.display = 'none';
-        return;
-      }
-
-      let a, k;
-
-      if (bereich === 'metallbau') {
-        a = metallbauA(ist);
-        k = a / 3;
-
-      } else if (bereich === 'wohnungsbau') {
-        k = Math.max(100, Math.floor((ist / 3) / 50) * 50);
-        a = k * 3;
-
-      } else { // agrar
-        k = Math.max(100, Math.floor((ist / 3) / 10) * 10);
-        a = k * 3;
-      }
-
-      const b   = k * 4;
-      const c   = k * 5;
-      const fmt = { maximumFractionDigits: 0 };
-
-      $('masseA').textContent     = a.toLocaleString('de-DE', fmt) + " mm";
-      $('masseB').textContent     = b.toLocaleString('de-DE', fmt) + " mm";
-      $('masseC').textContent     = c.toLocaleString('de-DE', fmt) + " mm";
-      $('multiplier').textContent = k.toLocaleString('de-DE', fmt);
-      out.style.display = 'block';
-
-      berechnungsHistorie.unshift({
-        id: Date.now(),
-        zeit: new Date().toLocaleString('de-DE'),
-        input: ist, bereich, a, b, c, k,
-        v: APP_VERSION
-      });
-      if (berechnungsHistorie.length > 50) berechnungsHistorie.pop();
-      localStorage.setItem('sener_historie', JSON.stringify(berechnungsHistorie));
-    }
-
-    // ====== 3ER-REIHE (300 – 6900) ======
-    function zeige3erReihe() {
-      const popup      = $('popup3er');
-      const liste      = $('popupListe');
-      const input      = $('istMasse');
-      const bereichSel = $('bereich');
-      if (!popup || !liste || !input || !bereichSel) return;
-
-      liste.innerHTML = '';
-
-      // Aktuell berechnetes A, um aktive Stufe hervorzuheben
-      const istAktuell = safeNum(input.value);
-      const aAktuell   = (isFinite(istAktuell) && istAktuell >= 300)
-                         ? metallbauA(istAktuell) : -1;
-
-      // 23 Stufen: 300, 600, 900 … 6900
-      for (let a = 300; a <= 6900; a += 300) {
-        const k   = a / 3;
-        const b   = k * 4;
-        const c   = k * 5;
-        const div = document.createElement('div');
-        div.className = 'history-item';
-        if (a === aAktuell) div.classList.add('reihe-item-active');
-        div.style.cursor = 'pointer';
-        div.innerHTML = `
-          <div class="history-info">
-            <div class="raum-name">
-              A: ${a.toLocaleString('de-DE')} mm
-              <span style="color:var(--muted);font-size:.85em;">(k = ${k.toLocaleString('de-DE')} mm)</span>
+    <div class="card">
+        <div class="hrow">
+            <div class="card-title" style="margin:0;">🏠 Gespeicherte Räume</div>
+            <select id="flaechenEinheitAnzeige" onchange="refreshFlaeche()"
+                    style="width:auto;padding:6px 9px;font-size:13px;margin:0;">
+                <option value="m2">m²</option>
+                <option value="ha">ha</option>
+            </select>
+        </div>
+        <div id="raumListe"></div>
+        <div id="gesamtFlaecheDiv" class="total-bar" style="display:none;">
+            <span class="total-lbl">Gesamtfläche</span>
+            <span class="total-val" id="totalFlaeche">0 m²</span>
+        </div>
+        <button class="btn-p"  onclick="speichereBerechnung()">💾 Berechnung speichern</button>
+        <button class="btn-s"  onclick="oeffneFlaecheHistorie()">📜 Gespeicherte Berechnungen</button>
+        <button class="btn-g"  onclick="toggleVersand(event)">📤 Versenden / Teilen</button>
+        <div id="versandMenu" style="display:none; margin-top:10px;">
+            <div class="v-grid">
+                <button class="v-btn" onclick="drucken()">🖨️ Drucken</button>
+                <button class="v-btn" onclick="erstellePDF()">📄 PDF</button>
+                <button class="v-btn" onclick="whatsapp()">💬 WhatsApp</button>
+                <button class="v-btn" onclick="email()">📧 E-Mail</button>
             </div>
-            <div class="history-time">
-              B: ${b.toLocaleString('de-DE')} mm &nbsp;·&nbsp; C: ${c.toLocaleString('de-DE')} mm
-            </div>
-          </div>
-          <div style="color:var(--muted2);font-size:.85em;white-space:nowrap;">Tippen ↵</div>
-        `;
-        div.onclick = () => {
-          // A-Wert direkt übernehmen → Eingabefeld bekommt exakt diesen Wert,
-          // sodass metallbauA(a) = a (Rest = 0 < 150 würde eine Stufe runter gehen!)
-          // Daher setzen wir a + 150 als Ist-Wert → Rest = 150 → ≥ 150 → bleibt auf Stufe
-          // Einfacher: Eingabe = a (exaktes Vielfaches), Rest = 0 < 150 → würde runter.
-          // Lösung: Wir setzen das Input auf a und rufen berechneMassen intern mit fixem A auf.
-          input.value      = String(a);
-          bereichSel.value = 'metallbau';
-          // Direkt mit fixem A-Wert rendern (kein Umweg über metallbauA)
-          _rendereWinkelErgebnis(a);
-          popup.style.display = 'none';
-        };
-        liste.appendChild(div);
-      }
+        </div>
+        <div class="footer">
+            <a href="./datenschutz.html">Datenschutz</a>
+            &nbsp;·&nbsp;
+            <a href="./impressum.html">Impressum</a>
+        </div>
+    </div>
+</div>
 
-      popup.style.display = 'flex';
-    }
+</div><!-- /main -->
 
-    /**
-     * Rendert das Winkel-Ergebnis mit einem fest vorgegebenen A-Wert
-     * (für die 3er-Reihe, wo der Nutzer direkt eine Stufe auswählt)
-     */
-    function _rendereWinkelErgebnis(a) {
-      a = Math.min(6900, Math.max(300, a));
-      const k   = a / 3;
-      const b   = k * 4;
-      const c   = k * 5;
-      const fmt = { maximumFractionDigits: 0 };
+<!-- POPUP: WINKEL HISTORIE -->
+<div id="winkelHistoriePopup" class="popup">
+    <div class="popup-sheet">
+        <div class="popup-handle"></div>
+        <div class="popup-header">
+            <span class="popup-title">📜 Winkel-Historie</span>
+            <button class="close-btn" onclick="closePopup('winkelHistoriePopup')">✕</button>
+        </div>
+        <div class="popup-body" id="winkelHistoryListe"></div>
+    </div>
+</div>
 
-      $('masseA').textContent     = a.toLocaleString('de-DE', fmt) + " mm";
-      $('masseB').textContent     = b.toLocaleString('de-DE', fmt) + " mm";
-      $('masseC').textContent     = c.toLocaleString('de-DE', fmt) + " mm";
-      $('multiplier').textContent = k.toLocaleString('de-DE', fmt);
-      $('ergebnis').style.display = 'block';
+<!-- POPUP: FLÄCHE HISTORIE -->
+<div id="flaecheHistoriePopup" class="popup">
+    <div class="popup-sheet">
+        <div class="popup-handle"></div>
+        <div class="popup-header">
+            <span class="popup-title">📜 Gespeicherte Berechnungen</span>
+            <button class="close-btn" onclick="closePopup('flaecheHistoriePopup')">✕</button>
+        </div>
+        <div class="popup-body" id="flaecheHistoryListe"></div>
+    </div>
+</div>
 
-      berechnungsHistorie.unshift({
-        id: Date.now(),
-        zeit: new Date().toLocaleString('de-DE'),
-        input: a, bereich: 'metallbau', a, b, c, k,
-        v: APP_VERSION
-      });
-      if (berechnungsHistorie.length > 50) berechnungsHistorie.pop();
-      localStorage.setItem('sener_historie', JSON.stringify(berechnungsHistorie));
-    }
+<!-- POPUP: 3ER REIHE -->
+<div id="popup3er" class="popup">
+    <div class="popup-sheet">
+        <div class="popup-handle"></div>
+        <div class="popup-header">
+            <span class="popup-title">🧮 3er-Reihe (300–6.900 mm)</span>
+            <button class="close-btn" onclick="closePopup('popup3er')">✕</button>
+        </div>
+        <div class="popup-body" id="popupListe"></div>
+    </div>
+</div>
 
-    // ====== WINKEL HISTORIE ======
-    function zeigeWinkelHistorie() {
-      const liste = $('winkelHistoryListe');
-      liste.innerHTML = '';
+<!-- POPUP: OPTIONEN -->
+<div id="optionenPopup" class="popup">
+    <div class="popup-sheet">
+        <div class="popup-handle"></div>
+        <div class="popup-header">
+            <span class="popup-title">⚙️ Optionen</span>
+            <button class="close-btn" onclick="closePopup('optionenPopup')">✕</button>
+        </div>
+        <div class="popup-body">
+            <label>Überschrift / Art</label>
+            <select id="popupUeberschrift" onchange="toggleCustom()">
+                <option value="Wohnung">Wohnung</option><option value="Lager">Lager</option>
+                <option value="Halle">Halle</option><option value="Büro">Büro</option>
+                <option value="Agrar">Agrar</option><option value="Außenfläche">Außenfläche</option>
+                <option value="Sonstige">Sonstige…</option>
+            </select>
+            <input type="text" id="popupUeberschriftCustom" placeholder="Eigene Bezeichnung…" style="display:none;margin-top:7px;" />
+            <div class="sec-title">📍 Adresse</div>
+            <label>Straße / Nr.</label>
+            <input type="text" id="popupStrasse" placeholder="Musterstraße 12" />
+            <label>PLZ</label>
+            <input type="text" id="popupPLZ" placeholder="12345" inputmode="numeric" />
+            <label>Ort</label>
+            <input type="text" id="popupOrt" placeholder="Mülheim an der Ruhr" />
+            <div class="sec-title">📝 Beschreibung</div>
+            <input type="text" id="popupBeschreibung" placeholder="z.B. Wohnung 1. OG links" />
+            <button class="btn-p" style="margin-top:18px;" onclick="saveOptionen()">✔️ Übernehmen</button>
+        </div>
+    </div>
+</div>
 
-      if (!berechnungsHistorie.length) {
-        liste.innerHTML = '<p class="empty-history">Keine Winkelberechnungen vorhanden.</p>';
-        return;
-      }
+<script>
+"use strict";
 
-      berechnungsHistorie.forEach(item => {
-        const label = item.bereich === 'metallbau'   ? 'Metallbau (3-4-5)' :
-                      item.bereich === 'wohnungsbau' ? 'Wohnungsbau (mittel)' :
-                                                       'Landbau (genau)';
-        const fmt = { maximumFractionDigits: 0 };
-        const div = document.createElement('div');
-        div.className = 'history-item';
-        div.innerHTML = `
-          <div class="history-info">
-            <div class="raum-name">A: ${Number(item.a).toLocaleString('de-DE', fmt)} mm</div>
-            <div class="history-input">Ist: ${Number(item.input).toLocaleString('de-DE', fmt)} mm (${label})</div>
-            <div class="history-time">
-              k: ${Number(item.k).toLocaleString('de-DE', fmt)} |
-              B: ${Number(item.b).toLocaleString('de-DE', fmt)} |
-              C: ${Number(item.c).toLocaleString('de-DE', fmt)}
-            </div>
-          </div>
-          <button class="history-delete"
-                  onclick="event.stopPropagation(); loescheWinkelHistorie(${item.id})">🗑️</button>
-        `;
-        liste.appendChild(div);
-      });
-    }
+const APP_VERSION = "2026-02-26-02";
 
-    function loescheWinkelHistorie(id) {
-      berechnungsHistorie = berechnungsHistorie.filter(x => x.id !== id);
-      localStorage.setItem('sener_historie', JSON.stringify(berechnungsHistorie));
-      zeigeWinkelHistorie();
-    }
+// ── STATE ──
+let wHist  = JSON.parse(localStorage.getItem('sener_historie'))            || [];
+let fHist  = JSON.parse(localStorage.getItem('sener_berechnung_historie')) || [];
+let raeume = [];
+let draggedTab = null;
+let _ccb = null;
 
-    function oeffneWinkelHistorie() {
-      zeigeWinkelHistorie();
-      $('winkelHistoriePopup').style.display = 'flex';
-    }
+// ── NORMEN ──
+const normen = [
+  {nw:"6",zoll:'1/8"',iso:10.2,ansi:10.5},{nw:"8",zoll:'1/4"',iso:13.5,ansi:13.72},
+  {nw:"10",zoll:'3/8"',iso:17.2,ansi:17.15},{nw:"15",zoll:'1/2"',iso:21.3,ansi:21.34},
+  {nw:"20",zoll:'3/4"',iso:26.9,ansi:26.67},{nw:"25",zoll:'1"',iso:33.7,ansi:33.40},
+  {nw:"32",zoll:'1¼"',iso:42.4,ansi:42.16},{nw:"40",zoll:'1½"',iso:48.3,ansi:48.26},
+  {nw:"50",zoll:'2"',iso:60.3,ansi:60.33},{nw:"65",zoll:'2½"',iso:76.1,ansi:73.03},
+  {nw:"80",zoll:'3"',iso:88.9,ansi:88.90},{nw:"90",zoll:'3½"',iso:101.6,ansi:101.60},
+  {nw:"100",zoll:'4"',iso:114.3,ansi:114.30},{nw:"125",zoll:'5"',iso:139.7,ansi:141.30},
+  {nw:"150",zoll:'6"',iso:168.3,ansi:168.28},{nw:"175",zoll:'7"',iso:193.7,ansi:193.70},
+  {nw:"200",zoll:'8"',iso:219.1,ansi:219.08},{nw:"250",zoll:'10"',iso:273.0,ansi:273.05},
+  {nw:"300",zoll:'12"',iso:323.9,ansi:323.85},{nw:"350",zoll:'14"',iso:355.6,ansi:355.60},
+  {nw:"400",zoll:'16"',iso:406.4,ansi:406.40},{nw:"450",zoll:'18"',iso:457.2,ansi:457.20},
+  {nw:"500",zoll:'20"',iso:508.0,ansi:508.00},{nw:"600",zoll:'24"',iso:609.6,ansi:609.60},
+  {nw:"700",zoll:'28"',iso:711.2,ansi:711.20},{nw:"800",zoll:'32"',iso:812.8,ansi:812.80},
+  {nw:"900",zoll:'36"',iso:914.4,ansi:914.40},{nw:"1000",zoll:'40"',iso:1016.0,ansi:1016.00}
+];
 
-    // ====== DREIECK ======
-    function berechneDreieck() {
-      const a = safeNum($('seiteA').value);
-      const b = safeNum($('seiteB').value);
-      const g = safeNum($('winkelGamma').value);
+// ── HELPERS ──
+const $ = id => document.getElementById(id);
 
-      if (!isFinite(a) || !isFinite(b) || !isFinite(g) || a <= 0 || b <= 0 || g <= 0 || g >= 180) {
-        alert("Bitte gültige Werte für A, B und γ eingeben.");
-        $('ergebnisDreieck').style.display = 'none';
-        return;
-      }
+function sn(s) {
+  if (!s && s!==0) return NaN;
+  return parseFloat(String(s).replace(/\s/g,'').replace(/,/g,'.'));
+}
 
-      const gr = g * Math.PI / 180;
-      const c  = Math.sqrt(a * a + b * b - 2 * a * b * Math.cos(gr));
-      const fl = 0.5 * a * b * Math.sin(gr) / 1_000_000;
+function isHA() { return $('flaechenEinheitAnzeige')?.value === 'ha'; }
 
-      $('seiteC').textContent         = c.toFixed(2).replace('.', ',') + " mm";
-      $('flaecheDreieck').textContent  = fl.toFixed(3).replace('.', ',') + " m²";
-      $('ergebnisDreieck').style.display = 'block';
-    }
+function fmtFl(v) {
+  v=Number(v); if(!isFinite(v)) v=0;
+  if(isHA()){
+    const ha=v/10000;
+    return (ha<10?ha.toLocaleString('de-DE',{minimumFractionDigits:2,maximumFractionDigits:2})
+                 :ha.toLocaleString('de-DE',{minimumFractionDigits:1,maximumFractionDigits:1}))+' ha';
+  }
+  if(v<100)  return Math.round(v).toLocaleString('de-DE')+' m²';
+  if(v<1000) return (Math.round(v*10)/10).toLocaleString('de-DE',{minimumFractionDigits:1,maximumFractionDigits:1})+' m²';
+  return v.toLocaleString('de-DE',{maximumFractionDigits:3})+' m²';
+}
 
-    // ====== KREIS ======
-    function getDurchmesserInMM() {
-      let d    = safeNum($('durchmesser').value);
-      const e  = $('durchmesserEinheit').value;
-      if (!isFinite(d)) return 0;
-      if (e === 'zoll') return d * 25.4;
-      if (e === 'm')    return d * 1000;
-      return d;
-    }
+function toM(w,e){ w=Number(w); if(!isFinite(w)) return 0; return e==='mm'?w/1000:e==='cm'?w/100:w; }
 
-    function updateNormAndCalculate() {
-      const d_mm = getDurchmesserInMM();
-      const sel  = $('rohrNorm');
-      const out  = $('normAnzeige');
-      let best   = null, dist = Infinity;
+// ── TOAST ──
+function toast(msg,t='ok',ms=2600){
+  const el=document.createElement('div');
+  el.className=`toast ${t}`; el.textContent=msg;
+  $('tc').appendChild(el);
+  requestAnimationFrame(()=>requestAnimationFrame(()=>el.classList.add('show')));
+  setTimeout(()=>{el.classList.remove('show');setTimeout(()=>el.remove(),300);},ms);
+}
 
-      if (d_mm > 0) {
-        for (const n of normen) {
-          const a = Math.abs(d_mm - n.iso);
-          if (a < dist) { dist = a; best = n; }
-        }
-      }
+// ── VIBRATE ──
+function vib(ms=12){ navigator.vibrate?.(ms); }
 
-      if (best && d_mm > 0) {
-        sel.value    = best.nw;
-        out.innerHTML = `<strong>Nächste Norm:</strong> NW ${best.nw} (${best.zoll})<br>` +
-                        `<strong>ISO:</strong> ${best.iso.toFixed(2).replace('.', ',')} mm<br>` +
-                        `<strong>ANSI:</strong> ${best.ansi.toFixed(2).replace('.', ',')} mm`;
-      } else {
-        sel.value    = '';
-        out.innerHTML = "Keine gängige Norm erkannt.";
-      }
-      berechneKreis(d_mm);
-    }
+// ── INPUT ERROR ──
+function inpErr(...ids){
+  vib(55);
+  ids.forEach(id=>{const el=$(id);if(!el)return;el.classList.add('err');setTimeout(()=>el.classList.remove('err'),600);});
+}
 
-    function updateDurchmesserFromNorm() {
-      const v   = $('rohrNorm').value;
-      const d   = $('durchmesser');
-      const e   = $('durchmesserEinheit');
-      const out = $('normAnzeige');
+// ── KOPIEREN ──
+function kopiere(id,box){
+  const txt=$(id)?.textContent?.trim(); if(!txt) return;
+  vib(15);
+  navigator.clipboard.writeText(txt).then(()=>{
+    box.classList.add('copied');
+    toast('📋 '+txt+' kopiert','cpy',1800);
+    setTimeout(()=>box.classList.remove('copied'),1100);
+  }).catch(()=>toast('Kopieren fehlgeschlagen','err'));
+}
 
-      if (!v) { d.value = ''; out.innerHTML = "Keine Norm ausgewählt."; berechneKreis(0); return; }
-      const n = normen.find(x => x.nw === v);
-      if (!n) return;
+// ── CONFIRM ──
+function confirm(text,cb){
+  $('ct').textContent=text;
+  $('co').classList.add('show');
+  _ccb=cb;
+}
 
-      d.value       = n.iso.toFixed(2).replace('.', ',');
-      e.value       = 'mm';
-      out.innerHTML = `<strong>Ausgewählte Norm:</strong> NW ${n.nw} (${n.zoll})<br>` +
-                      `<strong>ISO:</strong> ${n.iso.toFixed(2).replace('.', ',')} mm<br>` +
-                      `<strong>ANSI:</strong> ${n.ansi.toFixed(2).replace('.', ',')} mm`;
-      berechneKreis(n.iso);
-    }
+function ca(ja){
+  $('co').classList.remove('show');
+  if(_ccb){_ccb(ja);_ccb=null;}
+}
 
-    function berechneKreis(override) {
-      const d_mm = (override !== undefined) ? override : getDurchmesserInMM();
-      if (!d_mm || d_mm <= 0) { $('ergebnisKreis').style.display = 'none'; return; }
+// ── POPUP ──
+function openPopup(id) { $(id).classList.add('show'); }
+function closePopup(id){ $(id).classList.remove('show'); }
 
-      const dm     = d_mm / 1000;
-      const umfang = Math.PI * dm;
-      const fl     = Math.PI * (dm / 2) ** 2;
+document.addEventListener('click',e=>{
+  if(e.target.classList.contains('popup')) e.target.classList.remove('show');
+});
 
-      $('umfangKreis').textContent  = umfang.toLocaleString('de-DE', { minimumFractionDigits: 3, maximumFractionDigits: 3 }) + " m";
-      $('flaecheKreis').textContent = fl.toLocaleString('de-DE',     { minimumFractionDigits: 3, maximumFractionDigits: 3 }) + " m²";
-      $('ergebnisKreis').style.display = 'block';
-    }
+// ── METALLBAU KERN ──
+function metallbauA(ist){
+  ist=Math.min(ist,6900);
+  const rest=ist%300, stufe=Math.floor(ist/300);
+  return Math.min(6900,Math.max(300,rest<150?(stufe-1)*300:stufe*300));
+}
 
-    // ====== FLÄCHE ======
-    function getUeberschrift() {
-      const sel = $('ueberschriftSelect').value;
-      if (sel === 'Sonstige') return $('ueberschriftCustom').value.trim() || 'Unbenannt';
-      return sel;
-    }
+// ── TABS ──
+function zTab(name,e){
+  e?.stopPropagation?.();
+  $('versandMenu').style.display='none';
+  document.querySelectorAll('.tab-content').forEach(c=>c.classList.remove('active'));
+  document.querySelectorAll('.tab-button').forEach(b=>b.classList.remove('active'));
+  $(name).classList.add('active');
+  document.querySelector(`.tab-button[data-tab="${name}"]`)?.classList.add('active');
+  if(name==='flaeche'){showRaeume();calcGesamt();}
+}
 
-    function getAufmassDaten() {
-      return {
-        titel:        getUeberschrift(),
-        strasse:      $('adresseStrasse').value.trim(),
-        plz:          $('adressePLZ').value.trim(),
-        ort:          $('adresseOrt').value.trim(),
-        beschreibung: $('beschreibung').value.trim()
-      };
-    }
-
-    function berechneFlaeche() {
-      const name = $('raumName').value.trim();
-      const L    = safeNum($('laenge').value);
-      const B    = safeNum($('breite').value);
-      const Le   = $('laengeEinheit').value;
-      const Be   = $('breiteEinheit').value;
-
-      if (!name || !isFinite(L) || !isFinite(B) || L <= 0 || B <= 0) {
-        alert("Bitte Raumnamen sowie gültige Länge und Breite eingeben.");
-        return;
-      }
-
-      const fl = einheitInMeter(L, Le) * einheitInMeter(B, Be);
-      raeume.unshift({ id: Date.now(), name, laenge: L, breite: B, laengeE: Le, breiteE: Be, flaeche: fl });
-      zeigeRaumListe();
-      berechneGesamtFlaeche();
-      $('raumName').value = '';
-      $('laenge').value   = '';
-      $('breite').value   = '';
-    }
-
-    function loescheRaum(id) {
-      raeume = raeume.filter(r => r.id !== id);
-      zeigeRaumListe();
-      berechneGesamtFlaeche();
-    }
-
-    function zeigeRaumListe() {
-      const div = $('raumListe');
-      div.innerHTML = '';
-
-      if (!raeume.length) {
-        div.innerHTML = '<p class="empty-history">Noch keine Räume erfasst.</p>';
-        $('gesamtFlaecheDiv').style.display = 'none';
-        return;
-      }
-
-      raeume.forEach(r => {
-        const el = document.createElement('div');
-        el.className = 'raum-item';
-        el.innerHTML = `
-          <div style="flex-grow:1;">
-            <div class="raum-name">${r.name}</div>
-            <div class="history-input">
-              ${Number(r.laenge).toFixed(2).replace('.', ',')} ${r.laengeE} ×
-              ${Number(r.breite).toFixed(2).replace('.', ',')} ${r.breiteE}
-            </div>
-          </div>
-          <div class="raum-flaeche">${formatFlaeche(r.flaeche)}</div>
-          <div><button class="raum-delete" onclick="loescheRaum(${r.id})">🗑️</button></div>
-        `;
-        div.appendChild(el);
-      });
-    }
-
-    function berechneGesamtFlaeche() {
-      const sum = raeume.reduce((s, r) => s + Number(r.flaeche || 0), 0);
-      $('totalFlaeche').textContent       = formatFlaeche(sum);
-      $('gesamtFlaecheDiv').style.display = raeume.length ? 'flex' : 'none';
-      return sum;
-    }
-
-    function aktualisiereFlaechenAnzeige() { zeigeRaumListe(); berechneGesamtFlaeche(); }
-
-    function speichereBerechnung() {
-      if (!raeume.length) { alert("Es gibt keine Räume zum Speichern!"); return; }
-      const daten  = getAufmassDaten();
-      const gesamt = berechneGesamtFlaeche();
-
-      berechnungHistorie.unshift({
-        id: Date.now(),
-        zeit: new Date().toLocaleString('de-DE'),
-        daten, raeume: raeume.slice(), gesamt,
-        v: APP_VERSION
-      });
-      if (berechnungHistorie.length > 50) berechnungHistorie.pop();
-      localStorage.setItem('sener_berechnung_historie', JSON.stringify(berechnungHistorie));
-      alert(`Berechnung "${daten.titel}" gespeichert!`);
-    }
-
-    function zeigeFlaecheHistorie() {
-      const liste = $('flaecheHistoryListe');
-      liste.innerHTML = '';
-
-      if (!berechnungHistorie.length) {
-        liste.innerHTML = '<p class="empty-history">Keine gespeicherten Flächenberechnungen vorhanden.</p>';
-        return;
-      }
-
-      berechnungHistorie.forEach(item => {
-        const d  = item.daten || {};
-        const el = document.createElement('div');
-        el.className = 'history-item';
-        el.innerHTML = `
-          <div class="history-info" onclick="ladeBerechnung(${item.id})" style="cursor:pointer;">
-            <div class="raum-name">${d.titel || 'Unbenannt'}</div>
-            <div class="raum-flaeche">${formatFlaeche(item.gesamt)}</div>
-            <div class="history-time">${item.zeit} (${(item.raeume || []).length} Räume)</div>
-            <div class="history-input">
-              ${d.strasse ? d.strasse + ', ' : ''}${(d.plz || d.ort) ? (d.plz + ' ' + d.ort) : ''}
-            </div>
-          </div>
-          <button class="history-delete"
-                  onclick="event.stopPropagation(); loescheBerechnungHistorie(${item.id})">🗑️</button>
-        `;
-        liste.appendChild(el);
-      });
-    }
-
-    function loescheBerechnungHistorie(id) {
-      berechnungHistorie = berechnungHistorie.filter(x => x.id !== id);
-      localStorage.setItem('sener_berechnung_historie', JSON.stringify(berechnungHistorie));
-      zeigeFlaecheHistorie();
-    }
-
-    function ladeBerechnung(id) {
-      const b = berechnungHistorie.find(x => x.id === id);
-      if (!b) return;
-      const d    = b.daten || {};
-      const sel  = $('ueberschriftSelect');
-      const cust = $('ueberschriftCustom');
-
-      if (["Wohnung","Lager","Halle","Büro","Agrar","Außenfläche"].includes(d.titel)) {
-        sel.value = d.titel; cust.value = '';
-      } else {
-        sel.value = 'Sonstige'; cust.value = d.titel || '';
-      }
-
-      $('adresseStrasse').value = d.strasse      || '';
-      $('adressePLZ').value     = d.plz          || '';
-      $('adresseOrt').value     = d.ort          || '';
-      $('beschreibung').value   = d.beschreibung || '';
-
-      raeume = (b.raeume || []).slice();
-      zeigeRaumListe();
-      berechneGesamtFlaeche();
-      $('flaecheHistoriePopup').style.display = 'none';
-      $('versandMenu').style.display          = 'none';
-      alert(`Berechnung "${d.titel || 'Unbenannt'}" geladen!`);
-    }
-
-    function oeffneFlaecheHistorie() { zeigeFlaecheHistorie(); $('flaecheHistoriePopup').style.display = 'flex'; }
-
-    // ====== VERSAND ======
-    function toggleVersandMenu(e) {
-      e && e.stopPropagation && e.stopPropagation();
-      const m = $('versandMenu');
-      m.style.display = (m.style.display === 'none' || m.style.display === '') ? 'grid' : 'none';
-    }
-
-    function generiereShareText(raumArray, datenOverride) {
-      const rr  = raumArray    || raeume;
-      const d   = datenOverride || getAufmassDaten();
-      const ges = rr.reduce((s, r) => s + Number(r.flaeche || 0), 0);
-      let t = `Flächenberechnung: ${d.titel}\n`;
-      if (d.strasse)      t += `Adresse: ${d.strasse}\n`;
-      if (d.plz || d.ort) t += `${d.plz} ${d.ort}\n`;
-      if (d.beschreibung) t += `Beschreibung: ${d.beschreibung}\n`;
-      t += `\nGesamtfläche: ${formatFlaeche(ges)}\n\n`;
-      rr.forEach(r => {
-        t += `• ${r.name}: ${formatFlaeche(r.flaeche)} ` +
-             `(${Number(r.laenge).toFixed(2).replace('.', ',')} ${r.laengeE} × ` +
-             `${Number(r.breite).toFixed(2).replace('.', ',')} ${r.breiteE})\n`;
-      });
-      return t;
-    }
-
-    function druckeErgebnisse() {
-      if (!raeume.length) { alert("Keine Räume zum Drucken vorhanden."); return; }
-      window.print();
-    }
-
-    function versendePerWhatsApp() {
-      if (!raeume.length) { alert("Keine Räume zum Versenden vorhanden."); return; }
-      window.open(`https://wa.me/?text=${encodeURIComponent(generiereShareText())}`, '_blank');
-    }
-
-    function versendeErgebnisse() {
-      if (!raeume.length) { alert("Keine Räume zum Versenden vorhanden."); return; }
-      const d       = getAufmassDaten();
-      const subject = `Ergebnisse der Flächenberechnung: ${d.titel}`;
-      window.location.href = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(generiereShareText())}`;
-    }
-
-    function erstelleUndOeffnePDF() {
-      if (!raeume.length) { alert("Keine Räume zum Erstellen einer PDF vorhanden."); return; }
-      if (!window.jspdf || !window.jspdf.jsPDF) {
-        alert("jsPDF konnte nicht geladen werden. Bitte Internet prüfen (CDN).");
-        return;
-      }
-      const { jsPDF } = window.jspdf;
-      const doc = new jsPDF();
-      const d   = getAufmassDaten();
-      const ges = berechneGesamtFlaeche();
-      let y = 10, lh = 7;
-
-      doc.setFontSize(16);
-      doc.text(`Flächenberechnung: ${d.titel}`, 10, y); y += lh;
-      doc.setFontSize(11);
-      if (d.strasse)      { doc.text(`Adresse: ${d.strasse}`, 10, y); y += lh; }
-      if (d.plz || d.ort) { doc.text(`${d.plz} ${d.ort}`,    10, y); y += lh; }
-      if (d.beschreibung) { doc.text(`Beschreibung: ${d.beschreibung}`, 10, y); y += lh; }
-      y += lh;
-      doc.setFontSize(12);
-      doc.text(`Gesamtfläche: ${formatFlaeche(ges)}`, 10, y); y += lh * 2;
-      doc.setFontSize(10);
-      raeume.forEach(r => {
-        if (y > 280) { doc.addPage(); y = 10; }
-        doc.text(`Raum: ${r.name}`, 10, y); y += lh;
-        doc.text(`Fläche: ${formatFlaeche(r.flaeche)}`, 15, y); y += lh;
-        doc.text(`Maße: ${Number(r.laenge).toFixed(2).replace('.', ',')} ${r.laengeE} x ${Number(r.breite).toFixed(2).replace('.', ',')} ${r.breiteE}`, 15, y);
-        y += lh * 1.2;
-      });
-
-      const name = (d.titel || 'Flaechenberechnung').replace(/[^a-z0-9]/gi, '_');
-      doc.save(`${name}.pdf`);
-    }
-
-    // ====== OPTIONEN ======
-    function oeffneOptionenPopup() {
-      const titel  = getUeberschrift();
-      const sel    = $('popupUeberschrift');
-      const custom = $('popupUeberschriftCustom');
-
-      if (["Wohnung","Lager","Halle","Büro","Agrar","Außenfläche"].includes(titel)) {
-        sel.value = titel; custom.style.display = 'none'; custom.value = '';
-      } else {
-        sel.value = 'Sonstige'; custom.style.display = 'block'; custom.value = titel;
-      }
-
-      $('popupStrasse').value      = $('adresseStrasse').value;
-      $('popupPLZ').value          = $('adressePLZ').value;
-      $('popupOrt').value          = $('adresseOrt').value;
-      $('popupBeschreibung').value = $('beschreibung').value;
-      $('optionenPopup').style.display = 'flex';
-    }
-
-    function schliesseOptionenPopup() { $('optionenPopup').style.display = 'none'; }
-
-    function togglePopupCustom() {
-      $('popupUeberschriftCustom').style.display =
-        ($('popupUeberschrift').value === 'Sonstige') ? 'block' : 'none';
-    }
-
-    function speichereOptionen() {
-      let titel = $('popupUeberschrift').value;
-      if (titel === 'Sonstige') {
-        titel = $('popupUeberschriftCustom').value.trim() || 'Unbenannt';
-        $('ueberschriftSelect').value = 'Sonstige';
-        $('ueberschriftCustom').value = titel;
-      } else {
-        $('ueberschriftSelect').value = titel;
-        $('ueberschriftCustom').value = '';
-      }
-      $('adresseStrasse').value = $('popupStrasse').value;
-      $('adressePLZ').value     = $('popupPLZ').value;
-      $('adresseOrt').value     = $('popupOrt').value;
-      $('beschreibung').value   = $('popupBeschreibung').value;
-      schliesseOptionenPopup();
-    }
-
-    // ====== SERVICE WORKER ======
-    async function registerSW() {
-      if (!('serviceWorker' in navigator)) return;
-      try {
-        const reg = await navigator.serviceWorker.register('./sw.js', { scope: './' });
-        const forceUpdate = () => { if (reg.waiting) reg.waiting.postMessage({ type: 'SKIP_WAITING' }); };
-        reg.addEventListener('updatefound', () => {
-          const nw = reg.installing;
-          if (!nw) return;
-          nw.addEventListener('statechange', () => {
-            if (nw.state === 'installed' && navigator.serviceWorker.controller) forceUpdate();
-          });
-        });
-        navigator.serviceWorker.addEventListener('controllerchange', () => window.location.reload());
-      } catch (err) {
-        console.log('SW Registrierung fehlgeschlagen:', err);
-      }
-    }
-
-    // ====== INIT ======
-    document.addEventListener('DOMContentLoaded', () => {
-      zeigeTab('winkel', null);
-      zeigeRaumListe();
-      berechneGesamtFlaeche();
-      const menu = $('versandMenu');
-      if (menu) menu.style.display = 'none';
-
-      const inp = $('istMasse');
-      if (inp) inp.addEventListener('keydown', e => { if (e.key === 'Enter') berechneMassen(); });
-
-      initDraggableTabs();
-      registerSW();
-      console.log("Sener App Version:", APP_VERSION);
+function initTabs(){
+  const c=$('tabsContainer'); if(!c) return;
+  const btns=Array.from(c.querySelectorAll('.tab-button'));
+  try{
+    const ord=JSON.parse(localStorage.getItem('sener_tabs_order')||'[]');
+    const m={}; btns.forEach(b=>m[b.dataset.tab]=b);
+    ord.forEach(id=>m[id]&&c.appendChild(m[id]));
+    btns.forEach(b=>!c.contains(b)&&c.appendChild(b));
+  }catch{}
+  c.querySelectorAll('.tab-button').forEach(btn=>{
+    btn.setAttribute('draggable','true');
+    btn.addEventListener('dragstart',e=>{draggedTab=btn;btn.classList.add('dragging');e.dataTransfer.effectAllowed='move';});
+    btn.addEventListener('dragend',()=>{
+      draggedTab?.classList.remove('dragging');
+      c.querySelectorAll('.tab-button').forEach(b=>b.classList.remove('drag-over'));
+      draggedTab=null;
+      localStorage.setItem('sener_tabs_order',JSON.stringify(Array.from(c.querySelectorAll('.tab-button')).map(b=>b.dataset.tab)));
     });
-    </script>
+    btn.addEventListener('dragover',e=>{
+      e.preventDefault(); if(!draggedTab||draggedTab===btn) return;
+      btn.classList.add('drag-over');
+      const r=btn.getBoundingClientRect();
+      c.insertBefore(draggedTab,(e.clientX-r.left)<r.width/2?btn:btn.nextSibling);
+    });
+    btn.addEventListener('dragleave',()=>btn.classList.remove('drag-over'));
+    btn.addEventListener('drop',e=>{e.preventDefault();btn.classList.remove('drag-over');});
+  });
+}
+
+// ── WINKEL ──
+function berechneMassen(){
+  const ist=sn($('istMasse').value), ber=$('bereich').value;
+  if(!isFinite(ist)||ist<300){toast('Ist-Maß ≥ 300 mm eingeben','err');inpErr('istMasse');return;}
+  let a,k;
+  if(ber==='metallbau')     {a=metallbauA(ist);k=a/3;}
+  else if(ber==='wohnungsbau'){k=Math.max(100,Math.floor((ist/3)/50)*50);a=k*3;}
+  else                       {k=Math.max(100,Math.floor((ist/3)/10)*10);a=k*3;}
+  const b=k*4,c=k*5,f={maximumFractionDigits:0};
+  $('masseA').textContent=a.toLocaleString('de-DE',f)+' mm';
+  $('masseB').textContent=b.toLocaleString('de-DE',f)+' mm';
+  $('masseC').textContent=c.toLocaleString('de-DE',f)+' mm';
+  $('multiplier').textContent=k.toLocaleString('de-DE',f);
+  $('ergebnis').style.display='block'; vib(10);
+  wHist.unshift({id:Date.now(),zeit:new Date().toLocaleString('de-DE'),input:ist,ber,a,b,c,k,v:APP_VERSION});
+  if(wHist.length>50) wHist.pop();
+  localStorage.setItem('sener_historie',JSON.stringify(wHist));
+}
+
+function zeige3erReihe(){
+  const l=$('popupListe'); l.innerHTML='';
+  const istV=sn($('istMasse').value);
+  const aV=(isFinite(istV)&&istV>=300)?metallbauA(istV):-1;
+  for(let a=300;a<=6900;a+=300){
+    const k=a/3,b=k*4,c=k*5;
+    const d=document.createElement('div');
+    d.className='hi'; if(a===aV) d.classList.add('reihe-active');
+    d.style.cursor='pointer';
+    d.innerHTML=`<div class="hi-info">
+      <div class="hi-title">A: ${a.toLocaleString('de-DE')} mm <span style="color:var(--muted);font-size:.85em;">(k=${k.toLocaleString('de-DE')})</span></div>
+      <div class="hi-sub">B: ${b.toLocaleString('de-DE')} mm · C: ${c.toLocaleString('de-DE')} mm</div>
+    </div><span style="color:var(--muted2);font-size:.85em;flex-shrink:0;">↵</span>`;
+    d.onclick=()=>{
+      $('istMasse').value=String(a); $('bereich').value='metallbau';
+      renderWinkelFix(a); closePopup('popup3er'); vib(10);
+    };
+    l.appendChild(d);
+  }
+  openPopup('popup3er');
+}
+
+function renderWinkelFix(a){
+  a=Math.min(6900,Math.max(300,a));
+  const k=a/3,b=k*4,c=k*5,f={maximumFractionDigits:0};
+  $('masseA').textContent=a.toLocaleString('de-DE',f)+' mm';
+  $('masseB').textContent=b.toLocaleString('de-DE',f)+' mm';
+  $('masseC').textContent=c.toLocaleString('de-DE',f)+' mm';
+  $('multiplier').textContent=k.toLocaleString('de-DE',f);
+  $('ergebnis').style.display='block';
+  wHist.unshift({id:Date.now(),zeit:new Date().toLocaleString('de-DE'),input:a,ber:'metallbau',a,b,c,k,v:APP_VERSION});
+  if(wHist.length>50) wHist.pop();
+  localStorage.setItem('sener_historie',JSON.stringify(wHist));
+}
+
+function oeffneWinkelHistorie(){
+  const l=$('winkelHistoryListe'); l.innerHTML='';
+  if(!wHist.length){l.innerHTML='<div class="empty">📭 Keine Einträge</div>';openPopup('winkelHistoriePopup');return;}
+  wHist.forEach(it=>{
+    const lbl=it.ber==='metallbau'?'Metallbau':it.ber==='wohnungsbau'?'Wohnungsbau':'Landbau';
+    const f={maximumFractionDigits:0};
+    const d=document.createElement('div'); d.className='hi';
+    d.innerHTML=`<div class="hi-info">
+      <div class="hi-title">A: ${Number(it.a).toLocaleString('de-DE',f)} mm</div>
+      <div class="hi-sub">Ist: ${Number(it.input).toLocaleString('de-DE',f)} mm · ${lbl} · ${it.zeit}</div>
+      <div class="hi-sub">k=${Number(it.k).toLocaleString('de-DE',f)} | B=${Number(it.b).toLocaleString('de-DE',f)} | C=${Number(it.c).toLocaleString('de-DE',f)}</div>
+    </div>
+    <button class="hi-del" onclick="event.stopPropagation();delWinkel(${it.id})">🗑️</button>`;
+    l.appendChild(d);
+  });
+  openPopup('winkelHistoriePopup');
+}
+
+function delWinkel(id){
+  confirm('Eintrag löschen?',ja=>{
+    if(!ja) return;
+    wHist=wHist.filter(x=>x.id!==id);
+    localStorage.setItem('sener_historie',JSON.stringify(wHist));
+    oeffneWinkelHistorie(); toast('Gelöscht','inf');
+  });
+}
+
+// ── DREIECK ──
+function berechneDreieck(){
+  const a=sn($('seiteA').value),b=sn($('seiteB').value),g=sn($('winkelGamma').value);
+  const err=[];
+  if(!isFinite(a)||a<=0) err.push('seiteA');
+  if(!isFinite(b)||b<=0) err.push('seiteB');
+  if(!isFinite(g)||g<=0||g>=180) err.push('winkelGamma');
+  if(err.length){toast('Ungültige Eingabe','err');inpErr(...err);return;}
+  const gr=g*Math.PI/180;
+  const c=Math.sqrt(a*a+b*b-2*a*b*Math.cos(gr));
+  const fl=0.5*a*b*Math.sin(gr)/1e6;
+  $('seiteC').textContent=c.toFixed(2).replace('.',',')+' mm';
+  $('flaecheDreieck').textContent=fl.toFixed(3).replace('.',',')+' m²';
+  $('ergebnisDreieck').style.display='block'; vib(10);
+}
+
+// ── KREIS ──
+function getDmm(){
+  let d=sn($('durchmesser').value); const e=$('durchmesserEinheit').value;
+  if(!isFinite(d)) return 0;
+  return e==='zoll'?d*25.4:e==='m'?d*1000:d;
+}
+
+function updateNorm(){
+  const dmm=getDmm(),sel=$('rohrNorm'),out=$('normAnzeige');
+  let best=null,dist=Infinity;
+  if(dmm>0) for(const n of normen){const a=Math.abs(dmm-n.iso);if(a<dist){dist=a;best=n;}}
+  if(best&&dmm>0){
+    sel.value=best.nw;
+    out.innerHTML=`<strong>Nächste Norm:</strong> NW ${best.nw} (${best.zoll}) &nbsp;·&nbsp; <strong>ISO:</strong> ${best.iso.toFixed(2).replace('.',',')} mm &nbsp;·&nbsp; <strong>ANSI:</strong> ${best.ansi.toFixed(2).replace('.',',')} mm`;
+    out.style.display='block';
+  } else {sel.value='';out.style.display='none';}
+  calcKreis(dmm);
+}
+
+function normAuswahl(){
+  const v=$('rohrNorm').value,d=$('durchmesser'),e=$('durchmesserEinheit'),out=$('normAnzeige');
+  if(!v){d.value='';out.style.display='none';calcKreis(0);return;}
+  const n=normen.find(x=>x.nw===v); if(!n) return;
+  d.value=n.iso.toFixed(2).replace('.',','); e.value='mm';
+  out.innerHTML=`<strong>Norm:</strong> NW ${n.nw} (${n.zoll}) &nbsp;·&nbsp; <strong>ISO:</strong> ${n.iso.toFixed(2).replace('.',',')} mm &nbsp;·&nbsp; <strong>ANSI:</strong> ${n.ansi.toFixed(2).replace('.',',')} mm`;
+  out.style.display='block'; calcKreis(n.iso);
+}
+
+function berechneKreis(ov){ calcKreis(ov); }
+
+function calcKreis(ov){
+  const dmm=(ov!==undefined)?ov:getDmm();
+  if(!dmm||dmm<=0){$('ergebnisKreis').style.display='none';return;}
+  const dm=dmm/1000;
+  $('umfangKreis').textContent=(Math.PI*dm).toLocaleString('de-DE',{minimumFractionDigits:3,maximumFractionDigits:3})+' m';
+  $('flaecheKreis').textContent=(Math.PI*(dm/2)**2).toLocaleString('de-DE',{minimumFractionDigits:3,maximumFractionDigits:3})+' m²';
+  $('ergebnisKreis').style.display='block';
+}
+
+// ── FLÄCHE ──
+function getUeberschrift(){
+  const v=$('ueberschriftSelect').value;
+  return v==='Sonstige'?($('ueberschriftCustom').value.trim()||'Unbenannt'):v;
+}
+
+function getAufmassDaten(){
+  return {titel:getUeberschrift(),strasse:$('adresseStrasse').value.trim(),
+          plz:$('adressePLZ').value.trim(),ort:$('adresseOrt').value.trim(),
+          beschreibung:$('beschreibung').value.trim()};
+}
+
+function addRaum(){
+  const name=$('raumName').value.trim();
+  const L=sn($('laenge').value),B=sn($('breite').value);
+  const Le=$('laengeEinheit').value,Be=$('breiteEinheit').value;
+  const err=[];
+  if(!name) err.push('raumName');
+  if(!isFinite(L)||L<=0) err.push('laenge');
+  if(!isFinite(B)||B<=0) err.push('breite');
+  if(err.length){toast('Name, Länge und Breite eingeben','err');inpErr(...err);return;}
+  const fl=toM(L,Le)*toM(B,Be);
+  raeume.unshift({id:Date.now(),name,laenge:L,breite:B,laengeE:Le,breiteE:Be,flaeche:fl});
+  showRaeume(); calcGesamt();
+  $('raumName').value=''; $('laenge').value=''; $('breite').value='';
+  vib(10); toast(`✅ „${name}" – ${fmtFl(fl)}`,'ok',2000);
+}
+
+function delRaum(id){
+  const r=raeume.find(x=>x.id===id);
+  confirm(`„${r?.name||'Raum'}" löschen?`,ja=>{
+    if(!ja) return;
+    raeume=raeume.filter(x=>x.id!==id);
+    showRaeume(); calcGesamt(); toast('Raum gelöscht','inf');
+  });
+}
+
+function showRaeume(){
+  const div=$('raumListe'); div.innerHTML='';
+  if(!raeume.length){div.innerHTML='<div class="empty">📋 Noch keine Räume erfasst</div>';$('gesamtFlaecheDiv').style.display='none';return;}
+  raeume.forEach(r=>{
+    const el=document.createElement('div'); el.className='raum-item';
+    el.innerHTML=`<div class="raum-info">
+      <div class="raum-name">${r.name}</div>
+      <div class="raum-mass">${Number(r.laenge).toFixed(2).replace('.',',')} ${r.laengeE} × ${Number(r.breite).toFixed(2).replace('.',',')} ${r.breiteE}</div>
+    </div>
+    <div class="raum-fl">${fmtFl(r.flaeche)}</div>
+    <button class="del-btn" onclick="delRaum(${r.id})">🗑️</button>`;
+    div.appendChild(el);
+  });
+}
+
+function calcGesamt(){
+  const sum=raeume.reduce((s,r)=>s+Number(r.flaeche||0),0);
+  $('totalFlaeche').textContent=fmtFl(sum);
+  $('gesamtFlaecheDiv').style.display=raeume.length?'flex':'none';
+  return sum;
+}
+
+function refreshFlaeche(){showRaeume();calcGesamt();}
+
+function speichereBerechnung(){
+  if(!raeume.length){toast('Keine Räume vorhanden','err');return;}
+  const d=getAufmassDaten(),ges=calcGesamt();
+  fHist.unshift({id:Date.now(),zeit:new Date().toLocaleString('de-DE'),daten:d,raeume:raeume.slice(),gesamt:ges,v:APP_VERSION});
+  if(fHist.length>50) fHist.pop();
+  localStorage.setItem('sener_berechnung_historie',JSON.stringify(fHist));
+  toast(`💾 „${d.titel}" gespeichert`,'ok');
+}
+
+function oeffneFlaecheHistorie(){
+  const l=$('flaecheHistoryListe'); l.innerHTML='';
+  if(!fHist.length){l.innerHTML='<div class="empty">📭 Keine gespeicherten Berechnungen</div>';openPopup('flaecheHistoriePopup');return;}
+  fHist.forEach(item=>{
+    const d=item.daten||{};
+    const el=document.createElement('div'); el.className='hi';
+    el.innerHTML=`<div class="hi-info" style="cursor:pointer;" onclick="ladeBerechnung(${item.id})">
+      <div class="hi-title">${d.titel||'Unbenannt'} · ${fmtFl(item.gesamt)}</div>
+      <div class="hi-sub">${item.zeit} · ${(item.raeume||[]).length} Räume</div>
+      ${d.strasse?`<div class="hi-sub">${d.strasse}, ${d.plz} ${d.ort}</div>`:''}
+    </div>
+    <button class="hi-del" onclick="event.stopPropagation();delFHist(${item.id})">🗑️</button>`;
+    l.appendChild(el);
+  });
+  openPopup('flaecheHistoriePopup');
+}
+
+function delFHist(id){
+  confirm('Berechnung löschen?',ja=>{
+    if(!ja) return;
+    fHist=fHist.filter(x=>x.id!==id);
+    localStorage.setItem('sener_berechnung_historie',JSON.stringify(fHist));
+    oeffneFlaecheHistorie(); toast('Gelöscht','inf');
+  });
+}
+
+function ladeBerechnung(id){
+  const b=fHist.find(x=>x.id===id); if(!b) return;
+  const d=b.daten||{},sel=$('ueberschriftSelect'),cust=$('ueberschriftCustom');
+  if(['Wohnung','Lager','Halle','Büro','Agrar','Außenfläche'].includes(d.titel)){sel.value=d.titel;cust.value='';}
+  else{sel.value='Sonstige';cust.value=d.titel||'';}
+  $('adresseStrasse').value=d.strasse||''; $('adressePLZ').value=d.plz||'';
+  $('adresseOrt').value=d.ort||''; $('beschreibung').value=d.beschreibung||'';
+  raeume=(b.raeume||[]).slice(); showRaeume(); calcGesamt();
+  closePopup('flaecheHistoriePopup'); $('versandMenu').style.display='none';
+  toast(`📂 „${d.titel||'Unbenannt'}" geladen`,'inf');
+}
+
+// ── VERSAND ──
+function toggleVersand(e){
+  e?.stopPropagation?.();
+  const m=$('versandMenu');
+  m.style.display=(m.style.display==='none'||!m.style.display)?'block':'none';
+}
+
+function genText(){
+  const d=getAufmassDaten(),ges=raeume.reduce((s,r)=>s+Number(r.flaeche||0),0);
+  let t=`Flächenrechner King\n${d.titel}\n`;
+  if(d.strasse) t+=`${d.strasse}, ${d.plz} ${d.ort}\n`;
+  if(d.beschreibung) t+=`${d.beschreibung}\n`;
+  t+=`\nGesamtfläche: ${fmtFl(ges)}\n\n`;
+  raeume.forEach(r=>t+=`• ${r.name}: ${fmtFl(r.flaeche)} (${Number(r.laenge).toFixed(2).replace('.',',')} ${r.laengeE} × ${Number(r.breite).toFixed(2).replace('.',',')} ${r.breiteE})\n`);
+  return t;
+}
+
+function drucken(){ if(!raeume.length){toast('Keine Räume vorhanden','err');return;} window.print(); }
+
+function whatsapp(){
+  if(!raeume.length){toast('Keine Räume vorhanden','err');return;}
+  window.open('https://wa.me/?text='+encodeURIComponent(genText()),'_blank');
+}
+
+function email(){
+  if(!raeume.length){toast('Keine Räume vorhanden','err');return;}
+  const d=getAufmassDaten();
+  window.location.href=`mailto:?subject=${encodeURIComponent('Flächenberechnung: '+d.titel)}&body=${encodeURIComponent(genText())}`;
+}
+
+function erstellePDF(){
+  if(!raeume.length){toast('Keine Räume vorhanden','err');return;}
+  if(window._jspdfFehler||!window.jspdf?.jsPDF){toast('PDF offline nicht verfügbar – Internet prüfen','err');return;}
+  const {jsPDF}=window.jspdf,doc=new jsPDF();
+  const d=getAufmassDaten(),ges=calcGesamt(),now=new Date().toLocaleString('de-DE');
+  let y=14,lh=7;
+  doc.setFontSize(18);doc.setFont(undefined,'bold');
+  doc.text('Flächenrechner King',10,y);y+=10;
+  doc.setFontSize(13);doc.setFont(undefined,'normal');
+  doc.text(d.titel,10,y);y+=lh;
+  if(d.strasse){doc.text(d.strasse,10,y);y+=lh;}
+  if(d.plz||d.ort){doc.text(`${d.plz} ${d.ort}`,10,y);y+=lh;}
+  if(d.beschreibung){doc.text(d.beschreibung,10,y);y+=lh;}
+  doc.text(`Erstellt: ${now}`,10,y);y+=lh*1.5;
+  doc.setFontSize(13);doc.setFont(undefined,'bold');
+  doc.text(`Gesamtfläche: ${fmtFl(ges)}`,10,y);y+=lh*1.5;
+  doc.setFontSize(10);doc.setFont(undefined,'normal');
+  raeume.forEach(r=>{
+    if(y>274){doc.addPage();y=14;}
+    doc.text(`• ${r.name}`,12,y);y+=lh;
+    doc.text(`  ${fmtFl(r.flaeche)}  (${Number(r.laenge).toFixed(2).replace('.',',')} ${r.laengeE} × ${Number(r.breite).toFixed(2).replace('.',',')} ${r.breiteE})`,12,y);y+=lh*1.3;
+  });
+  doc.save((d.titel||'Flaeche').replace(/[^a-z0-9]/gi,'_')+'.pdf');
+  toast('📄 PDF gespeichert','ok');
+}
+
+// ── OPTIONEN ──
+function oeffneOptionen(){
+  const t=getUeberschrift(),sel=$('popupUeberschrift'),cust=$('popupUeberschriftCustom');
+  if(['Wohnung','Lager','Halle','Büro','Agrar','Außenfläche'].includes(t)){sel.value=t;cust.style.display='none';cust.value='';}
+  else{sel.value='Sonstige';cust.style.display='block';cust.value=t;}
+  $('popupStrasse').value=$('adresseStrasse').value;
+  $('popupPLZ').value=$('adressePLZ').value;
+  $('popupOrt').value=$('adresseOrt').value;
+  $('popupBeschreibung').value=$('beschreibung').value;
+  openPopup('optionenPopup');
+}
+
+function toggleCustom(){
+  $('popupUeberschriftCustom').style.display=$('popupUeberschrift').value==='Sonstige'?'block':'none';
+}
+
+function saveOptionen(){
+  let t=$('popupUeberschrift').value;
+  if(t==='Sonstige'){t=$('popupUeberschriftCustom').value.trim()||'Unbenannt';$('ueberschriftSelect').value='Sonstige';$('ueberschriftCustom').value=t;}
+  else{$('ueberschriftSelect').value=t;$('ueberschriftCustom').value='';}
+  $('adresseStrasse').value=$('popupStrasse').value;
+  $('adressePLZ').value=$('popupPLZ').value;
+  $('adresseOrt').value=$('popupOrt').value;
+  $('beschreibung').value=$('popupBeschreibung').value;
+  closePopup('optionenPopup');
+  toast('✅ Optionen gespeichert','ok',1800);
+}
+
+// ── SERVICE WORKER ──
+async function registerSW(){
+  if(!('serviceWorker' in navigator)) return;
+  try{
+    const reg=await navigator.serviceWorker.register('./sw.js',{scope:'./'});
+    const force=()=>{if(reg.waiting) reg.waiting.postMessage({type:'SKIP_WAITING'});};
+    reg.addEventListener('updatefound',()=>{
+      const nw=reg.installing; if(!nw) return;
+      nw.addEventListener('statechange',()=>{if(nw.state==='installed'&&navigator.serviceWorker.controller) force();});
+    });
+    navigator.serviceWorker.addEventListener('controllerchange',()=>window.location.reload());
+  }catch(e){console.log('SW Fehler:',e);}
+}
+
+// ── INIT ──
+document.addEventListener('DOMContentLoaded',()=>{
+  zTab('winkel',null);
+  showRaeume(); calcGesamt();
+  $('versandMenu').style.display='none';
+  $('istMasse').addEventListener('keydown',e=>{if(e.key==='Enter') berechneMassen();});
+  initTabs();
+  registerSW();
+  console.log('Flächenrechner King v'+APP_VERSION);
+});
+</script>
 </body>
 </html>

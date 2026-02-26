@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>Datenschutzerklärung – Flächenrechner King</title>
+    <style>
+        :root {
+            --bg: #0f0f0f; --card: #1a1a1a; --border: #2e2e2e;
+            --green: #28a745; --muted: #999; --muted2: #666;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0 }
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            background: var(--bg); color: #f0f0f0;
+            line-height: 1.7; padding-bottom: 40px;
+        }
+        .header {
+            background: #111;
+            border-bottom: 1px solid var(--border);
+            padding: 14px 16px;
+            display: flex; align-items: center; gap: 12px;
+            position: sticky; top: 0; z-index: 10;
+        }
+        .back-btn {
+            background: #222; border: 1px solid var(--border);
+            color: #fff; padding: 7px 13px; border-radius: 8px;
+            font-size: 13px; font-weight: 700; cursor: pointer;
+            text-decoration: none; display: inline-flex;
+            align-items: center; gap: 5px;
+        }
+        .back-btn:hover { background: #2a2a2a }
+        .header-title { font-size: 1em; font-weight: 700 }
+        .main { max-width: 560px; margin: 0 auto; padding: 20px 16px }
+        h1 { font-size: 1.4em; font-weight: 800; margin-bottom: 6px }
+        .subtitle { font-size: .85em; color: var(--muted); margin-bottom: 24px }
+        .card {
+            background: var(--card); border: 1px solid var(--border);
+            border-radius: 12px; padding: 18px; margin-bottom: 14px;
+        }
+        h2 {
+            font-size: .8em; font-weight: 700; color: var(--green);
+            text-transform: uppercase; letter-spacing: .6px;
+            margin-bottom: 10px; border-left: 3px solid var(--green);
+            padding-left: 8px;
+        }
+        p { font-size: .92em; color: #ddd; margin-bottom: 8px }
+        p:last-child { margin-bottom: 0 }
+        ul { padding-left: 18px; margin-top: 6px }
+        ul li { font-size: .92em; color: #ddd; margin-bottom: 5px }
+        a { color: var(--green); text-decoration: none }
+        a:hover { text-decoration: underline }
+        .badge {
+            display: inline-block;
+            background: #0d3320; color: #22c55e;
+            border: 1px solid #166534;
+            border-radius: 20px; padding: 3px 10px;
+            font-size: .78em; font-weight: 700; margin-bottom: 10px;
+        }
+        .muted { color: var(--muted); font-size: .82em; margin-top: 6px }
+        .nav-links {
+            display: flex; gap: 12px; justify-content: center;
+            margin-top: 28px; font-size: .82em;
+        }
+        .nav-links a { color: var(--muted) }
+        .version-note {
+            text-align: center; font-size: .75em; color: var(--muted2);
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <a class="back-btn" href="./index.html">← Zurück</a>
+    <span class="header-title">Datenschutz</span>
+</div>
+
+<div class="main">
+    <h1>Datenschutzerklärung</h1>
+    <p class="subtitle">Zuletzt aktualisiert: Februar 2026</p>
+
+    <div class="card">
+        <h2>🔒 Kurzfassung</h2>
+        <div class="badge">✅ Keine Datensammlung</div>
+        <p><strong>Flächenrechner King</strong> ist eine kostenlose App ohne Registrierung, ohne Nutzerverfolgung und ohne Weitergabe von Daten an Dritte.</p>
+        <p>Alle Berechnungen und gespeicherten Werte bleiben ausschließlich auf deinem Gerät.</p>
+    </div>
+
+    <div class="card">
+        <h2>👤 Verantwortlicher</h2>
+        <p><strong>Ecevit Sener</strong><br />
+        Bruchstraße 130<br />
+        45468 Mülheim an der Ruhr<br />
+        E-Mail: <a href="mailto:61ts@mail.de">61ts@mail.de</a></p>
+    </div>
+
+    <div class="card">
+        <h2>📱 Welche Daten werden verarbeitet?</h2>
+        <p><strong>Keine personenbezogenen Daten</strong> werden erhoben, gespeichert oder übertragen.</p>
+        <p>Die App speichert folgende Daten <strong>ausschließlich lokal auf deinem Gerät</strong> (localStorage / Gerätespeicher):</p>
+        <ul>
+            <li>Berechnungshistorie (Winkel, Flächen)</li>
+            <li>Gespeicherte Räume und Flächenberechnungen</li>
+            <li>Tab-Reihenfolge (persönliche Einstellung)</li>
+        </ul>
+        <p class="muted">Diese Daten verlassen dein Gerät niemals und werden nicht an uns oder Dritte übertragen.</p>
+    </div>
+
+    <div class="card">
+        <h2>🌐 Netzwerkzugriffe</h2>
+        <p>Die App lädt bei bestehender Internetverbindung folgende externe Ressource:</p>
+        <ul>
+            <li><strong>jsPDF</strong> von <em>cdnjs.cloudflare.com</em> – nur für die PDF-Erstellungsfunktion. Es werden dabei keine persönlichen Daten übertragen.</li>
+        </ul>
+        <p>Die App funktioniert vollständig offline – außer der PDF-Funktion, die das CDN benötigt.</p>
+        <p class="muted">Cloudflare kann technische Verbindungsdaten (IP-Adresse, Zeitstempel) gemäß eigener Datenschutzrichtlinie verarbeiten: <a href="https://www.cloudflare.com/privacypolicy/" target="_blank">cloudflare.com/privacypolicy</a></p>
+    </div>
+
+    <div class="card">
+        <h2>📊 Tracking & Analytics</h2>
+        <p>❌ Kein Google Analytics<br />
+        ❌ Kein Facebook Pixel<br />
+        ❌ Keine Werbenetzwerke<br />
+        ❌ Kein Tracking jeglicher Art</p>
+    </div>
+
+    <div class="card">
+        <h2>🍪 Cookies</h2>
+        <p>Die App verwendet <strong>keine Cookies</strong>. Einstellungen werden im lokalen Gerätespeicher (localStorage) gespeichert, nicht als Cookies.</p>
+    </div>
+
+    <div class="card">
+        <h2>📍 Standortdaten</h2>
+        <p>Die App greift <strong>nicht</strong> auf deinen Standort zu.</p>
+    </div>
+
+    <div class="card">
+        <h2>🗑️ Daten löschen</h2>
+        <p>Du kannst alle lokal gespeicherten Daten jederzeit löschen:</p>
+        <ul>
+            <li><strong>Android:</strong> Einstellungen → Apps → Flächenrechner King → Speicher → Daten löschen</li>
+            <li><strong>Browser/PWA:</strong> Browser-Einstellungen → Websitedaten löschen</li>
+        </ul>
+    </div>
+
+    <div class="card">
+        <h2>🔮 Zukünftige Pro-Version</h2>
+        <p>In einer geplanten <strong>Pro-Version</strong> wird es optional möglich sein, einen Benutzeraccount zu erstellen, um Messdaten geräteübergreifend zu speichern.</p>
+        <p>Sobald diese Version verfügbar ist, wird diese Datenschutzerklärung entsprechend aktualisiert. Die Nutzung eines Accounts ist immer freiwillig.</p>
+        <p class="muted">Die aktuelle kostenlose Version benötigt keinen Account und sammelt keine Daten.</p>
+    </div>
+
+    <div class="card">
+        <h2>⚖️ Deine Rechte (DSGVO)</h2>
+        <p>Gemäß DSGVO hast du folgende Rechte:</p>
+        <ul>
+            <li>Recht auf Auskunft (Art. 15 DSGVO)</li>
+            <li>Recht auf Berichtigung (Art. 16 DSGVO)</li>
+            <li>Recht auf Löschung (Art. 17 DSGVO)</li>
+            <li>Recht auf Einschränkung der Verarbeitung (Art. 18 DSGVO)</li>
+            <li>Recht auf Datenübertragbarkeit (Art. 20 DSGVO)</li>
+            <li>Widerspruchsrecht (Art. 21 DSGVO)</li>
+        </ul>
+        <p class="muted">Da wir keine personenbezogenen Daten verarbeiten, sind diese Rechte in der aktuellen Version nicht relevant – stehen dir aber für die Pro-Version selbstverständlich zu.</p>
+        <p>Für Anfragen: <a href="mailto:61ts@mail.de">61ts@mail.de</a></p>
+    </div>
+
+    <div class="card">
+        <h2>📋 Beschwerderecht</h2>
+        <p>Du hast das Recht, dich bei einer Datenschutzbehörde zu beschweren. Zuständig für NRW:</p>
+        <p><strong>Landesbeauftragte für Datenschutz und Informationsfreiheit NRW</strong><br />
+        <a href="https://www.ldi.nrw.de" target="_blank">www.ldi.nrw.de</a></p>
+    </div>
+
+    <div class="nav-links">
+        <a href="./impressum.html">Impressum</a>
+        <span style="color:var(--muted2)">·</span>
+        <a href="./index.html">Zurück zur App</a>
+    </div>
+
+    <p class="version-note">Flächenrechner King · Version 2026-02-26 · Ecevit Sener</p>
+</div>
+
+</body>
+</html>
