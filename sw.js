@@ -1,13 +1,14 @@
-/* Sener Flächenrechner - Service Worker (v6) */
-const CACHE_VERSION = "v6";
-const CACHE_NAME    = `sener-flaechenrechner-${CACHE_VERSION}`;
+/* Flächenrechner King - Service Worker (v7) */
+const CACHE_VERSION = "v7";
+const CACHE_NAME    = `flaechenrechner-king-${CACHE_VERSION}`;
 
 const CORE_ASSETS = [
   "./",
   "./index.html",
   "./manifest.json",
   "./sw.js",
-  "./privacy.html",
+  "./datenschutz.html",
+  "./impressum.html",
   "./logo.png",
   "./icon-192.png",
   "./icon-512.png",
@@ -37,14 +38,12 @@ self.addEventListener("install", (event) => {
   event.waitUntil((async () => {
     const cache = await caches.open(CACHE_NAME);
     await safeAddAll(cache, CORE_ASSETS);
-    // skipWaiting wird nur auf Anfrage aus index.html ausgelöst (kontrolliertes Update)
   })());
 });
 
 // ── Activate ─────────────────────────────────────────────────────────────────
 self.addEventListener("activate", (event) => {
   event.waitUntil((async () => {
-    // Alle alten Cache-Versionen löschen
     const keys = await caches.keys();
     await Promise.all(
       keys.map(k => k !== CACHE_NAME ? caches.delete(k) : null)
@@ -64,22 +63,23 @@ self.addEventListener("message", (event) => {
 self.addEventListener("fetch", (event) => {
   const req = event.request;
 
-  // Nur GET-Anfragen der eigenen Origin behandeln
   if (req.method !== "GET") return;
   const url = new URL(req.url);
   if (url.origin !== self.location.origin) return;
 
-  // HTML-Navigation: Network-first → immer aktuelle Version ausliefern
+  // HTML-Navigation: Network-first → immer aktuelle Version
   if (req.mode === "navigate") {
     event.respondWith((async () => {
       try {
         const res   = await fetch(req, { cache: "no-store" });
         const cache = await caches.open(CACHE_NAME);
-        cache.put("./index.html", res.clone()); // Cache still aktuell halten
+        cache.put(req.url, res.clone());
         return res;
       } catch {
         // Offline-Fallback
-        return (await caches.match("./index.html")) ?? Response.error();
+        return (await caches.match(req))
+            ?? (await caches.match("./index.html"))
+            ?? Response.error();
       }
     })());
     return;
@@ -89,7 +89,6 @@ self.addEventListener("fetch", (event) => {
   event.respondWith((async () => {
     const cached = await caches.match(req);
     if (cached) return cached;
-
     try {
       const res = await fetch(req);
       if (res?.status === 200) {
@@ -98,7 +97,7 @@ self.addEventListener("fetch", (event) => {
       }
       return res;
     } catch {
-      return cached ?? Response.error();
+      return Response.error();
     }
   })());
 });
