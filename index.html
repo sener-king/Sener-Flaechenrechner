@@ -603,31 +603,32 @@
         .footer { text-align:center; margin-top:18px; font-size:.78em; color:var(--muted2) }
         .footer a { color:var(--blue); text-decoration:none }
 
-        /* ── SPENDEN FOOTER BANNER ── */
-        .spenden-bar {
-            margin-top: 16px;
-            padding: 12px 14px;
-            background: linear-gradient(135deg, #1a1a0a, #1a2e1a);
-            border: 1px solid #3a3a1a;
-            border-radius: var(--rs);
+        /* ── SPENDEN GLOBAL BAR ── */
+        .spenden-global-bar {
+            position: fixed;
+            bottom: env(safe-area-inset-bottom, 0px);
+            left: 0; right: 0;
+            z-index: 200;
+            padding: 10px 16px;
+            background: linear-gradient(135deg, #0f1a0f, #1a2e1a);
+            border-top: 1px solid #2a4a2a;
             display: flex;
             align-items: center;
             gap: 10px;
             cursor: pointer;
-            transition: all .2s;
+            box-shadow: 0 -4px 20px rgba(0,0,0,.5);
         }
-        .spenden-bar:hover { border-color: var(--green); }
-        .spenden-bar-icon { font-size: 1.4em; flex-shrink: 0; }
+        .spenden-bar-icon { font-size: 1.3em; flex-shrink: 0; }
         .spenden-bar-text { flex: 1; }
-        .spenden-bar-text strong { display:block; font-size:.88em; color:#f0f0f0; font-weight:700; }
-        .spenden-bar-text span   { font-size:.76em; color:var(--muted); line-height:1.4; }
+        .spenden-bar-text strong { display:block; font-size:.85em; color:#f0f0f0; font-weight:700; line-height:1.2; }
+        .spenden-bar-text span   { font-size:.74em; color:var(--muted); }
         .spenden-bar-btn {
             background: var(--green);
             color: #fff;
             border: none;
             border-radius: 20px;
-            padding: 7px 14px;
-            font-size: .8em;
+            padding: 8px 16px;
+            font-size: .82em;
             font-weight: 700;
             font-family: inherit;
             cursor: pointer;
@@ -638,6 +639,23 @@
             transition: background .2s;
         }
         .spenden-bar-btn:hover { background: var(--green2); }
+
+        /* Extra padding damit Inhalt nicht hinter Banner verschwindet */
+        .main { padding-bottom: 120px !important; }
+
+        .global-footer {
+            position: fixed;
+            bottom: calc(44px + env(safe-area-inset-bottom, 0px));
+            left: 0; right: 0;
+            text-align: center;
+            font-size: .72em;
+            color: var(--muted2);
+            background: #0f1a0f;
+            padding: 4px 0;
+            z-index: 199;
+            border-top: 1px solid #1a2e1a;
+        }
+        .global-footer a { color: var(--blue); text-decoration: none; }
 
         /* ── SPENDEN MODAL ── */
         #spendenModal {
@@ -656,10 +674,18 @@
             border-radius: 20px 20px 0 0;
             width: 100%;
             max-width: 560px;
-            padding: 24px 20px 36px;
+            padding: 0 20px 36px;
             box-shadow: 0 -8px 40px rgba(0,0,0,.7);
             animation: slideUp .25s ease;
             padding-bottom: calc(24px + env(safe-area-inset-bottom, 0px));
+            touch-action: pan-y;
+            transition: transform .2s ease;
+        }
+        .spenden-handle {
+            width: 40px; height: 4px;
+            background: var(--border);
+            border-radius: 2px;
+            margin: 12px auto 16px;
         }
         .spenden-herz { font-size: 2.8em; text-align: center; margin-bottom: 10px; }
         .spenden-titel {
@@ -926,15 +952,6 @@
                 <button class="v-btn" onclick="email()">📧 E-Mail</button>
             </div>
         </div>
-        <!-- Spenden Banner -->
-        <div class="spenden-bar" onclick="oeffneSpenden()">
-            <div class="spenden-bar-icon">💚</div>
-            <div class="spenden-bar-text">
-                <strong>Diese App ist kostenlos &amp; werbefrei</strong>
-                <span>Entwicklung &amp; Hosting kosten Zeit und Geld – freuen uns über Ihre Unterstützung!</span>
-            </div>
-            <button class="spenden-bar-btn" onclick="event.stopPropagation();oeffneSpenden()">Spenden</button>
-        </div>
         <div class="footer" style="margin-top:12px;">
             <a href="./datenschutz.html">Datenschutz</a>
             &nbsp;·&nbsp;
@@ -945,10 +962,26 @@
 
 </div><!-- /main -->
 
+<!-- GLOBALER SPENDEN BANNER -->
+<div class="spenden-global-bar" onclick="oeffneSpenden()">
+    <div class="spenden-bar-icon">💚</div>
+    <div class="spenden-bar-text">
+        <strong>Kostenlos &amp; werbefrei</strong>
+        <span>Entwicklung &amp; Hosting kosten Zeit und Geld</span>
+    </div>
+    <button class="spenden-bar-btn" onclick="event.stopPropagation();oeffneSpenden()">Spenden</button>
+</div>
+<div class="global-footer">
+    <a href="./datenschutz.html">Datenschutz</a>
+    &nbsp;·&nbsp;
+    <a href="./impressum.html">Impressum</a>
+</div>
+
 
 <!-- SPENDEN MODAL -->
 <div id="spendenModal">
-    <div class="spenden-sheet">
+    <div class="spenden-sheet" id="spendenSheet">
+        <div class="spenden-handle"></div>
         <div class="spenden-herz">💚</div>
         <div class="spenden-titel">Diese App unterstützen</div>
         <div class="spenden-text">
@@ -1528,16 +1561,20 @@ async function registerSW(){
 }
 
 // ── SPENDEN ──
-const SPENDEN_KEY   = 'fk_spende_gesehen';
-const SPENDEN_DELAY = 30000; // 30 Sek nach erstem Start
+const SPENDEN_KEY = 'fk_spende_ts';
 
 function oeffneSpenden(){
   $('spendenModal').classList.add('show');
-  localStorage.setItem(SPENDEN_KEY, Date.now());
+  initSpendenSwipe();
 }
 
 function schliesseSpenden(mitPaypal){
-  $('spendenModal').classList.remove('show');
+  const sheet = $('spendenSheet');
+  sheet.style.transform = 'translateY(100%)';
+  setTimeout(()=>{
+    $('spendenModal').classList.remove('show');
+    sheet.style.transform = '';
+  }, 250);
   if(!mitPaypal) toast('💚 Danke! Viel Spaß mit der App 👑','ok',2500);
 }
 
@@ -1546,17 +1583,43 @@ function spendenGeklickt(){
   setTimeout(()=>toast('💛 Vielen herzlichen Dank für Ihre Unterstützung! 🙏','ok',4000),500);
 }
 
-// Schließen beim Klick auf Hintergrund
-document.addEventListener('click',e=>{
+// Swipe-Down zum Schließen
+function initSpendenSwipe(){
+  const sheet = $('spendenSheet');
+  let startY=0, curY=0, dragging=false;
+
+  sheet.addEventListener('touchstart', e=>{
+    startY = e.touches[0].clientY;
+    dragging = true;
+    sheet.style.transition = 'none';
+  }, {passive:true});
+
+  sheet.addEventListener('touchmove', e=>{
+    if(!dragging) return;
+    curY = e.touches[0].clientY - startY;
+    if(curY > 0) sheet.style.transform = `translateY(${curY}px)`;
+  }, {passive:true});
+
+  sheet.addEventListener('touchend', ()=>{
+    dragging = false;
+    sheet.style.transition = 'transform .25s ease';
+    if(curY > 80) {
+      schliesseSpenden(false);
+    } else {
+      sheet.style.transform = '';
+    }
+    curY = 0;
+  });
+}
+
+// Hintergrund antippen schließt Modal
+document.addEventListener('click', e=>{
   if(e.target.id==='spendenModal') schliesseSpenden(false);
 });
 
+// Bei JEDEM App-Start nach 3 Sek anzeigen
 function checkSpendenModal(){
-  const gesehen = localStorage.getItem(SPENDEN_KEY);
-  // Beim allerersten Start nach 30 Sek anzeigen
-  if(!gesehen){
-    setTimeout(oeffneSpenden, SPENDEN_DELAY);
-  }
+  setTimeout(oeffneSpenden, 3000);
 }
 
 // ── INIT ──
