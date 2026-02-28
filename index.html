@@ -602,6 +602,122 @@
         /* ── FOOTER ── */
         .footer { text-align:center; margin-top:18px; font-size:.78em; color:var(--muted2) }
         .footer a { color:var(--blue); text-decoration:none }
+
+        /* ── SPENDEN FOOTER BANNER ── */
+        .spenden-bar {
+            margin-top: 16px;
+            padding: 12px 14px;
+            background: linear-gradient(135deg, #1a1a0a, #1a2e1a);
+            border: 1px solid #3a3a1a;
+            border-radius: var(--rs);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            transition: all .2s;
+        }
+        .spenden-bar:hover { border-color: var(--green); }
+        .spenden-bar-icon { font-size: 1.4em; flex-shrink: 0; }
+        .spenden-bar-text { flex: 1; }
+        .spenden-bar-text strong { display:block; font-size:.88em; color:#f0f0f0; font-weight:700; }
+        .spenden-bar-text span   { font-size:.76em; color:var(--muted); line-height:1.4; }
+        .spenden-bar-btn {
+            background: var(--green);
+            color: #fff;
+            border: none;
+            border-radius: 20px;
+            padding: 7px 14px;
+            font-size: .8em;
+            font-weight: 700;
+            font-family: inherit;
+            cursor: pointer;
+            white-space: nowrap;
+            flex-shrink: 0;
+            width: auto;
+            margin: 0;
+            transition: background .2s;
+        }
+        .spenden-bar-btn:hover { background: var(--green2); }
+
+        /* ── SPENDEN MODAL ── */
+        #spendenModal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,.85);
+            z-index: 3000;
+            justify-content: center;
+            align-items: flex-end;
+            padding: 0;
+        }
+        #spendenModal.show { display: flex; }
+        .spenden-sheet {
+            background: var(--card);
+            border-radius: 20px 20px 0 0;
+            width: 100%;
+            max-width: 560px;
+            padding: 24px 20px 36px;
+            box-shadow: 0 -8px 40px rgba(0,0,0,.7);
+            animation: slideUp .25s ease;
+            padding-bottom: calc(24px + env(safe-area-inset-bottom, 0px));
+        }
+        .spenden-herz { font-size: 2.8em; text-align: center; margin-bottom: 10px; }
+        .spenden-titel {
+            text-align: center;
+            font-size: 1.2em;
+            font-weight: 800;
+            color: #fff;
+            margin-bottom: 8px;
+        }
+        .spenden-text {
+            text-align: center;
+            font-size: .88em;
+            color: var(--muted);
+            line-height: 1.65;
+            margin-bottom: 20px;
+        }
+        .spenden-text strong { color: var(--green); }
+        .spenden-paypal {
+            display: block;
+            width: 100%;
+            padding: 15px;
+            background: #0070ba;
+            color: #fff;
+            border: none;
+            border-radius: var(--rs);
+            font-size: 1em;
+            font-weight: 700;
+            font-family: inherit;
+            cursor: pointer;
+            text-align: center;
+            text-decoration: none;
+            margin: 0 0 10px;
+            transition: background .2s;
+        }
+        .spenden-paypal:hover { background: #005a96; }
+        .spenden-skip {
+            display: block;
+            width: 100%;
+            padding: 12px;
+            background: transparent;
+            color: var(--muted);
+            border: 1px solid var(--border);
+            border-radius: var(--rs);
+            font-size: .9em;
+            font-weight: 600;
+            font-family: inherit;
+            cursor: pointer;
+            text-align: center;
+            margin: 0;
+            transition: all .2s;
+        }
+        .spenden-skip:hover { background: var(--card2); color: #fff; }
+        .spenden-hinweis {
+            text-align: center;
+            font-size: .72em;
+            color: var(--muted2);
+            margin-top: 12px;
+        }
     </style>
 </head>
 <body>
@@ -810,7 +926,16 @@
                 <button class="v-btn" onclick="email()">📧 E-Mail</button>
             </div>
         </div>
-        <div class="footer">
+        <!-- Spenden Banner -->
+        <div class="spenden-bar" onclick="oeffneSpenden()">
+            <div class="spenden-bar-icon">💚</div>
+            <div class="spenden-bar-text">
+                <strong>Diese App ist kostenlos &amp; werbefrei</strong>
+                <span>Entwicklung &amp; Hosting kosten Zeit und Geld – freuen uns über Ihre Unterstützung!</span>
+            </div>
+            <button class="spenden-bar-btn" onclick="event.stopPropagation();oeffneSpenden()">Spenden</button>
+        </div>
+        <div class="footer" style="margin-top:12px;">
             <a href="./datenschutz.html">Datenschutz</a>
             &nbsp;·&nbsp;
             <a href="./impressum.html">Impressum</a>
@@ -820,6 +945,29 @@
 
 </div><!-- /main -->
 
+
+<!-- SPENDEN MODAL -->
+<div id="spendenModal">
+    <div class="spenden-sheet">
+        <div class="spenden-herz">💚</div>
+        <div class="spenden-titel">Diese App unterstützen</div>
+        <div class="spenden-text">
+            <strong>Flächenrechner King ist kostenlos und werbefrei.</strong><br/><br/>
+            Die Entwicklung und Bereitstellung dieser App kosten enorm viel Zeit und Geld.
+            Um diesen Service langfristig aufrechterhalten zu können, bitten wir Sie um eine freiwillige Spende —
+            egal ob klein oder groß. Jeder Beitrag hilft!<br/><br/>
+            Vielen Dank für Ihre Wertschätzung! 🙏
+        </div>
+        <a class="spenden-paypal"
+           href="https://www.paypal.com/donate/?business=sener86%40gmx.de&currency_code=EUR"
+           target="_blank"
+           onclick="spendenGeklickt()">
+            💛 Jetzt mit PayPal spenden
+        </a>
+        <button class="spenden-skip" onclick="schliesseSpenden(false)">Schließen</button>
+        <p class="spenden-hinweis">Die App bleibt kostenlos — Spende ist freiwillig.</p>
+    </div>
+</div>
 <!-- POPUP: WINKEL HISTORIE -->
 <div id="winkelHistoriePopup" class="popup">
     <div class="popup-sheet">
@@ -1379,6 +1527,38 @@ async function registerSW(){
   }catch(e){console.log('SW Fehler:',e);}
 }
 
+// ── SPENDEN ──
+const SPENDEN_KEY   = 'fk_spende_gesehen';
+const SPENDEN_DELAY = 30000; // 30 Sek nach erstem Start
+
+function oeffneSpenden(){
+  $('spendenModal').classList.add('show');
+  localStorage.setItem(SPENDEN_KEY, Date.now());
+}
+
+function schliesseSpenden(mitPaypal){
+  $('spendenModal').classList.remove('show');
+  if(!mitPaypal) toast('💚 Danke! Viel Spaß mit der App 👑','ok',2500);
+}
+
+function spendenGeklickt(){
+  schliesseSpenden(true);
+  setTimeout(()=>toast('💛 Vielen herzlichen Dank für Ihre Unterstützung! 🙏','ok',4000),500);
+}
+
+// Schließen beim Klick auf Hintergrund
+document.addEventListener('click',e=>{
+  if(e.target.id==='spendenModal') schliesseSpenden(false);
+});
+
+function checkSpendenModal(){
+  const gesehen = localStorage.getItem(SPENDEN_KEY);
+  // Beim allerersten Start nach 30 Sek anzeigen
+  if(!gesehen){
+    setTimeout(oeffneSpenden, SPENDEN_DELAY);
+  }
+}
+
 // ── INIT ──
 document.addEventListener('DOMContentLoaded',()=>{
   zTab('winkel',null);
@@ -1387,6 +1567,7 @@ document.addEventListener('DOMContentLoaded',()=>{
   $('istMasse').addEventListener('keydown',e=>{if(e.key==='Enter') berechneMassen();});
   initTabs();
   registerSW();
+  checkSpendenModal();
   console.log('Flächenrechner King v'+APP_VERSION);
 });
 </script>
