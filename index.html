@@ -1101,7 +1101,7 @@
 <script>
 "use strict";
 
-const APP_VERSION = "2026-09-08-06";
+const APP_VERSION = "2026-09-08-07";
 
 // ── STATE ──
 let wHist  = JSON.parse(localStorage.getItem('sener_historie'))            || [];
@@ -1218,8 +1218,11 @@ function setRundungHinweis(ist,a,ber){
   const el=$('rundungHinweis');
   if(!el) return;
   if(ber==='metallbau' && isFinite(ist) && ist!==a){
-    const frei=Math.max(0,ist-a);
-    el.textContent=`Zum Anreißen min. 100 mm Freiraum. Ist-Maß ${fmtMm(ist)} mm → 3er-Seite ${fmtMm(a)} mm (${fmtMm(frei)} mm Luft).`;
+    if(ist%300===0){
+      el.textContent=`Ist-Maß ${fmtMm(ist)} mm braucht min. 100 mm Freiraum. Untere 3-4-5-Seite: ${fmtMm(a)} mm.`;
+    }else{
+      el.textContent=`Ist-Maß ${fmtMm(ist)} mm ist keine 3er-Stufe. Untere 3-4-5-Seite: ${fmtMm(a)} mm.`;
+    }
     el.style.display='block';
   }else{
     el.textContent='';
