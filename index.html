@@ -19,7 +19,7 @@
     <!-- iOS PWA -->
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-    <meta name="apple-mobile-web-app-title" content="Flächenrechner King" />
+    <meta name="apple-mobile-web-app-title" content="Flächenrechner" />
 
     <!-- jsPDF CDN mit Fehlerbehandlung -->
     <script defer src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"
@@ -306,6 +306,33 @@
             color: var(--muted2);
             margin-top: 8px;
         }
+
+        .rundung-hinweis {
+            margin-top: 10px;
+            padding: 10px 12px;
+            background: var(--green3);
+            border: 1px solid var(--green);
+            border-radius: var(--rs);
+            font-size: .82em;
+            color: #d4edda;
+            line-height: 1.45;
+        }
+
+        .btn-cache {
+            display: block;
+            width: 100%;
+            margin-top: 8px;
+            padding: 11px 14px;
+            background: var(--card2);
+            color: var(--muted);
+            border: 1px solid var(--border);
+            border-radius: var(--rs);
+            font-size: .85em;
+            font-weight: 600;
+            font-family: inherit;
+            cursor: pointer;
+        }
+        .btn-cache:hover { background: var(--card3); color: #fff; }
 
         /* ── RAUM LISTE ── */
         .raum-item {
@@ -769,23 +796,23 @@
         <img src="./icon-512.png" alt="Logo" class="app-logo" onerror="this.style.display='none'" />
         <div class="app-title">
             <h1>Flächenrechner King 👑</h1>
-            <p>Profi-Werkzeug für die Baustelle</p>
+            <p id="appVersionLine">Version …</p>
         </div>
     </div>
 </div>
 
 <!-- TABS -->
 <div class="tabs-bar" id="tabsContainer">
-    <button class="tab-button active" data-tab="winkel"  onclick="zTab('winkel',event)">📐 Winkel</button>
+    <button class="tab-button"        data-tab="winkel"  onclick="zTab('winkel',event)">📐 Winkel</button>
     <button class="tab-button"        data-tab="dreieck" onclick="zTab('dreieck',event)">📏 Dreieck</button>
     <button class="tab-button"        data-tab="kreis"   onclick="zTab('kreis',event)">⭕ Kreis</button>
-    <button class="tab-button"        data-tab="flaeche" onclick="zTab('flaeche',event)">🏠 Fläche</button>
+    <button class="tab-button active" data-tab="flaeche" onclick="zTab('flaeche',event)">🏠 Fläche</button>
 </div>
 
 <div class="main">
 
 <!-- ===== WINKEL ===== -->
-<div id="winkel" class="tab-content active">
+<div id="winkel" class="tab-content">
     <div class="card">
         <div class="card-title">📐 Metallbau 3-4-5 Berechnung</div>
         <label>Gemessene Maße in mm</label>
@@ -799,6 +826,7 @@
         <button class="btn-p" onclick="berechneMassen()">📐 Berechnen</button>
         <button class="btn-s" onclick="oeffneWinkelHistorie()">📜 Historie</button>
         <button class="btn-g" onclick="zeige3erReihe()">🧮 3er-Reihe anzeigen</button>
+        <button type="button" class="btn-cache" onclick="leereAppCache()">App-Cache leeren &amp; neu laden</button>
     </div>
     <div id="ergebnis" class="card" style="display:none;">
         <div class="card-title">✅ Ergebnis</div>
@@ -817,6 +845,7 @@
             </div>
         </div>
         <p class="copy-hint">💡 Wert antippen → in Zwischenablage kopieren</p>
+        <p id="rundungHinweis" class="rundung-hinweis" style="display:none;"></p>
     </div>
 </div>
 
@@ -899,7 +928,7 @@
 </div>
 
 <!-- ===== FLÄCHE ===== -->
-<div id="flaeche" class="tab-content">
+<div id="flaeche" class="tab-content active">
     <!-- versteckte Felder -->
     <div style="display:none;">
         <select id="ueberschriftSelect"><option value="Wohnung" selected>Wohnung</option><option value="Lager">Lager</option><option value="Halle">Halle</option><option value="Büro">Büro</option><option value="Agrar">Agrar</option><option value="Außenfläche">Außenfläche</option><option value="Sonstige">Sonstige…</option></select>
@@ -944,6 +973,7 @@
         <button class="btn-p"  onclick="speichereBerechnung()">💾 Berechnung speichern</button>
         <button class="btn-s"  onclick="oeffneFlaecheHistorie()">📜 Gespeicherte Berechnungen</button>
         <button class="btn-g"  onclick="toggleVersand(event)">📤 Versenden / Teilen</button>
+        <button type="button" class="btn-cache" onclick="leereAppCache()">App-Cache leeren &amp; neu laden</button>
         <div id="versandMenu" style="display:none; margin-top:10px;">
             <div class="v-grid">
                 <button class="v-btn" onclick="drucken()">🖨️ Drucken</button>
@@ -1071,7 +1101,7 @@
 <script>
 "use strict";
 
-const APP_VERSION = "2026-02-26-02";
+const APP_VERSION = "2026-09-08-02";
 
 // ── STATE ──
 let wHist  = JSON.parse(localStorage.getItem('sener_historie'))            || [];
@@ -1173,9 +1203,25 @@ document.addEventListener('click',e=>{
 
 // ── METALLBAU KERN ──
 function metallbauA(ist){
-  ist=Math.min(ist,6900);
-  const rest=ist%300, stufe=Math.floor(ist/300);
-  return Math.min(6900,Math.max(300,rest<150?(stufe-1)*300:stufe*300));
+  ist=Math.min(Math.max(Number(ist)||0,300),6900);
+  const gerundet=Math.round(ist/300)*300;
+  return Math.min(6900,Math.max(300,gerundet));
+}
+
+function fmtMm(n){
+  return Number(n).toLocaleString('de-DE',{maximumFractionDigits:0});
+}
+
+function setRundungHinweis(ist,a,ber){
+  const el=$('rundungHinweis');
+  if(!el) return;
+  if(ber==='metallbau' && isFinite(ist) && ist!==a){
+    el.textContent=`Ist-Maß ${fmtMm(ist)} mm ist keine 3er-Stufe. Nächste 3-4-5-Seite: ${fmtMm(a)} mm.`;
+    el.style.display='block';
+  }else{
+    el.textContent='';
+    el.style.display='none';
+  }
 }
 
 // ── TABS ──
@@ -1231,6 +1277,7 @@ function berechneMassen(){
   $('masseB').textContent=b.toLocaleString('de-DE',f)+' mm';
   $('masseC').textContent=c.toLocaleString('de-DE',f)+' mm';
   $('multiplier').textContent=k.toLocaleString('de-DE',f);
+  setRundungHinweis(ist,a,ber);
   $('ergebnis').style.display='block'; vib(10);
   wHist.unshift({id:Date.now(),zeit:new Date().toLocaleString('de-DE'),input:ist,ber,a,b,c,k,v:APP_VERSION});
   if(wHist.length>50) wHist.pop();
@@ -1266,6 +1313,7 @@ function renderWinkelFix(a){
   $('masseB').textContent=b.toLocaleString('de-DE',f)+' mm';
   $('masseC').textContent=c.toLocaleString('de-DE',f)+' mm';
   $('multiplier').textContent=k.toLocaleString('de-DE',f);
+  setRundungHinweis(a,a,'metallbau');
   $('ergebnis').style.display='block';
   wHist.unshift({id:Date.now(),zeit:new Date().toLocaleString('de-DE'),input:a,ber:'metallbau',a,b,c,k,v:APP_VERSION});
   if(wHist.length>50) wHist.pop();
@@ -1550,7 +1598,7 @@ function saveOptionen(){
 async function registerSW(){
   if(!('serviceWorker' in navigator)) return;
   try{
-    const reg=await navigator.serviceWorker.register('./sw.js',{scope:'./'});
+    const reg=await navigator.serviceWorker.register('./sw.js?v='+APP_VERSION,{scope:'./'});
     const force=()=>{if(reg.waiting) reg.waiting.postMessage({type:'SKIP_WAITING'});};
     reg.addEventListener('updatefound',()=>{
       const nw=reg.installing; if(!nw) return;
@@ -1558,6 +1606,20 @@ async function registerSW(){
     });
     navigator.serviceWorker.addEventListener('controllerchange',()=>window.location.reload());
   }catch(e){console.log('SW Fehler:',e);}
+}
+
+async function leereAppCache(){
+  try{
+    if('serviceWorker' in navigator){
+      const regs=await navigator.serviceWorker.getRegistrations();
+      await Promise.all(regs.map(r=>r.unregister()));
+    }
+    if(window.caches){
+      const keys=await caches.keys();
+      await Promise.all(keys.map(k=>caches.delete(k)));
+    }
+  }catch(e){console.log('Cache leeren:',e);}
+  location.reload();
 }
 
 // ── SPENDEN ──
@@ -1617,20 +1679,18 @@ document.addEventListener('click', e=>{
   if(e.target.id==='spendenModal') schliesseSpenden(false);
 });
 
-// Bei JEDEM App-Start nach 3 Sek anzeigen
-function checkSpendenModal(){
-  setTimeout(oeffneSpenden, 3000);
-}
-
 // ── INIT ──
 document.addEventListener('DOMContentLoaded',()=>{
-  zTab('winkel',null);
+  const vl=$('appVersionLine');
+  if(vl) vl.textContent='Version '+APP_VERSION;
+  const hash=(location.hash||'').replace('#','');
+  const startTab=['winkel','dreieck','kreis','flaeche'].includes(hash)?hash:'flaeche';
+  zTab(startTab,null);
   showRaeume(); calcGesamt();
   $('versandMenu').style.display='none';
   $('istMasse').addEventListener('keydown',e=>{if(e.key==='Enter') berechneMassen();});
   initTabs();
   registerSW();
-  checkSpendenModal();
   console.log('Flächenrechner King v'+APP_VERSION);
 });
 </script>

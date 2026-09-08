@@ -1,5 +1,5 @@
-/* Flächenrechner King - Service Worker (v7) */
-const CACHE_VERSION = "v7";
+/* Flächenrechner King - Service Worker (v8) */
+const CACHE_VERSION = "v8";
 const CACHE_NAME    = `flaechenrechner-king-${CACHE_VERSION}`;
 
 const CORE_ASSETS = [
@@ -17,11 +17,17 @@ const CORE_ASSETS = [
   "./apple-touch-icon.png"
 ];
 
+function isNetworkFirst(req, url) {
+  if (req.mode === "navigate") return true;
+  const p = url.pathname;
+  return p.endsWith("/index.html") || p.endsWith("/sw.js") || p.endsWith("/manifest.json");
+}
+
 // Einzelne Assets sicher cachen – fehlende Dateien killen nicht die Installation
 async function safeAddAll(cache, urls) {
   const results = await Promise.allSettled(
     urls.map(async (url) => {
-      const res = await fetch(url, { cache: "no-cache" });
+      const res = await fetch(url, { cache: "no-store" });
       if (!res.ok) throw new Error(`HTTP ${res.status} – ${url}`);
       await cache.put(url, res);
     })
@@ -33,8 +39,22 @@ async function safeAddAll(cache, urls) {
   });
 }
 
+async function networkFirst(req) {
+  try {
+    const res   = await fetch(req, { cache: "no-store" });
+    const cache = await caches.open(CACHE_NAME);
+    cache.put(req, res.clone());
+    return res;
+  } catch {
+    return (await caches.match(req))
+        ?? (await caches.match("./index.html"))
+        ?? Response.error();
+  }
+}
+
 // ── Install ──────────────────────────────────────────────────────────────────
 self.addEventListener("install", (event) => {
+  self.skipWaiting();
   event.waitUntil((async () => {
     const cache = await caches.open(CACHE_NAME);
     await safeAddAll(cache, CORE_ASSETS);
@@ -67,25 +87,13 @@ self.addEventListener("fetch", (event) => {
   const url = new URL(req.url);
   if (url.origin !== self.location.origin) return;
 
-  // HTML-Navigation: Network-first → immer aktuelle Version
-  if (req.mode === "navigate") {
-    event.respondWith((async () => {
-      try {
-        const res   = await fetch(req, { cache: "no-store" });
-        const cache = await caches.open(CACHE_NAME);
-        cache.put(req.url, res.clone());
-        return res;
-      } catch {
-        // Offline-Fallback
-        return (await caches.match(req))
-            ?? (await caches.match("./index.html"))
-            ?? Response.error();
-      }
-    })());
+  // HTML, sw.js, manifest.json: Network-first / no-store
+  if (isNetworkFirst(req, url)) {
+    event.respondWith(networkFirst(req));
     return;
   }
 
-  // Alle anderen Assets: Cache-first → Netzwerk als Fallback
+  // Übrige Assets: Cache-first → Netzwerk als Fallback
   event.respondWith((async () => {
     const cached = await caches.match(req);
     if (cached) return cached;
