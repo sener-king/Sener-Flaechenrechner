@@ -1101,7 +1101,7 @@
 <script>
 "use strict";
 
-const APP_VERSION = "2026-09-08-05";
+const APP_VERSION = "2026-09-08-06";
 
 // ── STATE ──
 let wHist  = JSON.parse(localStorage.getItem('sener_historie'))            || [];
@@ -1202,12 +1202,12 @@ document.addEventListener('click',e=>{
 });
 
 // ── METALLBAU KERN ──
-// Alte 3er-Logik, Vergleich korrigiert: nie aufrunden.
-// rest < 150 → aktuelle Stufe (3700 → 3600); rest ≥ 150 → eine Stufe extra runter (3190 → 2700).
+// 3er-Reihe: größte Stufe (Vielfaches von 300), die min. 100 mm unter dem Blech bleibt.
+// Zum Anreißen der Winklichkeit braucht es Freiraum. Exakt 3600 → 3300.
 function metallbauA(ist){
   ist=Math.min(Math.max(Number(ist)||0,300),6900);
-  const rest=ist%300, stufe=Math.floor(ist/300);
-  return Math.min(6900,Math.max(300,rest<150?stufe*300:(stufe-1)*300));
+  const gerundet=Math.floor((ist-100)/300)*300;
+  return Math.min(6900,Math.max(300,gerundet));
 }
 
 function fmtMm(n){
@@ -1218,7 +1218,8 @@ function setRundungHinweis(ist,a,ber){
   const el=$('rundungHinweis');
   if(!el) return;
   if(ber==='metallbau' && isFinite(ist) && ist!==a){
-    el.textContent=`Ist-Maß ${fmtMm(ist)} mm ist keine 3er-Stufe. Kleinere 3-4-5-Seite: ${fmtMm(a)} mm.`;
+    const frei=Math.max(0,ist-a);
+    el.textContent=`Zum Anreißen min. 100 mm Freiraum. Ist-Maß ${fmtMm(ist)} mm → 3er-Seite ${fmtMm(a)} mm (${fmtMm(frei)} mm Luft).`;
     el.style.display='block';
   }else{
     el.textContent='';
