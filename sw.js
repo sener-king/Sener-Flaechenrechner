@@ -1,5 +1,5 @@
-/* Flächenrechner King - Service Worker (v8) */
-const CACHE_VERSION = "v8";
+/* Flächenrechner King - Service Worker (v9) */
+const CACHE_VERSION = "v9";
 const CACHE_NAME    = `flaechenrechner-king-${CACHE_VERSION}`;
 
 const CORE_ASSETS = [

@@ -66,6 +66,13 @@
   ],
   "shortcuts": [
     {
+      "name": "Flächenberechnung",
+      "short_name": "Fläche",
+      "description": "Direkt zur Flächenberechnung",
+      "url": "./index.html#flaeche",
+      "icons": [{ "src": "./icon-192.png", "sizes": "192x192" }]
+    },
+    {
       "name": "Winkelberechnung",
       "short_name": "Winkel",
       "description": "Direkt zur 3-4-5 Metallbau Berechnung",
@@ -73,10 +80,17 @@
       "icons": [{ "src": "./icon-192.png", "sizes": "192x192" }]
     },
     {
-      "name": "Flächenberechnung",
-      "short_name": "Fläche",
-      "description": "Direkt zur Flächenberechnung",
-      "url": "./index.html#flaeche",
+      "name": "Dreiecksberechnung",
+      "short_name": "Dreieck",
+      "description": "Direkt zur Dreiecksberechnung",
+      "url": "./index.html#dreieck",
+      "icons": [{ "src": "./icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Kreisberechnung",
+      "short_name": "Kreis",
+      "description": "Direkt zur Kreisberechnung",
+      "url": "./index.html#kreis",
       "icons": [{ "src": "./icon-192.png", "sizes": "192x192" }]
     }
   ]

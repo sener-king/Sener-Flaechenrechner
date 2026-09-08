@@ -1101,7 +1101,7 @@
 <script>
 "use strict";
 
-const APP_VERSION = "2026-09-08-02";
+const APP_VERSION = "2026-09-08-03";
 
 // ── STATE ──
 let wHist  = JSON.parse(localStorage.getItem('sener_historie'))            || [];
@@ -1225,6 +1225,11 @@ function setRundungHinweis(ist,a,ber){
 }
 
 // ── TABS ──
+function tabFromHash(){
+  const hash=(location.hash||'').replace('#','');
+  return ['winkel','dreieck','kreis','flaeche'].includes(hash)?hash:null;
+}
+
 function zTab(name,e){
   e?.stopPropagation?.();
   $('versandMenu').style.display='none';
@@ -1233,6 +1238,9 @@ function zTab(name,e){
   $(name).classList.add('active');
   document.querySelector(`.tab-button[data-tab="${name}"]`)?.classList.add('active');
   if(name==='flaeche'){showRaeume();calcGesamt();}
+  if((location.hash||'').replace('#','')!==name){
+    history.replaceState(null,'','#'+name);
+  }
 }
 
 function initTabs(){
@@ -1683,14 +1691,16 @@ document.addEventListener('click', e=>{
 document.addEventListener('DOMContentLoaded',()=>{
   const vl=$('appVersionLine');
   if(vl) vl.textContent='Version '+APP_VERSION;
-  const hash=(location.hash||'').replace('#','');
-  const startTab=['winkel','dreieck','kreis','flaeche'].includes(hash)?hash:'flaeche';
-  zTab(startTab,null);
+  zTab(tabFromHash()||'flaeche',null);
   showRaeume(); calcGesamt();
   $('versandMenu').style.display='none';
   $('istMasse').addEventListener('keydown',e=>{if(e.key==='Enter') berechneMassen();});
   initTabs();
   registerSW();
+  window.addEventListener('hashchange',()=>{
+    const t=tabFromHash();
+    if(t) zTab(t,null);
+  });
   console.log('Flächenrechner King v'+APP_VERSION);
 });
 </script>
