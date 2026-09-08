@@ -803,20 +803,20 @@
 
 <!-- TABS -->
 <div class="tabs-bar" id="tabsContainer">
-    <button class="tab-button"        data-tab="winkel"  onclick="zTab('winkel',event)">📐 Winkel</button>
+    <button class="tab-button active" data-tab="winkel"  onclick="zTab('winkel',event)">📐 Winkel</button>
     <button class="tab-button"        data-tab="dreieck" onclick="zTab('dreieck',event)">📏 Dreieck</button>
     <button class="tab-button"        data-tab="kreis"   onclick="zTab('kreis',event)">⭕ Kreis</button>
-    <button class="tab-button active" data-tab="flaeche" onclick="zTab('flaeche',event)">🏠 Fläche</button>
+    <button class="tab-button"        data-tab="flaeche" onclick="zTab('flaeche',event)">🏠 Fläche</button>
 </div>
 
 <div class="main">
 
 <!-- ===== WINKEL ===== -->
-<div id="winkel" class="tab-content">
+<div id="winkel" class="tab-content active">
     <div class="card">
         <div class="card-title">📐 Metallbau 3-4-5 Berechnung</div>
         <label>Gemessene Maße in mm</label>
-        <input type="text" id="istMasse" placeholder="z.B. 3280" inputmode="decimal" autocomplete="off" />
+        <input type="text" id="istMasse" placeholder="z.B. 3700" inputmode="decimal" autocomplete="off" />
         <label>Bereich</label>
         <select id="bereich">
             <option value="metallbau" selected>Metallbau (3-4-5)</option>
@@ -874,6 +874,7 @@
             </div>
         </div>
         <p class="copy-hint">💡 Wert antippen → kopieren</p>
+        <p id="dreieckWinkelInfo" class="rundung-hinweis" style="display:none;"></p>
     </div>
 </div>
 
@@ -928,7 +929,7 @@
 </div>
 
 <!-- ===== FLÄCHE ===== -->
-<div id="flaeche" class="tab-content active">
+<div id="flaeche" class="tab-content">
     <!-- versteckte Felder -->
     <div style="display:none;">
         <select id="ueberschriftSelect"><option value="Wohnung" selected>Wohnung</option><option value="Lager">Lager</option><option value="Halle">Halle</option><option value="Büro">Büro</option><option value="Agrar">Agrar</option><option value="Außenfläche">Außenfläche</option><option value="Sonstige">Sonstige…</option></select>
@@ -1101,12 +1102,12 @@
 <script>
 "use strict";
 
-const APP_VERSION = "2026-09-08-07";
+const APP_VERSION = "2026-09-08-08";
 
 // ── STATE ──
 let wHist  = JSON.parse(localStorage.getItem('sener_historie'))            || [];
 let fHist  = JSON.parse(localStorage.getItem('sener_berechnung_historie')) || [];
-let raeume = [];
+let raeume = JSON.parse(localStorage.getItem('sener_raeume')||'[]') || [];
 let draggedTab = null;
 let _ccb = null;
 
@@ -1247,6 +1248,7 @@ function zTab(name,e){
   if((location.hash||'').replace('#','')!==name){
     history.replaceState(null,'','#'+name);
   }
+  if(name==='winkel') setTimeout(()=>$('istMasse')?.focus(),80);
 }
 
 function initTabs(){
@@ -1372,8 +1374,17 @@ function berechneDreieck(){
   const gr=g*Math.PI/180;
   const c=Math.sqrt(a*a+b*b-2*a*b*Math.cos(gr));
   const fl=0.5*a*b*Math.sin(gr)/1e6;
-  $('seiteC').textContent=c.toFixed(2).replace('.',',')+' mm';
-  $('flaecheDreieck').textContent=fl.toFixed(3).replace('.',',')+' m²';
+  const cosA=Math.min(1,Math.max(-1,(b*b+c*c-a*a)/(2*b*c)));
+  const alpha=Math.acos(cosA)*180/Math.PI;
+  const beta=180-g-alpha;
+  $('seiteC').textContent=c.toLocaleString('de-DE',{minimumFractionDigits:1,maximumFractionDigits:1})+' mm';
+  $('flaecheDreieck').textContent=fl.toLocaleString('de-DE',{minimumFractionDigits:3,maximumFractionDigits:3})+' m²';
+  const info=$('dreieckWinkelInfo');
+  if(info){
+    const r90=Math.abs(g-90)<0.05?' Rechter Winkel (90°).':'';
+    info.textContent=`Winkel α ${alpha.toLocaleString('de-DE',{maximumFractionDigits:1})}° · β ${beta.toLocaleString('de-DE',{maximumFractionDigits:1})}° · γ ${g.toLocaleString('de-DE',{maximumFractionDigits:1})}°.${r90}`;
+    info.style.display='block';
+  }
   $('ergebnisDreieck').style.display='block'; vib(10);
 }
 
@@ -1439,6 +1450,7 @@ function addRaum(){
   if(err.length){toast('Name, Länge und Breite eingeben','err');inpErr(...err);return;}
   const fl=toM(L,Le)*toM(B,Be);
   raeume.unshift({id:Date.now(),name,laenge:L,breite:B,laengeE:Le,breiteE:Be,flaeche:fl});
+  localStorage.setItem('sener_raeume',JSON.stringify(raeume));
   showRaeume(); calcGesamt();
   $('raumName').value=''; $('laenge').value=''; $('breite').value='';
   vib(10); toast(`✅ „${name}" – ${fmtFl(fl)}`,'ok',2000);
@@ -1449,6 +1461,7 @@ function delRaum(id){
   confirm(`„${r?.name||'Raum'}" löschen?`,ja=>{
     if(!ja) return;
     raeume=raeume.filter(x=>x.id!==id);
+    localStorage.setItem('sener_raeume',JSON.stringify(raeume));
     showRaeume(); calcGesamt(); toast('Raum gelöscht','inf');
   });
 }
@@ -1519,7 +1532,9 @@ function ladeBerechnung(id){
   else{sel.value='Sonstige';cust.value=d.titel||'';}
   $('adresseStrasse').value=d.strasse||''; $('adressePLZ').value=d.plz||'';
   $('adresseOrt').value=d.ort||''; $('beschreibung').value=d.beschreibung||'';
-  raeume=(b.raeume||[]).slice(); showRaeume(); calcGesamt();
+  raeume=(b.raeume||[]).slice();
+  localStorage.setItem('sener_raeume',JSON.stringify(raeume));
+  showRaeume(); calcGesamt();
   closePopup('flaecheHistoriePopup'); $('versandMenu').style.display='none';
   toast(`📂 „${d.titel||'Unbenannt'}" geladen`,'inf');
 }
@@ -1697,10 +1712,12 @@ document.addEventListener('click', e=>{
 document.addEventListener('DOMContentLoaded',()=>{
   const vl=$('appVersionLine');
   if(vl) vl.textContent='Version '+APP_VERSION;
-  zTab(tabFromHash()||'flaeche',null);
+  zTab(tabFromHash()||'winkel',null);
   showRaeume(); calcGesamt();
   $('versandMenu').style.display='none';
   $('istMasse').addEventListener('keydown',e=>{if(e.key==='Enter') berechneMassen();});
+  ['seiteA','seiteB','winkelGamma'].forEach(id=>$(id)?.addEventListener('keydown',e=>{if(e.key==='Enter') berechneDreieck();}));
+  $('breite')?.addEventListener('keydown',e=>{if(e.key==='Enter') addRaum();});
   initTabs();
   registerSW();
   window.addEventListener('hashchange',()=>{

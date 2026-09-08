@@ -3,7 +3,7 @@
   "name": "Flächenrechner King",
   "short_name": "Flächenrechner",
   "description": "Profi-Werkzeug für Baustelle: Winkel (3-4-5), Fläche, Kreis und Dreieck. Für Metallbau, Wohnungsbau und Agrar.",
-  "start_url": "./index.html",
+  "start_url": "./index.html#winkel",
   "scope": "./",
   "display": "standalone",
   "display_override": ["standalone", "minimal-ui", "browser"],
